@@ -56,7 +56,7 @@ public class Employee {
     private List<Employee> subordinates;
 
     @Column(name = "SALARY", nullable = false)
-    private Long salary;
+    private float salary;
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(

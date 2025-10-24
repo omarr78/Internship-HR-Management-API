@@ -21,7 +21,7 @@ CREATE TABLE employees
     department_id   BIGINT                NOT NULL,
     team_id         BIGINT                NOT NULL,
     manager_id      BIGINT                NULL,
-    salary          BIGINT                NOT NULL,
+    salary          FLOAT                 NOT NULL,
     CONSTRAINT pk_employees PRIMARY KEY (id)
 );
 
