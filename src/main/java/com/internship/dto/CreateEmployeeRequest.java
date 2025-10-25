@@ -1,6 +1,5 @@
 package com.internship.dto;
 
-import com.internship.entity.Expertise;
 import com.internship.enums.Gender;
 import lombok.*;
 
@@ -21,5 +20,5 @@ public class CreateEmployeeRequest {
     private Long teamId;
     private Long managerId;
     private float salary;
-    private List<Expertise> expertises;
+    private String expertises;
 }

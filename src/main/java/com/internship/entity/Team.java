@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "TEAM")
+@Table(name = "TEAMS")
 public class Team {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
