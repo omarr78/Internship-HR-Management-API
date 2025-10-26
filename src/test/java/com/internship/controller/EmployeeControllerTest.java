@@ -35,36 +35,34 @@ class EmployeeControllerTest {
     @MockitoBean
     private EmployeeServiceImpl service;
 
+    CreateEmployeeRequest request = CreateEmployeeRequest.builder()
+            .name("Omar")
+            .dateOfBirth(LocalDate.of(1999, 10, 5))
+            .graduationDate(LocalDate.of(2020, 6, 5))
+            .gender(MALE)
+            .departmentId(1L)
+            .teamId(1L)
+            .managerId(2L)
+            .salary(2000)
+            .expertises(Arrays.asList("Java", "Spring boot"))
+            .build();
+
+    CreateEmployeeResponse response = CreateEmployeeResponse.builder()
+            .id(1L)
+            .name("Omar")
+            .dateOfBirth(LocalDate.of(1999, 10, 5))
+            .graduationDate(LocalDate.of(2020, 6, 5))
+            .gender(MALE)
+            .departmentId(1L)
+            .teamId(1L)
+            .managerId(2L)
+            .salary(2000)
+            .expertises(Arrays.asList("Java", "Spring boot"))
+            .build();
+
     // Test: Create Employee
     @Test
     public void testCreateEmployee() throws Exception {
-        // Given
-
-        CreateEmployeeRequest request = CreateEmployeeRequest.builder()
-                .name("Omar")
-                .dateOfBirth(LocalDate.of(1999, 10, 5))
-                .graduationDate(LocalDate.of(2020, 6, 5))
-                .gender(MALE)
-                .departmentId(1L)
-                .teamId(1L)
-                .managerId(2L)
-                .salary(2000)
-                .expertises(Arrays.asList("Java", "Spring boot"))
-                .build();
-
-        CreateEmployeeResponse response = CreateEmployeeResponse.builder()
-                .id(1L)
-                .name("Omar")
-                .dateOfBirth(LocalDate.of(1999, 10, 5))
-                .graduationDate(LocalDate.of(2020, 6, 5))
-                .gender(MALE)
-                .departmentId(1L)
-                .teamId(1L)
-                .managerId(2L)
-                .salary(2000)
-                .expertises(Arrays.asList("Java", "Spring boot"))
-                .build();
-
 
         // When addEmployee is called, return the employee
         when(service.addEmployee(any(CreateEmployeeRequest.class))).thenReturn(response);
