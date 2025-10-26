@@ -1,8 +1,8 @@
-CREATE TABLE department
+CREATE TABLE departments
 (
     id   BIGINT AUTO_INCREMENT NOT NULL,
     name VARCHAR(255)          NOT NULL,
-    CONSTRAINT pk_department PRIMARY KEY (id)
+    CONSTRAINT pk_departments PRIMARY KEY (id)
 );
 
 CREATE TABLE employee_expertise
@@ -25,31 +25,31 @@ CREATE TABLE employees
     CONSTRAINT pk_employees PRIMARY KEY (id)
 );
 
-CREATE TABLE expertise
+CREATE TABLE expertises
 (
     id   BIGINT AUTO_INCREMENT NOT NULL,
     name VARCHAR(255)          NOT NULL,
-    CONSTRAINT pk_expertise PRIMARY KEY (id)
+    CONSTRAINT pk_expertises PRIMARY KEY (id)
 );
 
-CREATE TABLE team
+CREATE TABLE teams
 (
     id   BIGINT AUTO_INCREMENT NOT NULL,
     name VARCHAR(255)          NOT NULL,
-    CONSTRAINT pk_team PRIMARY KEY (id)
+    CONSTRAINT pk_teams PRIMARY KEY (id)
 );
 
 ALTER TABLE employees
-    ADD CONSTRAINT FK_EMPLOYEES_ON_DEPARTMENT FOREIGN KEY (department_id) REFERENCES department (id);
+    ADD CONSTRAINT FK_EMPLOYEES_ON_DEPARTMENT FOREIGN KEY (department_id) REFERENCES departments (id);
 
 ALTER TABLE employees
     ADD CONSTRAINT FK_EMPLOYEES_ON_MANAGER FOREIGN KEY (manager_id) REFERENCES employees (id);
 
 ALTER TABLE employees
-    ADD CONSTRAINT FK_EMPLOYEES_ON_TEAM FOREIGN KEY (team_id) REFERENCES team (id);
+    ADD CONSTRAINT FK_EMPLOYEES_ON_TEAM FOREIGN KEY (team_id) REFERENCES teams (id);
 
 ALTER TABLE employee_expertise
     ADD CONSTRAINT fk_empexp_on_employee FOREIGN KEY (employee_id) REFERENCES employees (id);
 
 ALTER TABLE employee_expertise
-    ADD CONSTRAINT fk_empexp_on_expertise FOREIGN KEY (expertise_id) REFERENCES expertise (id);
+    ADD CONSTRAINT fk_empexp_on_expertise FOREIGN KEY (expertise_id) REFERENCES expertises (id);
