@@ -1,6 +1,6 @@
 package com.internship.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,8 +12,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "TEAM")
-public class Team {
+@Table(name = "EXPERTISE")
+public class Expertise {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,8 +21,7 @@ public class Team {
     @Column(name = "NAME", nullable = false)
     private String name;
 
-    @OneToMany(mappedBy = "team")
-    @JsonManagedReference
+    @ManyToMany(mappedBy = "expertises")
+    @JsonIgnore
     private List<Employee> employees;
 }
-

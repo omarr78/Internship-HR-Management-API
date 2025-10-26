@@ -36,26 +36,31 @@ public class Employee {
 
     @ManyToOne
     @JoinColumn(name = "DEPARTMENT_ID", nullable = false)
-    @JsonBackReference("department-employees")
+    @JsonBackReference
     private Department department;
 
     @ManyToOne
     @JoinColumn(name = "TEAM_ID", nullable = false)
-    @JsonBackReference("team-employees")
+    @JsonBackReference
     private Team team;
 
     @ManyToOne
     @JoinColumn(name = "MANAGER_ID")
-    @JsonBackReference("manager-subordinates")
+    @JsonBackReference
     private Employee manager;
 
     @OneToMany(mappedBy = "manager")
-    @JsonManagedReference("manager-subordinates")
+    @JsonManagedReference
     private List<Employee> subordinates;
 
     @Column(name = "SALARY", nullable = false)
     private float salary;
 
-    @Column(name = "EXPERTISES", columnDefinition = "json")
-    private String expertises;
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "EMPLOYEE_EXPERTISE",
+            joinColumns = @JoinColumn(name = "EMPLOYEE_ID"),
+            inverseJoinColumns = @JoinColumn(name = "EXPERTISE_ID")
+    )
+    private List<Expertise> expertises;
 }

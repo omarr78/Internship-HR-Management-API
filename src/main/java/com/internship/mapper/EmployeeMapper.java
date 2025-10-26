@@ -3,10 +3,14 @@ package com.internship.mapper;
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.entity.Department;
 import com.internship.entity.Employee;
+import com.internship.entity.Expertise;
 import com.internship.entity.Team;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.List;
+
+import static com.internship.enums.Gender.MALE;
 
 @Component
 public class EmployeeMapper {
@@ -22,8 +26,8 @@ public class EmployeeMapper {
                 .department(department)
                 .team(team)
                 .manager(manager)
-                .salary(request.getSalary())
                 .expertises(request.getExpertises())
+                .salary(2000)
                 .build();
     }
 }
