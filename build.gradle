@@ -33,6 +33,7 @@ dependencies {
     implementation("me.paulschwarz:spring-dotenv:3.0.0")
     implementation("org.flywaydb:flyway-core:10.10.0")
     implementation("org.flywaydb:flyway-mysql:10.10.0")
+    implementation("org.springframework.boot:spring-boot-starter-validation:3.5.6")
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
