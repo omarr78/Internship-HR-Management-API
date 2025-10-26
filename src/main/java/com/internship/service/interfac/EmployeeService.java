@@ -1,8 +1,8 @@
 package com.internship.service.interfac;
 
 import com.internship.dto.CreateEmployeeRequest;
-import com.internship.entity.Employee;
+import com.internship.dto.CreateEmployeeResponse;
 
 public interface EmployeeService {
-    Employee addEmployee(CreateEmployeeRequest request);
+    CreateEmployeeResponse addEmployee(CreateEmployeeRequest request);
 }

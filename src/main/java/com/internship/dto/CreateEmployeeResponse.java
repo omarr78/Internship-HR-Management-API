@@ -11,7 +11,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CreateEmployeeRequest {
+public class CreateEmployeeResponse {
+    private Long id;
     private String name;
     private LocalDate dateOfBirth;
     private LocalDate graduationDate;
