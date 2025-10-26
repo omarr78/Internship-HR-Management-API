@@ -48,7 +48,7 @@ public class EmployeeMapper {
                 .gender(employee.getGender())
                 .departmentId(employee.getDepartment().getId())
                 .teamId(employee.getTeam().getId())
-                .managerId(employee.getManager().getId())
+                .managerId(employee.getManager() != null ? employee.getManager().getId() : null)
                 .salary(employee.getSalary())
                 .expertises(expertises)
                 .build();
