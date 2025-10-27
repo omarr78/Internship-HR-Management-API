@@ -6,5 +6,5 @@ import com.internship.dto.UpdateEmployeeRequest;
 
 public interface EmployeeService {
     EmployeeResponse addEmployee(CreateEmployeeRequest request);
-    EmployeeResponse updateEmployee(UpdateEmployeeRequest request);
+    EmployeeResponse modifyEmployee(UpdateEmployeeRequest request, Long id);
 }
