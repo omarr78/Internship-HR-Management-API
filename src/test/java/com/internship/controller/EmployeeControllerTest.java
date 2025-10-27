@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
+import com.internship.dto.UpdateEmployeeRequest;
 import com.internship.service.impl.EmployeeServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.MediaType;
@@ -19,6 +20,7 @@ import java.util.Arrays;
 import static com.internship.enums.Gender.MALE;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -74,6 +76,39 @@ class EmployeeControllerTest {
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andExpect(content().json(objectMapper.writeValueAsString(response)));
+    }
+
+    // Test: update Employee
+    @Test
+    public void testUpdateEmployeeShouldReturnEmployeeWhenSuccess() throws Exception {
+
+        // When updateEmployee is called, return the employee
+        when(service.updateEmployee(any(UpdateEmployeeRequest.class))).thenReturn(response);
+
+        // Perform the PUT request and assert the response
+        // there is an employee exists with this id and also all resources exists
+        mockMvc.perform(put("/api/employees/1")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+    }
+
+    // Test: update Employee and the id of employee not found
+    @Test
+    public void testUpdateEmployeeShouldReturnNotFoundWhenResourceNotFound() throws Exception {
+
+        // When updateEmployee is called, return the employee
+        when(service.updateEmployee(any(UpdateEmployeeRequest.class))).thenReturn(response);
+
+        // Perform the PUT request and assert the response
+        // there is no employee exists with this id or resources not exists
+        mockMvc.perform(put("/api/employees/10")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isNotFound());
     }
 }
 
