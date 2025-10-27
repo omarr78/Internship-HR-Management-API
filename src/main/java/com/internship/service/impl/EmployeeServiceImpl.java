@@ -2,6 +2,7 @@ package com.internship.service.impl;
 
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
+import com.internship.dto.UpdateEmployeeRequest;
 import com.internship.entity.Department;
 import com.internship.entity.Employee;
 import com.internship.entity.Expertise;
@@ -69,5 +70,10 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee savedEmployee = employeeRepository.save(employee);
 
         return employeeMapper.toResponse(savedEmployee);
+    }
+
+    @Override
+    public EmployeeResponse updateEmployee(UpdateEmployeeRequest request) {
+        return null;
     }
 }
