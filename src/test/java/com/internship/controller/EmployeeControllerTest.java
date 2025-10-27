@@ -6,13 +6,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
 import com.internship.dto.UpdateEmployeeRequest;
+import com.internship.exception.ApiError;
+import com.internship.exception.BusinessException;
 import com.internship.service.impl.EmployeeServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -83,7 +87,7 @@ class EmployeeControllerTest {
     public void testUpdateEmployeeShouldReturnEmployeeWhenSuccess() throws Exception {
 
         // When updateEmployee is called, return the employee
-        when(service.updateEmployee(any(UpdateEmployeeRequest.class))).thenReturn(response);
+        when(service.modifyEmployee(any(UpdateEmployeeRequest.class), any(Long.class))).thenReturn(response);
 
         // Perform the PUT request and assert the response
         // there is an employee exists with this id and also all resources exists
@@ -100,7 +104,8 @@ class EmployeeControllerTest {
     public void testUpdateEmployeeShouldReturnNotFoundWhenResourceNotFound() throws Exception {
 
         // When updateEmployee is called, return the employee
-        when(service.updateEmployee(any(UpdateEmployeeRequest.class))).thenReturn(response);
+        when(service.modifyEmployee(any(UpdateEmployeeRequest.class), any(Long.class)))
+                .thenThrow(new BusinessException(ApiError.RESOURCE_NOT_FOUND));
 
         // Perform the PUT request and assert the response
         // there is no employee exists with this id or resources not exists
