@@ -1,10 +1,7 @@
 package com.internship.dto;
 
 import com.internship.enums.Gender;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -17,6 +14,7 @@ import java.util.List;
 @Builder
 public class CreateEmployeeRequest {
     @NotBlank(message = "name is required")
+    @Size(min = 2, message = "name must not be empty and at least has 2 characters")
     private String name;
 
     @NotNull(message = "date of birth required")
