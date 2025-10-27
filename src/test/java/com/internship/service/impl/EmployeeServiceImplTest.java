@@ -1,7 +1,7 @@
 package com.internship.service.impl;
 
 import com.internship.dto.CreateEmployeeRequest;
-import com.internship.dto.CreateEmployeeResponse;
+import com.internship.dto.EmployeeResponse;
 import com.internship.entity.Department;
 import com.internship.entity.Employee;
 import com.internship.entity.Expertise;
@@ -92,8 +92,8 @@ class EmployeeServiceImplTest {
                 .build();
     }
 
-    private CreateEmployeeResponse buildResponse(Employee employee) {
-        return CreateEmployeeResponse.builder()
+    private EmployeeResponse buildResponse(Employee employee) {
+        return EmployeeResponse.builder()
                 .id(employee.getId())
                 .name(employee.getName())
                 .dateOfBirth(employee.getDateOfBirth())
@@ -124,7 +124,7 @@ class EmployeeServiceImplTest {
                 .expertises(expertises)
                 .build();
 
-        CreateEmployeeResponse response = buildResponse(employee);
+        EmployeeResponse response = buildResponse(employee);
 
         // Given
         when(departmentRepository.findById(request.getDepartmentId()))
@@ -145,7 +145,7 @@ class EmployeeServiceImplTest {
         when(employeeMapper.toResponse(employee)).thenReturn(response);
 
         // When
-        CreateEmployeeResponse res = service.addEmployee(request);
+        EmployeeResponse res = service.addEmployee(request);
 
         // Then
         assertNotNull(res);
@@ -225,7 +225,7 @@ class EmployeeServiceImplTest {
                 .expertises(List.of(expertise1, expertise2))
                 .build();
 
-        CreateEmployeeResponse response = buildResponse(employee);
+        EmployeeResponse response = buildResponse(employee);
 
         when(departmentRepository.findById(request.getDepartmentId()))
                 .thenReturn(Optional.of(department));
@@ -242,7 +242,7 @@ class EmployeeServiceImplTest {
         when(employeeMapper.toResponse(employee)).thenReturn(response);
 
         // When
-        CreateEmployeeResponse res = service.addEmployee(request);
+        EmployeeResponse res = service.addEmployee(request);
 
         // Then
         assertNotNull(res);

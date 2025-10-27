@@ -1,7 +1,7 @@
 package com.internship.service.impl;
 
 import com.internship.dto.CreateEmployeeRequest;
-import com.internship.dto.CreateEmployeeResponse;
+import com.internship.dto.EmployeeResponse;
 import com.internship.entity.Department;
 import com.internship.entity.Employee;
 import com.internship.entity.Expertise;
@@ -34,7 +34,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @Transactional
-    public CreateEmployeeResponse addEmployee(CreateEmployeeRequest request) {
+    public EmployeeResponse addEmployee(CreateEmployeeRequest request) {
         Department department = departmentRepository.findById(request.getDepartmentId())
                 .orElseThrow(() -> new BusinessException(DEPARTMENT_NOT_FOUND,
                         "Department not found with id: " + request.getDepartmentId()));

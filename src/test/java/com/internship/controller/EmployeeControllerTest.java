@@ -4,7 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.internship.dto.CreateEmployeeRequest;
-import com.internship.dto.CreateEmployeeResponse;
+import com.internship.dto.EmployeeResponse;
 import com.internship.service.impl.EmployeeServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.MediaType;
@@ -47,7 +47,7 @@ class EmployeeControllerTest {
             .expertises(Arrays.asList("Java", "Spring boot"))
             .build();
 
-    CreateEmployeeResponse response = CreateEmployeeResponse.builder()
+    EmployeeResponse response = EmployeeResponse.builder()
             .id(1L)
             .name("Omar")
             .dateOfBirth(LocalDate.of(1999, 10, 5))

@@ -1,19 +1,14 @@
 package com.internship.mapper;
 
 import com.internship.dto.CreateEmployeeRequest;
-import com.internship.dto.CreateEmployeeResponse;
+import com.internship.dto.EmployeeResponse;
 import com.internship.entity.Department;
 import com.internship.entity.Employee;
 import com.internship.entity.Expertise;
 import com.internship.entity.Team;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.internship.enums.Gender.MALE;
 
 
 @Component
@@ -36,11 +31,11 @@ public class EmployeeMapper {
                 .build();
     }
 
-    public CreateEmployeeResponse toResponse(Employee employee) {
+    public EmployeeResponse toResponse(Employee employee) {
         List<String> expertises = employee.getExpertises()
                 .stream().map(Expertise::getName).toList();
 
-        return CreateEmployeeResponse.builder()
+        return EmployeeResponse.builder()
                 .id(employee.getId())
                 .name(employee.getName())
                 .dateOfBirth(employee.getDateOfBirth())
