@@ -186,4 +186,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         return employee.getSalary() * 0.85F - 500F;
     }
+
+    @Override
+    public List<EmployeeResponse> getAllEmployeesUnderManager(Long id) {
+        return List.of();
+    }
 }
