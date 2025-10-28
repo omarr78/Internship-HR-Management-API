@@ -121,6 +121,7 @@ class EmployeeServiceImplTest {
                 .expertises(expertiseNames)
                 .build();
     }
+
     // Test: Create Employee
     @Test
     public void createEmployeeShouldReturnEmployeeWhenSuccess() {
@@ -174,6 +175,7 @@ class EmployeeServiceImplTest {
         assertEquals(res.getManagerId(), employee.getManager().getId());
         assertEquals(res.getSalary(), employee.getSalary());
     }
+
     // Test: Create Employee
     @Test
     public void createEmployeeShouldReturnDepartmentNotFoundWhenDepartmentNotFound() {
@@ -187,6 +189,7 @@ class EmployeeServiceImplTest {
         // When & Then - should throw an DEPARTMENT_NOT_FOUND
         assertThrows(BusinessException.class, () -> service.addEmployee(request));
     }
+
     // Test: Create Employee
     @Test
     public void createEmployeeShouldReturnTeamNotFoundWhenTeamNotFound() {
@@ -202,6 +205,7 @@ class EmployeeServiceImplTest {
         // When & Then - should throw a TEAM_NOT_FOUND
         assertThrows(BusinessException.class, () -> service.addEmployee(request));
     }
+
     // Test: Create Employee
     @Test
     public void createEmployeeShouldReturnEmployeeNotFoundWhenManagerNotFound() {
@@ -219,6 +223,7 @@ class EmployeeServiceImplTest {
         // When & Then - should throw an EMPLOYEE_NOT_FOUND
         assertThrows(BusinessException.class, () -> service.addEmployee(request));
     }
+
     // Test: Create Employee
     // when manager id is null, that means that employee not have manager
     @Test
@@ -265,6 +270,7 @@ class EmployeeServiceImplTest {
         assertEquals(res.getName(), employee.getName());
         assertNull(res.getManagerId());
     }
+
     // Test: update Employee
     @Test
     public void UpdateEmployeeShouldReturnEmployeeWhenSuccess() {
@@ -335,7 +341,7 @@ class EmployeeServiceImplTest {
         when(employeeMapper.toResponse(employee)).thenReturn(response);
 
         // When
-        EmployeeResponse res = service.modifyEmployee(request,1L);
+        EmployeeResponse res = service.modifyEmployee(request, 1L);
 
         // Then
         assertNotNull(res);
@@ -349,6 +355,7 @@ class EmployeeServiceImplTest {
         assertEquals(res.getManagerId(), employee.getManager().getId());
         assertEquals(res.getSalary(), employee.getSalary());
     }
+
     // Test: update Employee
     @Test
     public void updateEmployeeShouldReturnEmployeeNotFoundWhenEmployeeWithGivenIdNotFound() {
@@ -362,6 +369,7 @@ class EmployeeServiceImplTest {
 
         assertThrows(BusinessException.class, () -> service.modifyEmployee(request, 10L));
     }
+
     // Test: update Employee
     @Test
     public void updateEmployeeShouldReturnDepartmentNotFoundWhenDepartmentNotFound() {
@@ -391,6 +399,7 @@ class EmployeeServiceImplTest {
         // When & Then - should throw an DEPARTMENT_NOT_FOUND
         assertThrows(BusinessException.class, () -> service.modifyEmployee(request, 1L));
     }
+
     // Test: update Employee
     @Test
     public void updateEmployeeShouldReturnTeamNotFoundWhenTeamNotFound() {
@@ -420,6 +429,7 @@ class EmployeeServiceImplTest {
         // When & Then - should throw a TEAM_NOT_FOUND
         assertThrows(BusinessException.class, () -> service.modifyEmployee(request, 1L));
     }
+
     // Test: update Employee
     @Test
     public void updateEmployeeShouldReturnEmployeeNotFoundWhenManagerNotFound() {
@@ -449,6 +459,7 @@ class EmployeeServiceImplTest {
         // When & Then - should throw an EMPLOYEE_NOT_FOUND
         assertThrows(BusinessException.class, () -> service.modifyEmployee(request, 1L));
     }
+
     // Test: update Employee
     // when employee has self management
     @Test
@@ -477,6 +488,7 @@ class EmployeeServiceImplTest {
         // When & Then - should throw a SELF_MANAGEMENT exception
         assertThrows(BusinessException.class, () -> service.modifyEmployee(request, 1L));
     }
+
     // Test: Delete Employee
     @Test
     public void deleteEmployeeShouldReturnEmployeeNotFoundExceptionWhenEmployeeNotFound() {
@@ -489,6 +501,7 @@ class EmployeeServiceImplTest {
         // Then
         assertThrows(BusinessException.class, () -> service.removeEmployee(employeeId));
     }
+
     // Test: Delete employee and employee has no subordinates then it will delete it directly
     @Test
     public void deleteEmployeeShouldDeleteItDirectlyWhenEmployeeHasNoSubordinates() {
@@ -515,6 +528,7 @@ class EmployeeServiceImplTest {
         // Then
         service.removeEmployee(employeeId);
     }
+
     // Test: Delete employee and employee has subordinates and has no manager
     @Test
     public void deleteEmployeeShouldReturnInvalidEmployeeRemovalWhenManagerHasNoManager() {
@@ -594,8 +608,59 @@ class EmployeeServiceImplTest {
         service.removeEmployee(mangerEmployeeId);
 
         // Then
-        assertEquals(subordinateEmployee1.getManager(),managerOfManagerEmployee);
-        assertEquals(subordinateEmployee2.getManager(),managerOfManagerEmployee);
+        assertEquals(subordinateEmployee1.getManager(), managerOfManagerEmployee);
+        assertEquals(subordinateEmployee2.getManager(), managerOfManagerEmployee);
     }
 
+    // Test: Get employee and should success and return employee info
+    @Test
+    public void getEmployeeShouldReturnEmployeeInfoWhenSuccess() {
+        // Given
+        Long employeeId = 1L;
+
+        Employee employee = Employee.builder()
+                .id(1L)
+                .name("Omar")
+                .dateOfBirth(LocalDate.of(1999, 10, 5))
+                .graduationDate(LocalDate.of(2020, 6, 5))
+                .gender(MALE)
+                .department(department)
+                .team(team)
+                .manager(manager)
+                .salary(2000)
+                .expertises(expertises)
+                .build();
+
+        EmployeeResponse response = buildResponse(employee);
+
+        when(employeeRepository.findById(employeeId)).thenReturn(Optional.of(employee));
+        when(employeeMapper.toResponse(employee)).thenReturn(response);
+        // when
+        EmployeeResponse res = service.getEmployee(employeeId);
+        // then
+
+        assertNotNull(res);
+        assertEquals(res.getId(), employee.getId());
+        assertEquals(res.getName(), employee.getName());
+        assertEquals(res.getDateOfBirth(), employee.getDateOfBirth());
+        assertEquals(res.getGraduationDate(), employee.getGraduationDate());
+        assertEquals(res.getGender(), employee.getGender());
+        assertEquals(res.getDepartmentId(), employee.getDepartment().getId());
+        assertEquals(res.getTeamId(), employee.getTeam().getId());
+        assertEquals(res.getManagerId(), employee.getManager().getId());
+        assertEquals(res.getSalary(), employee.getSalary());
+    }
+
+    // Test: Get Employee
+    @Test
+    public void getEmployeeShouldReturnEmployeeNotFoundExceptionWhenEmployeeNotFound() {
+        // Given
+        Long employeeId = 1L;
+
+        // When
+        when(employeeRepository.findById(employeeId))
+                .thenReturn(Optional.empty());
+        // Then
+        assertThrows(BusinessException.class, () -> service.getEmployee(employeeId));
+    }
 }

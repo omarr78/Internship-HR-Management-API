@@ -136,6 +136,31 @@ class EmployeeControllerTest {
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
+    // Test: Get existing employee and should success and return Employee info
+    @Test
+    public void testGetEmployeeShouldReturnEmployeeInfoWhenSuccess() throws Exception {
+        // Given
+        // When updateEmployee is called, return the employee
+        when(service.getEmployee(any(Long.class))).thenReturn(response);
+
+        // When & Then
+        // Perform the Get request and assert the response
+        mockMvc.perform(get("/api/employees/1")) // there is an employee exists with this id
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(response)));
+    }
+    // Test: Get not existing employee and should throw employee not found exception
+    @Test
+    public void testGetEmployeeShouldReturnEmployeeNotFoundWhenEmployeeNotFound() throws Exception {
+        // When
+        when(service.getEmployee(any(Long.class))).thenThrow(new BusinessException(EMPLOYEE_NOT_FOUND));
+
+        // Perform Get request and assert the response
+        mockMvc.perform(get("/api/employees/10")) // there is no employee exists with this id
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
 }
 
 
