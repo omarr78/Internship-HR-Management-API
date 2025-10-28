@@ -144,4 +144,9 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeRepository.save(employee);
         return employeeMapper.toResponse(employee);
     }
+
+    @Override
+    public void removeEmployee(Long id) {
+
+    }
 }
