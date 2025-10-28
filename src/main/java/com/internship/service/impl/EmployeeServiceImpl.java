@@ -176,4 +176,14 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         return employeeMapper.toResponse(employee);
     }
+
+    @Override
+    public float getEmployeeSalaryInfo(Long id) {
+        // check employee with id exists
+        Employee employee = employeeRepository.findById(id).
+                orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+                        "Employee not found with id: " + id));
+
+        return employee.getSalary() * 0.85F - 500F;
+    }
 }

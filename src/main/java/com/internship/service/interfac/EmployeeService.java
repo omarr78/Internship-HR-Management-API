@@ -9,4 +9,5 @@ public interface EmployeeService {
     EmployeeResponse modifyEmployee(UpdateEmployeeRequest request, Long id);
     void removeEmployee(Long id);
     EmployeeResponse getEmployee(Long id);
+    float getEmployeeSalaryInfo(Long id);
 }

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Map;
 
 import static com.internship.enums.Gender.MALE;
 
@@ -46,6 +47,12 @@ public class EmployeeController {
     public ResponseEntity<EmployeeResponse> getEmployee(@PathVariable final Long id) {
         EmployeeResponse response = service.getEmployee(id);
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/{id}/salary")
+    public ResponseEntity<Map<String,Float>> getEmployeeSalary(@PathVariable final Long id) {
+        float salary = service.getEmployeeSalaryInfo(id);
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("salary", salary));
     }
 
 }
