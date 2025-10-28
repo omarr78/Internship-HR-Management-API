@@ -663,4 +663,39 @@ class EmployeeServiceImplTest {
         // Then
         assertThrows(BusinessException.class, () -> service.getEmployee(employeeId));
     }
+
+    // Test: Get Employee salary of employee not exist
+    @Test
+    public void getEmployeeSalaryShouldReturnEmployeeSalaryWhenSuccess() {
+        // Given
+        Long employeeId = 1L;
+
+        Employee employee = Employee.builder()
+                .id(1L)
+                .name("Omar")
+                .salary(2000)
+                .build();
+
+        float netSalary = employee.getSalary() * 0.85F - 500F;
+
+        when(employeeRepository.findById(employeeId)).thenReturn(Optional.of(employee));
+        // when
+        float res = service.getEmployeeSalaryInfo(employeeId);
+        // then
+        assertEquals(res, netSalary);
+    }
+
+    // Test: Get Employee salary of employee not exist
+    @Test
+    public void getEmployeeSalaryShouldReturnEmployeeNotFoundExceptionWhenEmployeeNotFound() {
+        // Given
+        Long employeeId = 1L;
+
+        // When
+        when(employeeRepository.findById(employeeId))
+                .thenReturn(Optional.empty());
+        // Then
+        assertThrows(BusinessException.class, () -> service.getEmployee(employeeId));
+    }
+
 }

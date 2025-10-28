@@ -1,6 +1,7 @@
 package com.internship.controller;
 
 import static com.internship.exception.ApiError.EMPLOYEE_NOT_FOUND;
+import static com.internship.exception.ApiError.valueOf;
 import static org.mockito.ArgumentMatchers.any;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +22,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Map;
 
 import static com.internship.enums.Gender.MALE;
 import static org.mockito.Mockito.doThrow;
@@ -158,6 +160,32 @@ class EmployeeControllerTest {
 
         // Perform Get request and assert the response
         mockMvc.perform(get("/api/employees/10")) // there is no employee exists with this id
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+    // Test: Get existing employee salary and should success and return Employee salary info
+    @Test
+    public void testGetEmployeeSalaryShouldReturnEmployeeSalaryWhenSuccess() throws Exception {
+        // Given
+        Float salary = 2000F;
+        // When updateEmployee is called, return the employee
+        when(service.getEmployeeSalaryInfo(any(Long.class))).thenReturn(salary);
+
+        // When & Then
+        // Perform the Get request and assert the response
+        mockMvc.perform(get("/api/employees/1/salary")) // there is an employee exists with this id
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(Map.of("salary", salary))));
+    }
+    // Test: Get not existing employee and should throw employee not found exception
+    @Test
+    public void testGetEmployeeSalaryShouldReturnEmployeeNotFoundWhenEmployeeNotFound() throws Exception {
+        // When
+        when(service.getEmployeeSalaryInfo(any(Long.class))).thenThrow(new BusinessException(EMPLOYEE_NOT_FOUND));
+
+        // Perform Get request and assert the response
+        mockMvc.perform(get("/api/employees/10/salary")) // there is no employee exists with this id
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
