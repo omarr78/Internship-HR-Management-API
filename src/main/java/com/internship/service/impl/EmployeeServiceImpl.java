@@ -166,4 +166,9 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
         employeeRepository.delete(employee);
     }
+
+    @Override
+    public EmployeeResponse getEmployee(Long id) {
+        return null;
+    }
 }
