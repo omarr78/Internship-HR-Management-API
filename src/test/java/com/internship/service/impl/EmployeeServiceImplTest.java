@@ -477,4 +477,125 @@ class EmployeeServiceImplTest {
         // When & Then - should throw a SELF_MANAGEMENT exception
         assertThrows(BusinessException.class, () -> service.modifyEmployee(request, 1L));
     }
+    // Test: Delete Employee
+    @Test
+    public void deleteEmployeeShouldReturnEmployeeNotFoundExceptionWhenEmployeeNotFound() {
+        // Given
+        Long employeeId = 1L;
+
+        // When
+        when(employeeRepository.findById(employeeId))
+                .thenReturn(Optional.empty());
+        // Then
+        assertThrows(BusinessException.class, () -> service.removeEmployee(employeeId));
+    }
+    // Test: Delete employee and employee has no subordinates then it will delete it directly
+    @Test
+    public void deleteEmployeeShouldDeleteItDirectlyWhenEmployeeHasNoSubordinates() {
+        // Given
+        Long employeeId = 1L;
+
+        Employee employee = Employee.builder()
+                .id(1L)
+                .name("Omar")
+                .dateOfBirth(LocalDate.of(1999, 10, 5))
+                .graduationDate(LocalDate.of(2020, 6, 5))
+                .gender(MALE)
+                .department(department)
+                .team(team)
+                .manager(manager)
+                .salary(2000)
+                .subordinates(List.of())
+                .expertises(expertises)
+                .build();
+
+        // When
+        when(employeeRepository.findById(employeeId))
+                .thenReturn(Optional.of(employee));
+        // Then
+        service.removeEmployee(employeeId);
+    }
+    // Test: Delete employee and employee has subordinates and has no manager
+    @Test
+    public void deleteEmployeeShouldReturnInvalidEmployeeRemovalWhenManagerHasNoManager() {
+        // Given
+        // mangerEmployee --> {subordinateEmployee1,subordinateEmployee2}
+        Long subordinateEmployeeId1 = 1L;
+        Long subordinateEmployeeId2 = 2L;
+        Long mangerEmployeeId = 3L;
+
+        Employee mangerEmployee = Employee.builder()
+                .id(mangerEmployeeId)
+                .name("Omar")
+                .manager(null) // has no manager
+                .build();
+
+        Employee subordinateEmployee1 = Employee.builder()
+                .id(subordinateEmployeeId1)
+                .name("Ahmed")
+                .manager(mangerEmployee)
+                .build();
+
+        Employee subordinateEmployee2 = Employee.builder()
+                .id(subordinateEmployeeId2)
+                .name("Mahmoud")
+                .manager(mangerEmployee)
+                .build();
+
+        // set two employee as Subordinates to manager
+        mangerEmployee.setSubordinates(List.of(subordinateEmployee1, subordinateEmployee2));
+
+        when(employeeRepository.findById(mangerEmployeeId))
+                .thenReturn(Optional.of(mangerEmployee));
+
+        // When & Then
+        assertThrows(BusinessException.class, () -> service.removeEmployee(mangerEmployeeId));
+    }
+
+    // Test: Delete employee and employee has subordinates and has manager
+    @Test
+    public void deleteManagerEmployeeShouldMoveAllSubordinateToHisManagerThenDelete() {
+        // Given
+        // managerOfManagerEmployee -->  mangerEmployee --> {subordinateEmployee1,subordinateEmployee2}
+        Long subordinateEmployeeId1 = 1L;
+        Long subordinateEmployeeId2 = 2L;
+        Long mangerEmployeeId = 3L;
+        Long managerOfManagerEmployeeId = 4L;
+
+        Employee managerOfManagerEmployee = Employee.builder()
+                .id(managerOfManagerEmployeeId)
+                .name("Omar")
+                .build();
+
+        Employee mangerEmployee = Employee.builder()
+                .id(mangerEmployeeId)
+                .name("Mostafa")
+                .manager(managerOfManagerEmployee) // manager has manager
+                .build();
+
+        Employee subordinateEmployee1 = Employee.builder()
+                .id(subordinateEmployeeId1)
+                .name("Ahmed")
+                .manager(mangerEmployee)
+                .build();
+
+        Employee subordinateEmployee2 = Employee.builder()
+                .id(subordinateEmployeeId2)
+                .name("Mahmoud")
+                .manager(mangerEmployee)
+                .build();
+
+        managerOfManagerEmployee.setSubordinates(List.of(mangerEmployee));
+        mangerEmployee.setSubordinates(List.of(subordinateEmployee1, subordinateEmployee2));
+
+        when(employeeRepository.findById(mangerEmployeeId))
+                .thenReturn(Optional.of(mangerEmployee));
+        // When
+        service.removeEmployee(mangerEmployeeId);
+
+        // Then
+        assertEquals(subordinateEmployee1.getManager(),managerOfManagerEmployee);
+        assertEquals(subordinateEmployee2.getManager(),managerOfManagerEmployee);
+    }
+
 }

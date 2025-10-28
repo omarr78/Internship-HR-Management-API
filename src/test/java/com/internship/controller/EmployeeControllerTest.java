@@ -1,5 +1,6 @@
 package com.internship.controller;
 
+import static com.internship.exception.ApiError.EMPLOYEE_NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,9 +23,9 @@ import java.time.LocalDate;
 import java.util.Arrays;
 
 import static com.internship.enums.Gender.MALE;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -112,6 +113,26 @@ class EmployeeControllerTest {
         mockMvc.perform(put("/api/employees/10")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+    // Test: Delete existing employee and should success and return No Content 204
+    @Test
+    public void testDeleteEmployeeShouldReturnNoContentWhenSuccess() throws Exception {
+        // When & Then
+        // Perform the Delete request and assert the response
+        mockMvc.perform(delete("/api/employees/1")) // there is an employee exists with this id
+                .andDo(print())
+                .andExpect(status().isNoContent());
+    }
+    // Test: Delete not existing employee and should throw employee not found exception
+    @Test
+    public void testDeleteEmployeeShouldReturnEmployeeNotFoundWhenEmployeeNotFound() throws Exception {
+        // When
+        doThrow(new BusinessException(EMPLOYEE_NOT_FOUND)).when(service).removeEmployee(any(Long.class));
+
+        // Perform Delete request and assert the response
+        mockMvc.perform(delete("/api/employees/10")) // there is no employee exists with this id
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
