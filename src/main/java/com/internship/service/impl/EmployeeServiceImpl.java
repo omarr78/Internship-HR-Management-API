@@ -146,7 +146,24 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    @Transactional
     public void removeEmployee(Long id) {
+        // check employee with id exists
+        Employee employee = employeeRepository.findById(id).
+                orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+                        "Employee not found with id: " + id));
 
+        if(employee.getSubordinates() != null && !employee.getSubordinates().isEmpty()){
+             if(employee.getManager() != null){
+                 Employee manager = employee.getManager();
+                 for(Employee subordinate : employee.getSubordinates()){
+                     subordinate.setManager(manager);
+                 }
+             }
+             else{
+                throw new BusinessException(INVALID_EMPLOYEE_REMOVAL);
+             }
+        }
+        employeeRepository.delete(employee);
     }
 }
