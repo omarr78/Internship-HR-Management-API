@@ -22,6 +22,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static com.internship.enums.Gender.MALE;
@@ -186,6 +187,31 @@ class EmployeeControllerTest {
 
         // Perform Get request and assert the response
         mockMvc.perform(get("/api/employees/10/salary")) // there is no employee exists with this id
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+    // Test: Get employees under existing manager and should success and return Employees
+    @Test
+    public void testGetEmployeesUnderManagerAndShouldReturnEmployeesWhenSuccess() throws Exception {
+        // Given
+        // When updateEmployee is called, return the employee
+        when(service.getAllEmployeesUnderManager(any(Long.class))).thenReturn(List.of(response));
+
+        // When & Then
+        // Perform the Get request and assert the response
+        mockMvc.perform(get("/api/employees/under-manager/1")) // there is an employee exists with this id
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(List.of(response))));
+    }
+    // Test: Get not existing employee and should throw employee not found exception
+    @Test
+    public void testGetEmployeeUnderManagerAndShouldReturnEmployeeNotFoundWhenManagerNotFound() throws Exception {
+        // When
+        when(service.getAllEmployeesUnderManager(any(Long.class))).thenThrow(new BusinessException(EMPLOYEE_NOT_FOUND));
+
+        // Perform Get request and assert the response
+        mockMvc.perform(get("/api/employees/under-manager/10")) // there is no employee exists with this id
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }

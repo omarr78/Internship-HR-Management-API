@@ -21,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -696,6 +697,104 @@ class EmployeeServiceImplTest {
                 .thenReturn(Optional.empty());
         // Then
         assertThrows(BusinessException.class, () -> service.getEmployee(employeeId));
+    }
+
+    // Test: Get employees under not existing manager
+    @Test
+    public void getEmployeesUnderManagerAndShouldReturnEmployeeNotFoundWhenManagerNotFound() {
+        // Given
+        Long employeeId = 1L;
+
+        // When
+        when(employeeRepository.findById(employeeId))
+                .thenReturn(Optional.empty());
+        // Then
+        assertThrows(BusinessException.class, () -> service.getAllEmployeesUnderManager(employeeId));
+    }
+
+    // Test: Get all employees under existing manager
+    @Test
+    public void getAllEmployeesUnderManagerAndShouldReturnAllEmployeesUnderManager() {
+        // Given
+        /*
+                    A
+             B              C   __ A is the manager of B and C
+          D  E  F           G   __ B is the manager of D,E,F and C is the manager of G
+                            H   __ G is the manager of H
+         */
+
+
+        Employee a = Employee.builder()
+                .id(1L)
+                .name("A")
+                .build();
+
+        Employee b = Employee.builder()
+                .id(2L)
+                .name("B")
+                .manager(a)
+                .build();
+
+        Employee c = Employee.builder()
+                .id(3L)
+                .name("C")
+                .manager(a)
+                .build();
+
+        Employee d = Employee.builder()
+                .id(4L)
+                .name("D")
+                .manager(b)
+                .build();
+
+        Employee e = Employee.builder()
+                .id(5L)
+                .name("E")
+                .manager(b)
+                .build();
+
+        Employee f = Employee.builder()
+                .id(6L)
+                .name("F")
+                .manager(b)
+                .build();
+
+        Employee g = Employee.builder()
+                .id(7L)
+                .name("G")
+                .manager(c)
+                .build();
+
+        Employee h = Employee.builder()
+                .id(8L)
+                .name("H")
+                .manager(g)
+                .build();
+
+        a.setSubordinates(List.of(b,c));
+        b.setSubordinates(List.of(d,e,f));
+        c.setSubordinates(List.of(g));
+        g.setSubordinates(List.of(h));
+
+
+        List<Employee> employees = Arrays.asList(b, c, d, e, f, g, h);
+        List<EmployeeResponse> responses = new ArrayList<>();
+
+        for(Employee emp: employees) {
+            responses.add(employeeMapper.toResponse(emp));
+        }
+
+        when(employeeRepository.findById(a.getId()))
+                .thenReturn(Optional.of(a));
+
+        // When get aLl employee under employee A
+        List<EmployeeResponse> employeeResponses = service.getAllEmployeesUnderManager(a.getId());
+        // Then
+        assertNotNull(employeeResponses);
+        assertEquals(employeeResponses.size(), employees.size());
+        for(int i = 0; i < employees.size(); i++) {
+            assertEquals(employeeResponses.get(i), responses.get(i));
+        }
     }
 
 }
