@@ -1,8 +1,9 @@
 package com.internship.controller;
 
-import com.internship.entity.Employee;
-import com.internship.repository.EmployeeRepository;
+import com.internship.dto.CreateEmployeeRequest;
+import com.internship.dto.EmployeeResponse;
 import com.internship.service.impl.EmployeeServiceImpl;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +20,8 @@ public class EmployeeController {
     private final EmployeeServiceImpl service;
 
     @PostMapping
-    public ResponseEntity<Employee> createEmployee(@RequestBody Employee employeeRequest) {
-        Employee employee = service.addEmployee(employeeRequest);
+    public ResponseEntity<EmployeeResponse> createEmployee(@RequestBody @Valid CreateEmployeeRequest request) {
+        EmployeeResponse employee = service.addEmployee(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(employee);
     }
 }

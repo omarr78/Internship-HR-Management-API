@@ -1,5 +1,7 @@
 package com.internship.unit.service.impl;
 
+import com.internship.dto.CreateEmployeeRequest;
+import com.internship.dto.EmployeeResponse;
 import com.internship.entity.Employee;
 import com.internship.repository.EmployeeRepository;
 import com.internship.service.impl.EmployeeServiceImpl;
@@ -24,8 +26,8 @@ public class EmployeeServiceImplTest {
     @InjectMocks
     private EmployeeServiceImpl service;
 
-    private Employee buildEmployee() {
-        return Employee.builder()
+    private CreateEmployeeRequest buildCreateEmployeeRequest() {
+        return CreateEmployeeRequest.builder()
                 .name("Omar")
                 .dateOfBirth(LocalDate.of(1999, 10, 5))
                 .graduationDate(LocalDate.of(2025, 6, 5))
@@ -37,20 +39,32 @@ public class EmployeeServiceImplTest {
     @Test
     public void testCreateEmployee_ShouldReturnEmployee() {
         // Given
-        Employee employeeRequest = buildEmployee();
-        Employee employeeResponse = buildEmployee();
-        employeeResponse.setId(1L);
+        CreateEmployeeRequest request = buildCreateEmployeeRequest();
 
-        when(employeeRepository.save(any(Employee.class))).thenReturn(employeeResponse);
+        EmployeeResponse employeeResponse = EmployeeResponse.builder()
+                .id(1L)
+                .name(request.getName())
+                .dateOfBirth(request.getDateOfBirth())
+                .graduationDate(request.getGraduationDate())
+                .build();
+
+        Employee employee = Employee.builder()
+                .id(1L)
+                .name(request.getName())
+                .dateOfBirth(request.getDateOfBirth())
+                .graduationDate(request.getGraduationDate())
+                .build();
+
+        when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
         // action
-        Employee response = service.addEmployee(employeeRequest);
+        EmployeeResponse response = service.addEmployee(request);
         // then
         assertNotNull(response);
-        assertEquals(employeeResponse.getId(), response.getId());
-        assertEquals(employeeResponse.getName(), response.getName());
-        assertEquals(employeeResponse.getDateOfBirth(), response.getDateOfBirth());
-        assertEquals(employeeResponse.getGraduationDate(), response.getGraduationDate());
-        assertEquals(employeeResponse.getGender(), response.getGender());
-        assertEquals(employeeResponse.getSalary(), response.getSalary());
+        assertEquals(response.getId(), employeeResponse.getId());
+        assertEquals(response.getName(), employeeResponse.getName());
+        assertEquals(response.getDateOfBirth(), employeeResponse.getDateOfBirth());
+        assertEquals(response.getGraduationDate(), employeeResponse.getGraduationDate());
+        assertEquals(response.getGender(), employeeResponse.getGender());
+        assertEquals(response.getSalary(), employeeResponse.getSalary());
     }
 }
