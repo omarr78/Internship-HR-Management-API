@@ -11,3 +11,11 @@ spring:
       ddl-auto: update
     database-platform: org.hibernate.dialect.MySQLDialect
     show-sql: true
+
+  flyway:
+    enabled: false
+    baseline-on-migrate: true
+    url: jdbc:mysql://${DB_URL}:${DB_PORT}/${DB_NAME}?createDatabaseIfNotExist=true&useMysqlMetadata=true
+    user: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    locations: classpath:db/migration
