@@ -1,5 +1,6 @@
 package com.internship.entity;
 
+import com.internship.enums.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,10 +17,21 @@ public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "NAME", nullable = false)
     private String name;
+
+    @Column(name = "DATE_OF_BIRTH", nullable = false)
     private LocalDate dateOfBirth;
+
+    @Column(name = "GRADUATION_DATE", nullable = false)
     private LocalDate graduationDate;
-    private String gender;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "GENDER", nullable = false)
+    private Gender gender;
+
+    @Column(name = "SALARY", nullable = false)
     private float salary;
 }
 

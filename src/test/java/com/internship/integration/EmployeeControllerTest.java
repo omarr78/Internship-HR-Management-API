@@ -12,6 +12,7 @@ import java.time.LocalDate;
 
 import org.springframework.http.MediaType;
 
+import static com.internship.enums.Gender.MALE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -29,7 +30,7 @@ public class EmployeeControllerTest {
                 .name("Omar")
                 .dateOfBirth(LocalDate.of(1999, 10, 5))
                 .graduationDate(LocalDate.of(2025, 6, 5))
-                .gender("MALE")
+                .gender(MALE)
                 .salary(2000)
                 .build();
     }

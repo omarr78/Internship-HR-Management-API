@@ -11,6 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 
+import static com.internship.enums.Gender.MALE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -28,7 +29,7 @@ public class EmployeeServiceImplTest {
                 .name("Omar")
                 .dateOfBirth(LocalDate.of(1999, 10, 5))
                 .graduationDate(LocalDate.of(2025, 6, 5))
-                .gender("MALE")
+                .gender(MALE)
                 .salary(2000)
                 .build();
     }
