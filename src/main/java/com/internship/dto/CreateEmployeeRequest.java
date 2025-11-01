@@ -31,4 +31,7 @@ public class CreateEmployeeRequest {
 
     @NotNull(message = "departmentId required")
     private Long departmentId;
+
+    @NotNull(message = "teamId required")
+    private Long teamId;
 }

@@ -18,4 +18,5 @@ public class EmployeeResponse {
     private Gender gender;
     private float salary;
     private Long departmentId;
+    private Long teamId;
 }

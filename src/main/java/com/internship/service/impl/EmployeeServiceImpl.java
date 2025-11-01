@@ -29,7 +29,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .orElseThrow(() -> new BusinessException(DEPARTMENT_NOT_FOUND,
                         "Department not found with id: " + request.getDepartmentId()));
 
-        Employee employee = employeeMapper.toEmployee(request,department);
+        Employee employee = employeeMapper.toEmployee(request,department,null);
         Employee savedEmployee = employeeRepository.save(employee);
         return employeeMapper.toResponse(savedEmployee);
     }

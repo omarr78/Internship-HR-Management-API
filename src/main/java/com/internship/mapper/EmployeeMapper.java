@@ -4,13 +4,14 @@ import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
 import com.internship.entity.Department;
 import com.internship.entity.Employee;
+import com.internship.entity.Team;
 import org.springframework.stereotype.Component;
 
 
 @Component
 public class EmployeeMapper {
     public Employee toEmployee(CreateEmployeeRequest request,
-                               Department department) {
+                               Department department, Team team) {
         return Employee.builder()
                 .name(request.getName())
                 .dateOfBirth(request.getDateOfBirth())
@@ -18,6 +19,7 @@ public class EmployeeMapper {
                 .gender(request.getGender())
                 .salary(request.getSalary())
                 .department(department)
+                .team(team)
                 .build();
     }
 
@@ -30,6 +32,7 @@ public class EmployeeMapper {
                 .gender(employee.getGender())
                 .salary(employee.getSalary())
                 .departmentId(employee.getDepartment().getId())
+                .teamId(employee.getTeam().getId())
                 .build();
     }
 }

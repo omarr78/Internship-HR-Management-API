@@ -106,7 +106,7 @@ public class EmployeeServiceImplTest {
         when(departmentRepository.findById(request.getDepartmentId()))
                 .thenReturn(Optional.of(department));
         when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
-        when(mapper.toEmployee(request,department)).thenReturn(employee);
+        when(mapper.toEmployee(request,department,null)).thenReturn(employee);
         when(mapper.toResponse(employee)).thenReturn(employeeResponse);
 
         // action

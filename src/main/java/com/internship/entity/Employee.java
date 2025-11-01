@@ -39,5 +39,10 @@ public class Employee {
     @JoinColumn(name = "DEPARTMENT_ID", nullable = false)
     @JsonBackReference("department-employees")
     private Department department;
+
+    @ManyToOne
+    @JoinColumn(name = "TEAM_ID", nullable = false)
+    @JsonBackReference("team-employees")
+    private Team team;
 }
 
