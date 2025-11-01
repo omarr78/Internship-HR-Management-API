@@ -1,11 +1,13 @@
 package com.internship.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.internship.enums.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -44,5 +46,14 @@ public class Employee {
     @JoinColumn(name = "TEAM_ID", nullable = false)
     @JsonBackReference("team-employees")
     private Team team;
+
+    @ManyToOne
+    @JoinColumn(name = "MANAGER_ID")
+    @JsonBackReference("manager-subordinates")
+    private Employee manager;
+
+    @OneToMany(mappedBy = "manager")
+    @JsonManagedReference("manager-subordinates")
+    private List<Employee> subordinates;
 }
 

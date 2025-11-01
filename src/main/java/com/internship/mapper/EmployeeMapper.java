@@ -11,7 +11,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class EmployeeMapper {
     public Employee toEmployee(CreateEmployeeRequest request,
-                               Department department, Team team) {
+                               Department department, Team team,
+                               Employee manager) {
         return Employee.builder()
                 .name(request.getName())
                 .dateOfBirth(request.getDateOfBirth())
@@ -20,6 +21,7 @@ public class EmployeeMapper {
                 .salary(request.getSalary())
                 .department(department)
                 .team(team)
+                .manager(manager)
                 .build();
     }
 
@@ -33,6 +35,7 @@ public class EmployeeMapper {
                 .salary(employee.getSalary())
                 .departmentId(employee.getDepartment().getId())
                 .teamId(employee.getTeam().getId())
+                .managerId(employee.getManager() != null ? employee.getManager().getId() : null)
                 .build();
     }
 }

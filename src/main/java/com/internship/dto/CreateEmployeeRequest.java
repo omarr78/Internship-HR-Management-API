@@ -34,4 +34,6 @@ public class CreateEmployeeRequest {
 
     @NotNull(message = "teamId required")
     private Long teamId;
+
+    private Long managerId;
 }

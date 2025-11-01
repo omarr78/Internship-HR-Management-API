@@ -19,4 +19,5 @@ public class EmployeeResponse {
     private float salary;
     private Long departmentId;
     private Long teamId;
+    private Long managerId;
 }

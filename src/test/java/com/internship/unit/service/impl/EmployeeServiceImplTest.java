@@ -152,6 +152,30 @@ public class EmployeeServiceImplTest {
     }
 
     @Test
+    public void testAddEmployeeWithNotFoundManager_shouldFail() {
+        // Given
+        Department department = buildDepartment(); // create department with id = 1L
+        Team team = buildTeam(); // create team with id = 1L
+
+        CreateEmployeeRequest request = buildCreateEmployeeRequest();
+        request.setDepartmentId(department.getId());
+        request.setTeamId(team.getId());
+        request.setManagerId(10L); // there is no employee with this id
+
+        when(departmentRepository.findById(request.getDepartmentId()))
+                .thenReturn(Optional.of(department));
+        when(teamRepository.findById(request.getTeamId()))
+                .thenReturn(Optional.of(team));
+        when(employeeRepository.findById(request.getManagerId()))
+                .thenReturn(Optional.empty());
+
+        // When & Then - should throw an EMPLOYEE_NOT_FOUND
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> service.addEmployee(request));
+        assertEquals(EMPLOYEE_NOT_FOUND, exception.getApiError());
+    }
+
+    @Test
     public void testAddEmployeeWithExistingDepartmentAndTeam_shouldSucceedAndReturnEmployeeInfo() {
         // Given
         Department department = buildDepartment(); // create department with id = 1L
@@ -176,7 +200,7 @@ public class EmployeeServiceImplTest {
         when(teamRepository.findById(request.getTeamId()))
                 .thenReturn(Optional.of(team));
         when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
-        when(mapper.toEmployee(request,department,team)).thenReturn(employee);
+        when(mapper.toEmployee(request,department,team,null)).thenReturn(employee);
         when(mapper.toResponse(employee)).thenReturn(employeeResponse);
 
         // action
@@ -191,5 +215,56 @@ public class EmployeeServiceImplTest {
         assertEquals(response.getSalary(), employeeResponse.getSalary());
         assertEquals(response.getDepartmentId(), employeeResponse.getDepartmentId());
         assertEquals(response.getTeamId(), employeeResponse.getTeamId());
+    }
+
+    @Test
+    public void testAddEmployeeWithExistingDepartmentAndTeamAndManager_shouldSucceedAndReturnEmployeeInfo() {
+        // Given
+        Department department = buildDepartment(); // create department with id = 1L
+        Team team = buildTeam(); // create team with id = 1L
+        Employee manager = buildEmployee();
+        manager.setId(10L);
+
+
+        CreateEmployeeRequest request = buildCreateEmployeeRequest();
+        request.setDepartmentId(department.getId());
+        request.setTeamId(team.getId());
+        request.setManagerId(manager.getId());
+
+        Employee employee = buildEmployee();
+        employee.setId(1L);
+        employee.setDepartment(department);
+        employee.setTeam(team);
+        employee.setManager(manager);
+
+        EmployeeResponse employeeResponse = buildEmployeeResponse();
+        employeeResponse.setId(1L);
+        employeeResponse.setDepartmentId(department.getId());
+        employeeResponse.setTeamId(team.getId());
+        employeeResponse.setManagerId(manager.getId());
+
+        when(departmentRepository.findById(request.getDepartmentId()))
+                .thenReturn(Optional.of(department));
+        when(teamRepository.findById(request.getTeamId()))
+                .thenReturn(Optional.of(team));
+        when(employeeRepository.findById(request.getManagerId()))
+                .thenReturn(Optional.of(manager));
+        when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
+        when(mapper.toEmployee(request,department,team,null)).thenReturn(employee);
+        when(mapper.toResponse(employee)).thenReturn(employeeResponse);
+
+        // action
+        EmployeeResponse response = service.addEmployee(request);
+        // then
+        assertNotNull(response);
+        assertEquals(response.getId(), employeeResponse.getId());
+        assertEquals(response.getName(), employeeResponse.getName());
+        assertEquals(response.getDateOfBirth(), employeeResponse.getDateOfBirth());
+        assertEquals(response.getGraduationDate(), employeeResponse.getGraduationDate());
+        assertEquals(response.getGender(), employeeResponse.getGender());
+        assertEquals(response.getSalary(), employeeResponse.getSalary());
+        assertEquals(response.getDepartmentId(), employeeResponse.getDepartmentId());
+        assertEquals(response.getTeamId(), employeeResponse.getTeamId());
+        assertEquals(response.getManagerId(), employeeResponse.getManagerId());
     }
 }

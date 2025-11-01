@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 
 public enum ApiError {
 
+    EMPLOYEE_NOT_FOUND(HttpStatus.NOT_FOUND, "Employee not found"),
     DEPARTMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Department not found"),
     TEAM_NOT_FOUND(HttpStatus.NOT_FOUND, "Team not found"),
     INVALID_EMPLOYEE_DATES_EXCEPTION(HttpStatus.BAD_REQUEST, "graduation date must be after birth date at least 20 years");
