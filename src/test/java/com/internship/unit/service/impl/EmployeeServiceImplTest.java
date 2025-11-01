@@ -90,8 +90,10 @@ public class EmployeeServiceImplTest {
     @Test
     public void testAddEmployeeWithExistingDepartment_shouldSucceedAndReturnEmployeeInfo() {
         // Given
-        CreateEmployeeRequest request = buildCreateEmployeeRequest();
         Department department = buildDepartment(); // create department with id = 1L
+
+        CreateEmployeeRequest request = buildCreateEmployeeRequest();
+        request.setDepartmentId(department.getId());
 
         Employee employee = buildEmployee();
         employee.setId(1L);
@@ -101,9 +103,10 @@ public class EmployeeServiceImplTest {
         employeeResponse.setId(1L);
         employeeResponse.setDepartmentId(department.getId());
 
+        when(departmentRepository.findById(request.getDepartmentId()))
+                .thenReturn(Optional.of(department));
         when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
-        when(departmentRepository.save(any(Department.class))).thenReturn(department);
-        when(mapper.toEmployee(request)).thenReturn(employee);
+        when(mapper.toEmployee(request,department)).thenReturn(employee);
         when(mapper.toResponse(employee)).thenReturn(employeeResponse);
 
         // action
