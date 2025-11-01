@@ -4,10 +4,12 @@ import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
 import com.internship.entity.Department;
 import com.internship.entity.Employee;
+import com.internship.entity.Team;
 import com.internship.exception.BusinessException;
 import com.internship.mapper.EmployeeMapper;
 import com.internship.repository.DepartmentRepository;
 import com.internship.repository.EmployeeRepository;
+import com.internship.repository.TeamRepository;
 import com.internship.service.impl.EmployeeServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +21,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import static com.internship.enums.Gender.MALE;
+import static com.internship.exception.ApiError.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -36,6 +39,9 @@ public class EmployeeServiceImplTest {
 
     @Mock
     private DepartmentRepository departmentRepository;
+
+    @Mock
+    private TeamRepository teamRepository;
 
     private CreateEmployeeRequest buildCreateEmployeeRequest() {
         return CreateEmployeeRequest.builder()
@@ -74,6 +80,28 @@ public class EmployeeServiceImplTest {
                 .build();
     }
 
+    private Team buildTeam() {
+        return Team.builder()
+                .id(1L)
+                .name("Team 1")
+                .build();
+    }
+
+    @Test
+    public void testAddEmployeeWithGraduationDateNotAfterBirthDate_shouldFail() {
+        // Given
+        CreateEmployeeRequest request = buildCreateEmployeeRequest();
+        // birth of date must be before graduation date
+        // if birth of date after or equal graduation date should fail
+        request.setGraduationDate(LocalDate.of(2005, 6, 5));
+        request.setDateOfBirth(LocalDate.of(2007, 6, 5));
+
+        // When & Then - should throw an INVALID_EMPLOYEE_DATES_EXCEPTION
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> service.addEmployee(request));
+        assertEquals(INVALID_EMPLOYEE_DATES_EXCEPTION, exception.getApiError());
+    }
+
     @Test
     public void testAddEmployeeWithNotFoundDepartment_shouldFail() {
         // Given
@@ -84,29 +112,56 @@ public class EmployeeServiceImplTest {
                 .thenReturn(Optional.empty());
 
         // When & Then - should throw an DEPARTMENT_NOT_FOUND
-        assertThrows(BusinessException.class, () -> service.addEmployee(request));
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> service.addEmployee(request));
+        assertEquals(DEPARTMENT_NOT_FOUND, exception.getApiError());
     }
 
     @Test
-    public void testAddEmployeeWithExistingDepartment_shouldSucceedAndReturnEmployeeInfo() {
+    public void testAddEmployeeWithNotFoundTeam_shouldFail() {
         // Given
         Department department = buildDepartment(); // create department with id = 1L
 
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(department.getId());
+        request.setTeamId(1L); // there is no team with this id
+
+        when(departmentRepository.findById(request.getDepartmentId()))
+                .thenReturn(Optional.of(department));
+        when(teamRepository.findById(request.getDepartmentId()))
+                .thenReturn(Optional.empty());
+        // When & Then - should throw an TEAM_NOT_FOUND
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> service.addEmployee(request));
+        assertEquals(TEAM_NOT_FOUND, exception.getApiError());
+    }
+
+    @Test
+    public void testAddEmployeeWithExistingDepartmentAndTeam_shouldSucceedAndReturnEmployeeInfo() {
+        // Given
+        Department department = buildDepartment(); // create department with id = 1L
+        Team team = buildTeam(); // create team with id = 1L
+
+        CreateEmployeeRequest request = buildCreateEmployeeRequest();
+        request.setDepartmentId(department.getId());
+        request.setTeamId(team.getId());
 
         Employee employee = buildEmployee();
         employee.setId(1L);
         employee.setDepartment(department);
+        employee.setTeam(team);
 
         EmployeeResponse employeeResponse = buildEmployeeResponse();
         employeeResponse.setId(1L);
         employeeResponse.setDepartmentId(department.getId());
+        employeeResponse.setTeamId(team.getId());
 
         when(departmentRepository.findById(request.getDepartmentId()))
                 .thenReturn(Optional.of(department));
+        when(teamRepository.findById(request.getTeamId()))
+                .thenReturn(Optional.of(team));
         when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
-        when(mapper.toEmployee(request,department,null)).thenReturn(employee);
+        when(mapper.toEmployee(request,department,team)).thenReturn(employee);
         when(mapper.toResponse(employee)).thenReturn(employeeResponse);
 
         // action
@@ -120,5 +175,6 @@ public class EmployeeServiceImplTest {
         assertEquals(response.getGender(), employeeResponse.getGender());
         assertEquals(response.getSalary(), employeeResponse.getSalary());
         assertEquals(response.getDepartmentId(), employeeResponse.getDepartmentId());
+        assertEquals(response.getTeamId(), employeeResponse.getTeamId());
     }
 }
