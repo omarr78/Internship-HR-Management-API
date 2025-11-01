@@ -4,13 +4,15 @@ import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
 import com.internship.entity.Department;
 import com.internship.entity.Employee;
-import com.internship.exception.DepartmentNotFound;
+import com.internship.exception.BusinessException;
 import com.internship.mapper.EmployeeMapper;
 import com.internship.repository.DepartmentRepository;
 import com.internship.repository.EmployeeRepository;
 import com.internship.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import static com.internship.exception.ApiError.DEPARTMENT_NOT_FOUND;
 
 
 @Service
@@ -24,7 +26,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public EmployeeResponse addEmployee(CreateEmployeeRequest request) {
         Department department = departmentRepository.findById(request.getDepartmentId())
-                .orElseThrow(() -> new DepartmentNotFound(
+                .orElseThrow(() -> new BusinessException(DEPARTMENT_NOT_FOUND,
                         "Department not found with id: " + request.getDepartmentId()));
 
         Employee employee = employeeMapper.toEmployee(request,department);

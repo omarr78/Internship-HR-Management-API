@@ -4,7 +4,7 @@ import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
 import com.internship.entity.Department;
 import com.internship.entity.Employee;
-import com.internship.exception.DepartmentNotFound;
+import com.internship.exception.BusinessException;
 import com.internship.mapper.EmployeeMapper;
 import com.internship.repository.DepartmentRepository;
 import com.internship.repository.EmployeeRepository;
@@ -84,7 +84,7 @@ public class EmployeeServiceImplTest {
                 .thenReturn(Optional.empty());
 
         // When & Then - should throw an DEPARTMENT_NOT_FOUND
-        assertThrows(DepartmentNotFound.class, () -> service.addEmployee(request));
+        assertThrows(BusinessException.class, () -> service.addEmployee(request));
     }
 
     @Test
