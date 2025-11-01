@@ -28,7 +28,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public EmployeeResponse addEmployee(CreateEmployeeRequest request) {
-        if(!request.getDateOfBirth().isBefore(request.getGraduationDate())) {
+        // graduation date must be after date of birth on at least 20 years
+        if(request.getGraduationDate().getYear() - request.getDateOfBirth().getYear() < 20) {
             throw new BusinessException(INVALID_EMPLOYEE_DATES_EXCEPTION);
         }
 

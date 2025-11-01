@@ -91,10 +91,25 @@ public class EmployeeServiceImplTest {
     public void testAddEmployeeWithGraduationDateNotAfterBirthDate_shouldFail() {
         // Given
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        // birth of date must be before graduation date
+        // birth of date must be before graduation date at least 20 years
         // if birth of date after or equal graduation date should fail
         request.setGraduationDate(LocalDate.of(2005, 6, 5));
         request.setDateOfBirth(LocalDate.of(2007, 6, 5));
+
+        // When & Then - should throw an INVALID_EMPLOYEE_DATES_EXCEPTION
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> service.addEmployee(request));
+        assertEquals(INVALID_EMPLOYEE_DATES_EXCEPTION, exception.getApiError());
+    }
+
+    @Test
+    public void testAddEmployeeWithGraduationDateAfterBirthDateButLessThan20Years_shouldFail() {
+        // Given
+        CreateEmployeeRequest request = buildCreateEmployeeRequest();
+        // birth of date must be before graduation date at least 20 years
+        // if birth of date after or equal graduation date should fail
+        request.setGraduationDate(LocalDate.of(2005, 6, 5));
+        request.setDateOfBirth(LocalDate.of(2024, 6, 5));
 
         // When & Then - should throw an INVALID_EMPLOYEE_DATES_EXCEPTION
         BusinessException exception = assertThrows(BusinessException.class,
