@@ -250,7 +250,7 @@ public class EmployeeServiceImplTest {
         when(employeeRepository.findById(request.getManagerId()))
                 .thenReturn(Optional.of(manager));
         when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
-        when(mapper.toEmployee(request,department,team,null)).thenReturn(employee);
+        when(mapper.toEmployee(request,department,team,manager)).thenReturn(employee);
         when(mapper.toResponse(employee)).thenReturn(employeeResponse);
 
         // action

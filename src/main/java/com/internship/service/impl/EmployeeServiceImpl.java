@@ -41,7 +41,14 @@ public class EmployeeServiceImpl implements EmployeeService {
                 orElseThrow(() -> new BusinessException(TEAM_NOT_FOUND,
                         "Team not found with id: " + request.getTeamId()));
 
-        Employee employee = employeeMapper.toEmployee(request,department,team,null);
+        Employee manager = null;
+        if (request.getManagerId() != null) {
+            manager = employeeRepository.findById(request.getManagerId()).
+                    orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+                            "Manager not found with id: " + request.getManagerId()));
+        }
+
+        Employee employee = employeeMapper.toEmployee(request,department,team,manager);
         Employee savedEmployee = employeeRepository.save(employee);
         return employeeMapper.toResponse(savedEmployee);
     }
