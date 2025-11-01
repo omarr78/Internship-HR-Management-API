@@ -3,10 +3,13 @@ package com.internship.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
+import com.internship.entity.Department;
+import com.internship.repository.DepartmentRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -26,6 +29,9 @@ public class EmployeeControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private DepartmentRepository departmentRepository;
+
     private CreateEmployeeRequest buildCreateEmployeeRequest() {
         return CreateEmployeeRequest.builder()
                 .name("Omar")
@@ -36,9 +42,40 @@ public class EmployeeControllerTest {
                 .build();
     }
 
+    private Department buildDepartment() {
+        return Department.builder()
+                .name("Department 1")
+                .build();
+    }
+
     @Test
-    public void testAddEmployee_shouldSuccessAndReturnEmployeeInfo() throws Exception {
+    public void testAddEmployeeWithoutDepartment_shouldFail() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
+        request.setDepartmentId(null); // no department
+
+        mockMvc.perform(post("/api/employees")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testAddEmployeeWithNotFoundDepartment_shouldFail() throws Exception {
+        CreateEmployeeRequest request = buildCreateEmployeeRequest();
+        request.setDepartmentId(1L); // not found department
+
+        mockMvc.perform(post("/api/employees")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testAddEmployeeWithExistingDepartment_shouldSucceedAndReturnEmployeeInfo() throws Exception {
+        CreateEmployeeRequest request = buildCreateEmployeeRequest();
+        Department department = departmentRepository.save(buildDepartment()); // add department in database
+        request.setDepartmentId(department.getId()); // existing department id
+
         EmployeeResponse response = EmployeeResponse.builder()
                 .id(1L)
                 .name(request.getName())
@@ -46,6 +83,7 @@ public class EmployeeControllerTest {
                 .graduationDate(request.getGraduationDate())
                 .gender(request.getGender())
                 .salary(request.getSalary())
+                .departmentId(request.getDepartmentId())
                 .build();
 
         mockMvc.perform(post("/api/employees")

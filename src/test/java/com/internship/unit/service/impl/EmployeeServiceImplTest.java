@@ -2,8 +2,11 @@ package com.internship.unit.service.impl;
 
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
+import com.internship.entity.Department;
 import com.internship.entity.Employee;
+import com.internship.exception.DepartmentNotFound;
 import com.internship.mapper.EmployeeMapper;
+import com.internship.repository.DepartmentRepository;
 import com.internship.repository.EmployeeRepository;
 import com.internship.service.impl.EmployeeServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -13,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 import static com.internship.enums.Gender.MALE;
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,6 +34,9 @@ public class EmployeeServiceImplTest {
     @Mock
     private EmployeeMapper mapper;
 
+    @Mock
+    private DepartmentRepository departmentRepository;
+
     private CreateEmployeeRequest buildCreateEmployeeRequest() {
         return CreateEmployeeRequest.builder()
                 .name("Omar")
@@ -40,26 +47,62 @@ public class EmployeeServiceImplTest {
                 .build();
     }
 
+    private Employee buildEmployee() {
+        return Employee.builder()
+                .name("Omar")
+                .dateOfBirth(LocalDate.of(1999, 10, 5))
+                .graduationDate(LocalDate.of(2025, 6, 5))
+                .gender(MALE)
+                .salary(2000)
+                .build();
+    }
+
+    private EmployeeResponse buildEmployeeResponse() {
+        return EmployeeResponse.builder()
+                .name("Omar")
+                .dateOfBirth(LocalDate.of(1999, 10, 5))
+                .graduationDate(LocalDate.of(2025, 6, 5))
+                .gender(MALE)
+                .salary(2000)
+                .build();
+    }
+
+    private Department buildDepartment() {
+        return Department.builder()
+                .id(1L)
+                .name("Department 1")
+                .build();
+    }
+
     @Test
-    public void testCreateEmployee_ShouldReturnEmployee() {
+    public void testAddEmployeeWithNotFoundDepartment_shouldFail() {
         // Given
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
+        request.setDepartmentId(1L); // there is no department with this id
 
-        EmployeeResponse employeeResponse = EmployeeResponse.builder()
-                .id(1L)
-                .name(request.getName())
-                .dateOfBirth(request.getDateOfBirth())
-                .graduationDate(request.getGraduationDate())
-                .build();
+        when(departmentRepository.findById(request.getDepartmentId()))
+                .thenReturn(Optional.empty());
 
-        Employee employee = Employee.builder()
-                .id(1L)
-                .name(request.getName())
-                .dateOfBirth(request.getDateOfBirth())
-                .graduationDate(request.getGraduationDate())
-                .build();
+        // When & Then - should throw an DEPARTMENT_NOT_FOUND
+        assertThrows(DepartmentNotFound.class, () -> service.addEmployee(request));
+    }
+
+    @Test
+    public void testAddEmployeeWithExistingDepartment_shouldSucceedAndReturnEmployeeInfo() {
+        // Given
+        CreateEmployeeRequest request = buildCreateEmployeeRequest();
+        Department department = buildDepartment(); // create department with id = 1L
+
+        Employee employee = buildEmployee();
+        employee.setId(1L);
+        employee.setDepartment(department);
+
+        EmployeeResponse employeeResponse = buildEmployeeResponse();
+        employeeResponse.setId(1L);
+        employeeResponse.setDepartmentId(department.getId());
 
         when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
+        when(departmentRepository.save(any(Department.class))).thenReturn(department);
         when(mapper.toEmployee(request)).thenReturn(employee);
         when(mapper.toResponse(employee)).thenReturn(employeeResponse);
 
@@ -73,5 +116,6 @@ public class EmployeeServiceImplTest {
         assertEquals(response.getGraduationDate(), employeeResponse.getGraduationDate());
         assertEquals(response.getGender(), employeeResponse.getGender());
         assertEquals(response.getSalary(), employeeResponse.getSalary());
+        assertEquals(response.getDepartmentId(), employeeResponse.getDepartmentId());
     }
 }
