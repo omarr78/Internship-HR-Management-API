@@ -3,6 +3,7 @@ package com.internship.unit.service.impl;
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
 import com.internship.entity.Employee;
+import com.internship.mapper.EmployeeMapper;
 import com.internship.repository.EmployeeRepository;
 import com.internship.service.impl.EmployeeServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,9 @@ public class EmployeeServiceImplTest {
 
     @InjectMocks
     private EmployeeServiceImpl service;
+
+    @Mock
+    private EmployeeMapper mapper;
 
     private CreateEmployeeRequest buildCreateEmployeeRequest() {
         return CreateEmployeeRequest.builder()
@@ -56,6 +60,9 @@ public class EmployeeServiceImplTest {
                 .build();
 
         when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
+        when(mapper.toEmployee(request)).thenReturn(employee);
+        when(mapper.toResponse(employee)).thenReturn(employeeResponse);
+
         // action
         EmployeeResponse response = service.addEmployee(request);
         // then
