@@ -28,4 +28,7 @@ public class CreateEmployeeRequest {
 
     @Min(0)
     private float salary;
+
+    @NotNull(message = "departmentId required")
+    private Long departmentId;
 }

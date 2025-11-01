@@ -17,4 +17,5 @@ public class EmployeeResponse {
     private LocalDate graduationDate;
     private Gender gender;
     private float salary;
+    private Long departmentId;
 }

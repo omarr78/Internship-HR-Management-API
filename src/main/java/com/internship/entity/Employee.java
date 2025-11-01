@@ -1,5 +1,6 @@
 package com.internship.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.internship.enums.Gender;
 import jakarta.persistence.*;
 import lombok.*;
@@ -33,5 +34,10 @@ public class Employee {
 
     @Column(name = "SALARY", nullable = false)
     private float salary;
+
+    @ManyToOne
+    @JoinColumn(name = "DEPARTMENT_ID", nullable = false)
+    @JsonBackReference("department-employees")
+    private Department department;
 }
 
