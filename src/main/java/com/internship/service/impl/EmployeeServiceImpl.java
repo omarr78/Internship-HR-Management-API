@@ -4,17 +4,21 @@ import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
 import com.internship.entity.Department;
 import com.internship.entity.Employee;
+import com.internship.entity.Expertise;
 import com.internship.entity.Team;
 import com.internship.exception.BusinessException;
 import com.internship.mapper.EmployeeMapper;
 import com.internship.repository.DepartmentRepository;
 import com.internship.repository.EmployeeRepository;
+import com.internship.repository.ExpertiseRepository;
 import com.internship.repository.TeamRepository;
 import com.internship.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.internship.exception.ApiError.*;
 
@@ -27,11 +31,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final DepartmentRepository departmentRepository;
     private final EmployeeMapper employeeMapper;
     private final TeamRepository teamRepository;
+    private final ExpertiseRepository expertiseRepository;
 
     @Override
     public EmployeeResponse addEmployee(CreateEmployeeRequest request) {
         // graduation date must be after date of birth on at least 20 years
-        if(request.getGraduationDate().getYear() - request.getDateOfBirth().getYear() < 20) {
+        if (request.getGraduationDate().getYear() - request.getDateOfBirth().getYear() < 20) {
             throw new BusinessException(INVALID_EMPLOYEE_DATES_EXCEPTION);
         }
 
@@ -50,7 +55,16 @@ public class EmployeeServiceImpl implements EmployeeService {
                             "Manager not found with id: " + request.getManagerId()));
         }
 
-        Employee employee = employeeMapper.toEmployee(request,department,team,manager, List.of());
+        List<Expertise> expertises = new ArrayList<>();
+
+        if (request.getExpertises() != null) {
+            for (Long expertiseId : request.getExpertises()) {
+                Optional<Expertise> optional = expertiseRepository.findById(expertiseId);
+                optional.ifPresent(expertises::add);
+            }
+        }
+
+        Employee employee = employeeMapper.toEmployee(request, department, team, manager, expertises);
         Employee savedEmployee = employeeRepository.save(employee);
         return employeeMapper.toResponse(savedEmployee);
     }

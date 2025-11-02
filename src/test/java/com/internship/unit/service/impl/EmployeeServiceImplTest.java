@@ -328,7 +328,7 @@ public class EmployeeServiceImplTest {
         when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
 
 
-        when(mapper.toEmployee(request, department, team, manager, List.of())).thenReturn(employee);
+        when(mapper.toEmployee(request, department, team, manager, List.of(expertise1, expertise2))).thenReturn(employee);
         when(mapper.toResponse(employee)).thenReturn(employeeResponse);
 
         // action
