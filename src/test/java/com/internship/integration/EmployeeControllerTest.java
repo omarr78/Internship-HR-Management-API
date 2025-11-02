@@ -7,6 +7,7 @@ import com.internship.entity.Department;
 import com.internship.entity.Employee;
 import com.internship.entity.Expertise;
 import com.internship.entity.Team;
+import com.internship.exception.ErrorCode;
 import com.internship.repository.DepartmentRepository;
 import com.internship.repository.EmployeeRepository;
 import com.internship.repository.ExpertiseRepository;
@@ -20,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
@@ -97,7 +99,12 @@ public class EmployeeControllerTest {
         mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("departmentId required", error.getErrorMessage());
+                });
     }
 
     @Test
@@ -109,7 +116,12 @@ public class EmployeeControllerTest {
         mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("teamId required", error.getErrorMessage());
+                });
     }
 
     @Test
