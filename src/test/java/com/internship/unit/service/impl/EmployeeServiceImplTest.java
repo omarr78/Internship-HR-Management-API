@@ -29,6 +29,7 @@ import static com.internship.enums.Gender.MALE;
 import static com.internship.exception.ApiError.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -321,9 +322,14 @@ public class EmployeeServiceImplTest {
                 .thenReturn(Optional.of(team));
         when(employeeRepository.findById(request.getManagerId()))
                 .thenReturn(Optional.of(manager));
-        when(expertiseRepository.findById(any(Long.class)))
+        when(expertiseRepository.findExpertiseByName(any(String.class)))
                 .thenReturn(Optional.of(expertise1))
                 .thenReturn(Optional.of(expertise2));
+
+        lenient().when(expertiseRepository.save(any(Expertise.class)))
+                .thenReturn(expertise1)
+                .thenReturn(expertise2);
+
 
         when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
 
@@ -379,9 +385,13 @@ public class EmployeeServiceImplTest {
                 .thenReturn(Optional.of(department));
         when(teamRepository.findById(request.getTeamId()))
                 .thenReturn(Optional.of(team));
-        when(expertiseRepository.findById(any(Long.class)))
+        when(expertiseRepository.findExpertiseByName(any(String.class)))
                 .thenReturn(Optional.empty())
                 .thenReturn(Optional.empty());
+
+        lenient().when(expertiseRepository.save(any(Expertise.class)))
+                .thenReturn(expertise1)
+                .thenReturn(expertise2);
 
         when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
 
@@ -414,7 +424,7 @@ public class EmployeeServiceImplTest {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(department.getId());
         request.setTeamId(team.getId());
-        request.setExpertises(List.of("","")); // empty expertise
+        request.setExpertises(List.of("", "")); // empty expertise
 
         Employee employee = buildEmployee();
         employee.setId(1L);

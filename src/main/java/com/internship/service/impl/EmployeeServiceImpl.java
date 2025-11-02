@@ -56,13 +56,22 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         List<Expertise> expertises = new ArrayList<>();
-//        comment this lines until write tests
-//        if (request.getExpertises() != null) {
-//            for (Long expertiseId : request.getExpertises()) {
-//                Optional<Expertise> optional = expertiseRepository.findById(expertiseId);
-//                optional.ifPresent(expertises::add);
-//            }
-//        }
+
+        if (request.getExpertises() != null) {
+            for (String expertiseName : request.getExpertises()) {
+                // make sure that expertise name is not empty
+                if(!expertiseName.isEmpty()){
+                    Optional<Expertise> optional = expertiseRepository.findExpertiseByName(expertiseName);
+                    if (optional.isPresent()) {
+                        expertises.add(optional.get());
+                    } else {
+                        Expertise exp = Expertise.builder().name(expertiseName).build();
+                        Expertise savedExpertise = expertiseRepository.save(exp);
+                        expertises.add(savedExpertise);
+                    }
+                }
+            }
+        }
 
         Employee employee = employeeMapper.toEmployee(request, department, team, manager, expertises);
         Employee savedEmployee = employeeRepository.save(employee);
