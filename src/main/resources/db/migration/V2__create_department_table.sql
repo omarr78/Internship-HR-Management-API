@@ -6,6 +6,9 @@ CREATE TABLE departments
 );
 
 ALTER TABLE employees
-    ADD COLUMN department_id BIGINT NOT NULL,
-    ADD CONSTRAINT FK_EMPLOYEES_ON_DEPARTMENT FOREIGN KEY (department_id)
-    REFERENCES departments (id);
+    ADD COLUMN department_id BIGINT NOT NULL;
+
+ALTER TABLE employees
+    ADD CONSTRAINT FK_EMPLOYEES_ON_DEPARTMENT
+        FOREIGN KEY (department_id)
+            REFERENCES departments (id);
