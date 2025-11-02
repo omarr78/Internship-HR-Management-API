@@ -55,5 +55,13 @@ public class Employee {
     @OneToMany(mappedBy = "manager")
     @JsonManagedReference("manager-subordinates")
     private List<Employee> subordinates;
+
+    @ManyToMany
+    @JoinTable(
+            name = "EMPLOYEE_EXPERTISE",
+            joinColumns = @JoinColumn(name = "EMPLOYEE_ID"),
+            inverseJoinColumns = @JoinColumn(name = "EXPERTISE_ID")
+    )
+    private List<Expertise> expertises;
 }
 

@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static com.internship.enums.Gender.MALE;
@@ -200,7 +201,7 @@ public class EmployeeServiceImplTest {
         when(teamRepository.findById(request.getTeamId()))
                 .thenReturn(Optional.of(team));
         when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
-        when(mapper.toEmployee(request,department,team,null)).thenReturn(employee);
+        when(mapper.toEmployee(request,department,team,null, List.of())).thenReturn(employee);
         when(mapper.toResponse(employee)).thenReturn(employeeResponse);
 
         // action
@@ -250,7 +251,7 @@ public class EmployeeServiceImplTest {
         when(employeeRepository.findById(request.getManagerId()))
                 .thenReturn(Optional.of(manager));
         when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
-        when(mapper.toEmployee(request,department,team,manager)).thenReturn(employee);
+        when(mapper.toEmployee(request,department,team,manager,List.of())).thenReturn(employee);
         when(mapper.toResponse(employee)).thenReturn(employeeResponse);
 
         // action

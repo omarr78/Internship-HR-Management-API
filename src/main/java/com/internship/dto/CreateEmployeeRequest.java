@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -36,4 +37,5 @@ public class CreateEmployeeRequest {
     private Long teamId;
 
     private Long managerId;
+    private List<Long> expertises;
 }

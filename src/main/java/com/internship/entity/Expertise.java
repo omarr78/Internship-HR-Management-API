@@ -20,4 +20,8 @@ public class Expertise {
 
     @Column(name = "NAME", nullable = false)
     private String name;
+
+    @ManyToMany(mappedBy = "expertises")
+    @JsonIgnore
+    private List<Employee> employees;
 }

@@ -14,6 +14,8 @@ import com.internship.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 import static com.internship.exception.ApiError.*;
 
 
@@ -48,7 +50,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                             "Manager not found with id: " + request.getManagerId()));
         }
 
-        Employee employee = employeeMapper.toEmployee(request,department,team,manager);
+        Employee employee = employeeMapper.toEmployee(request,department,team,manager, List.of());
         Employee savedEmployee = employeeRepository.save(employee);
         return employeeMapper.toResponse(savedEmployee);
     }

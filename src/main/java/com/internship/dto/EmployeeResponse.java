@@ -4,6 +4,7 @@ import com.internship.enums.Gender;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -20,4 +21,5 @@ public class EmployeeResponse {
     private Long departmentId;
     private Long teamId;
     private Long managerId;
+    private List<Long> expertises;
 }
