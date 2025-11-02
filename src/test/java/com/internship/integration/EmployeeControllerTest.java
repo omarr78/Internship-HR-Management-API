@@ -232,7 +232,7 @@ public class EmployeeControllerTest {
         request.setDepartmentId(department.getId()); // existing department id
         request.setTeamId(team.getId()); // existing team id
         request.setManagerId(savedManager.getId()); // set managerId to an existing employee
-        request.setExpertises(List.of(expertise1.getId(), expertise2.getId()));
+        request.setExpertises(List.of(expertise1.getName(), expertise2.getName()));
 
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
@@ -254,5 +254,69 @@ public class EmployeeControllerTest {
         assertEquals(response.getTeamId(), request.getTeamId());
         assertEquals(response.getManagerId(), manager.getId());
         assertEquals(response.getExpertises(), request.getExpertises());
+    }
+
+    // when name of expertise not found && expertise are not empty so it will be created in expertise table and added to employee
+    @Test
+    public void testAddEmployeeWithExistingDepartmentAndTeamAndNotExistExpertise_shouldSucceedAndReturnEmployeeInfo() throws Exception {
+        CreateEmployeeRequest request = buildCreateEmployeeRequest();
+        Department department = departmentRepository.save(buildDepartment()); // add department in database
+        Team team = teamRepository.save(buildTeam()); // add team in database
+
+        request.setDepartmentId(department.getId()); // existing department id
+        request.setTeamId(team.getId()); // existing team id
+        request.setExpertises(List.of("Java", "Spring boot"));
+
+        MvcResult result = mockMvc.perform(post("/api/employees")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        EmployeeResponse response = objectMapper
+                .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
+
+        assertNotNull(response);
+        assertNotNull(response.getId());
+        assertEquals(response.getName(), request.getName());
+        assertEquals(response.getDateOfBirth(), request.getDateOfBirth());
+        assertEquals(response.getGraduationDate(), request.getGraduationDate());
+        assertEquals(response.getGender(), request.getGender());
+        assertEquals(response.getSalary(), request.getSalary());
+        assertEquals(response.getDepartmentId(), request.getDepartmentId());
+        assertEquals(response.getTeamId(), request.getTeamId());
+        assertEquals(response.getExpertises(), request.getExpertises());
+    }
+
+    // if expertise name are empty so it will skip it
+    @Test
+    public void testAddEmployeeWithExistingDepartmentAndTeamWithEmptyExpertiseName_shouldSucceedAndReturnEmployeeInfoWithoutExpertise() throws Exception {
+        CreateEmployeeRequest request = buildCreateEmployeeRequest();
+        Department department = departmentRepository.save(buildDepartment()); // add department in database
+        Team team = teamRepository.save(buildTeam()); // add team in database
+
+        request.setDepartmentId(department.getId()); // existing department id
+        request.setTeamId(team.getId()); // existing team id
+        request.setExpertises(List.of("", "")); // empty expertise names
+
+        MvcResult result = mockMvc.perform(post("/api/employees")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        EmployeeResponse response = objectMapper
+                .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
+
+        assertNotNull(response);
+        assertNotNull(response.getId());
+        assertEquals(response.getName(), request.getName());
+        assertEquals(response.getDateOfBirth(), request.getDateOfBirth());
+        assertEquals(response.getGraduationDate(), request.getGraduationDate());
+        assertEquals(response.getGender(), request.getGender());
+        assertEquals(response.getSalary(), request.getSalary());
+        assertEquals(response.getDepartmentId(), request.getDepartmentId());
+        assertEquals(response.getTeamId(), request.getTeamId());
+        assertEquals(response.getExpertises(), List.of());
     }
 }

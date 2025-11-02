@@ -284,7 +284,7 @@ public class EmployeeServiceImplTest {
     }
 
     @Test
-    public void testAddEmployeeWithExistingDepartmentAndTeamAndManagerAndExpertise_shouldSucceedAndReturnEmployeeInfo() {
+    public void testAddEmployeeWithExistingDepartmentAndTeamAndManagerAndExistingExpertise_shouldSucceedAndReturnEmployeeInfo() {
         // Given
         Department department = buildDepartment(); // create department with id = 1L
         Team team = buildTeam(); // create team with id = 1L
@@ -299,7 +299,7 @@ public class EmployeeServiceImplTest {
         request.setDepartmentId(department.getId());
         request.setTeamId(team.getId());
         request.setManagerId(manager.getId());
-        request.setExpertises(List.of(expertise1.getId(), expertise2.getId()));
+        request.setExpertises(List.of(expertise1.getName(), expertise2.getName()));
 
         Employee employee = buildEmployee();
         employee.setId(1L);
@@ -313,7 +313,7 @@ public class EmployeeServiceImplTest {
         employeeResponse.setDepartmentId(department.getId());
         employeeResponse.setTeamId(team.getId());
         employeeResponse.setManagerId(manager.getId());
-        employeeResponse.setExpertises(List.of(expertise1.getId(), expertise2.getId()));
+        employeeResponse.setExpertises(List.of(expertise1.getName(), expertise2.getName()));
 
         when(departmentRepository.findById(request.getDepartmentId()))
                 .thenReturn(Optional.of(department));
@@ -344,6 +344,109 @@ public class EmployeeServiceImplTest {
         assertEquals(response.getDepartmentId(), employeeResponse.getDepartmentId());
         assertEquals(response.getTeamId(), employeeResponse.getTeamId());
         assertEquals(response.getManagerId(), employeeResponse.getManagerId());
+        assertEquals(response.getExpertises(), employeeResponse.getExpertises());
+    }
+
+    @Test
+    public void testAddEmployeeWithExistingDepartmentAndTeamAndNotExistingExpertise_shouldSucceedAndReturnEmployeeInfo() {
+        // Given
+        Department department = buildDepartment(); // create department with id = 1L
+        Team team = buildTeam(); // create team with id = 1L
+        Expertise expertise1 = buildExpertise("Java");
+        expertise1.setId(1L);
+        Expertise expertise2 = buildExpertise("Spring boot");
+        expertise2.setId(2L);
+
+
+        CreateEmployeeRequest request = buildCreateEmployeeRequest();
+        request.setDepartmentId(department.getId());
+        request.setTeamId(team.getId());
+        request.setExpertises(List.of("Java", "Spring boot"));
+
+        Employee employee = buildEmployee();
+        employee.setId(1L);
+        employee.setDepartment(department);
+        employee.setTeam(team);
+        employee.setExpertises(List.of(expertise1, expertise2));
+
+        EmployeeResponse employeeResponse = buildEmployeeResponse();
+        employeeResponse.setId(1L);
+        employeeResponse.setDepartmentId(department.getId());
+        employeeResponse.setTeamId(team.getId());
+        employeeResponse.setExpertises(List.of("Java", "Spring boot"));
+
+        when(departmentRepository.findById(request.getDepartmentId()))
+                .thenReturn(Optional.of(department));
+        when(teamRepository.findById(request.getTeamId()))
+                .thenReturn(Optional.of(team));
+        when(expertiseRepository.findById(any(Long.class)))
+                .thenReturn(Optional.empty())
+                .thenReturn(Optional.empty());
+
+        when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
+
+
+        when(mapper.toEmployee(request, department, team, null, List.of(expertise1, expertise2))).thenReturn(employee);
+        when(mapper.toResponse(employee)).thenReturn(employeeResponse);
+
+        // action
+        EmployeeResponse response = service.addEmployee(request);
+        // then
+        assertNotNull(response);
+        assertEquals(response.getId(), employeeResponse.getId());
+        assertEquals(response.getName(), employeeResponse.getName());
+        assertEquals(response.getDateOfBirth(), employeeResponse.getDateOfBirth());
+        assertEquals(response.getGraduationDate(), employeeResponse.getGraduationDate());
+        assertEquals(response.getGender(), employeeResponse.getGender());
+        assertEquals(response.getSalary(), employeeResponse.getSalary());
+        assertEquals(response.getDepartmentId(), employeeResponse.getDepartmentId());
+        assertEquals(response.getTeamId(), employeeResponse.getTeamId());
+        assertEquals(response.getManagerId(), employeeResponse.getManagerId());
+        assertEquals(response.getExpertises(), employeeResponse.getExpertises());
+    }
+
+    @Test
+    public void testAddEmployeeWithExistingDepartmentAndTeamWithEmptyExpertiseName_shouldSucceedAndReturnEmployeeInfoWithoutExpertise() {
+        // Given
+        Department department = buildDepartment(); // create department with id = 1L
+        Team team = buildTeam(); // create team with id = 1L
+
+        CreateEmployeeRequest request = buildCreateEmployeeRequest();
+        request.setDepartmentId(department.getId());
+        request.setTeamId(team.getId());
+        request.setExpertises(List.of("","")); // empty expertise
+
+        Employee employee = buildEmployee();
+        employee.setId(1L);
+        employee.setDepartment(department);
+        employee.setTeam(team);
+
+        EmployeeResponse employeeResponse = buildEmployeeResponse();
+        employeeResponse.setId(1L);
+        employeeResponse.setDepartmentId(department.getId());
+        employeeResponse.setTeamId(team.getId());
+        employeeResponse.setExpertises(List.of()); // empty expertise
+
+        when(departmentRepository.findById(request.getDepartmentId()))
+                .thenReturn(Optional.of(department));
+        when(teamRepository.findById(request.getTeamId()))
+                .thenReturn(Optional.of(team));
+        when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
+        when(mapper.toEmployee(request, department, team, null, List.of())).thenReturn(employee);
+        when(mapper.toResponse(employee)).thenReturn(employeeResponse);
+
+        // action
+        EmployeeResponse response = service.addEmployee(request);
+        // then
+        assertNotNull(response);
+        assertEquals(response.getId(), employeeResponse.getId());
+        assertEquals(response.getName(), employeeResponse.getName());
+        assertEquals(response.getDateOfBirth(), employeeResponse.getDateOfBirth());
+        assertEquals(response.getGraduationDate(), employeeResponse.getGraduationDate());
+        assertEquals(response.getGender(), employeeResponse.getGender());
+        assertEquals(response.getSalary(), employeeResponse.getSalary());
+        assertEquals(response.getDepartmentId(), employeeResponse.getDepartmentId());
+        assertEquals(response.getTeamId(), employeeResponse.getTeamId());
         assertEquals(response.getExpertises(), employeeResponse.getExpertises());
     }
 }

@@ -21,5 +21,5 @@ public class EmployeeResponse {
     private Long departmentId;
     private Long teamId;
     private Long managerId;
-    private List<Long> expertises;
+    private List<String> expertises;
 }

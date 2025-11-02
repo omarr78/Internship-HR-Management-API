@@ -31,8 +31,8 @@ public class EmployeeMapper {
     }
 
     public EmployeeResponse toResponse(Employee employee) {
-        List<Long> expertises = employee.getExpertises()
-                .stream().map(Expertise::getId).toList();
+        List<String> expertises = employee.getExpertises()
+                .stream().map(Expertise::getName).toList();
 
         return EmployeeResponse.builder()
                 .id(employee.getId())
