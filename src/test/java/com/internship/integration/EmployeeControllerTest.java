@@ -21,7 +21,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
 
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
@@ -94,6 +93,7 @@ public class EmployeeControllerTest {
     @Test
     public void testAddEmployeeWithoutDepartment_shouldFail() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
+        request.setTeamId(1L);
         request.setDepartmentId(null); // no department
 
         mockMvc.perform(post("/api/employees")
