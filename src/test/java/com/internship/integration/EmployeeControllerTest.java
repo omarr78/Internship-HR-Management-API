@@ -162,26 +162,6 @@ public class EmployeeControllerTest {
     }
 
     @Test
-    public void testAddEmployeeWithNotFoundManager_shouldFail() throws Exception {
-        CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        Department department = departmentRepository.save(buildDepartment()); // add department in database
-        Team team = teamRepository.save(buildTeam()); // add team in database
-        request.setDepartmentId(department.getId()); // existing department id
-        request.setTeamId(team.getId()); // existing team id
-        request.setManagerId(NON_EXISTENT_ID); // there is no employee with this id = 10L
-
-        mockMvc.perform(post("/api/employees")
-                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isNotFound())
-                .andExpect(result -> {
-                    String json = result.getResponse().getContentAsString();
-                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                    assertEquals("Manager not found with id: " + request.getManagerId(), error.getErrorMessage());
-                });
-    }
-
-    @Test
     public void testAddEmployeeWithExistingDepartmentAndTeam_shouldSucceedAndReturnEmployeeInfo() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         Department department = departmentRepository.save(buildDepartment()); // add department in database
@@ -210,7 +190,27 @@ public class EmployeeControllerTest {
     }
 
     @Test
-    public void testAddEmployeeWithExistingDepartmentAndTeamAndManager_shouldSucceedAndReturnEmployeeInfo() throws Exception {
+    public void testAddEmployeeWithNotFoundManager_shouldFail() throws Exception {
+        CreateEmployeeRequest request = buildCreateEmployeeRequest();
+        Department department = departmentRepository.save(buildDepartment()); // add department in database
+        Team team = teamRepository.save(buildTeam()); // add team in database
+        request.setDepartmentId(department.getId()); // existing department id
+        request.setTeamId(team.getId()); // existing team id
+        request.setManagerId(NON_EXISTENT_ID); // there is no employee with this id
+
+        mockMvc.perform(post("/api/employees")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Manager not found with id: " + request.getManagerId(), error.getErrorMessage());
+                });
+    }
+
+    @Test
+    public void testAddEmployeeWithExistingManager_shouldSucceedAndReturnEmployeeInfo() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         Department department = departmentRepository.save(buildDepartment()); // add department in database
         Team team = teamRepository.save(buildTeam()); // add team in database
@@ -233,19 +233,11 @@ public class EmployeeControllerTest {
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
 
         assertNotNull(response);
-        assertNotNull(response.getId());
-        assertEquals(response.getName(), request.getName());
-        assertEquals(response.getDateOfBirth(), request.getDateOfBirth());
-        assertEquals(response.getGraduationDate(), request.getGraduationDate());
-        assertEquals(response.getGender(), request.getGender());
-        assertEquals(response.getSalary(), request.getSalary());
-        assertEquals(response.getDepartmentId(), request.getDepartmentId());
-        assertEquals(response.getTeamId(), request.getTeamId());
         assertEquals(response.getManagerId(), manager.getId());
     }
 
     @Test
-    public void testAddEmployeeWithExistingDepartmentAndTeamAndManagerAndExpertise_shouldSucceedAndReturnEmployeeInfo() throws Exception {
+    public void testAddEmployeeWithExistingExpertise_shouldSucceedAndReturnEmployeeInfo() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         Department department = departmentRepository.save(buildDepartment()); // add department in database
         Team team = teamRepository.save(buildTeam()); // add team in database
@@ -253,14 +245,8 @@ public class EmployeeControllerTest {
         Expertise expertise1 = expertiseRepository.save(buildExpertise("Java"));
         Expertise expertise2 = expertiseRepository.save(buildExpertise("Spring boot"));
 
-        Employee manager = buildEmployee();
-        manager.setDepartment(department);
-        manager.setTeam(team);
-        Employee savedManager = employeeRepository.save(manager); // add this manager in database
-
         request.setDepartmentId(department.getId()); // existing department id
         request.setTeamId(team.getId()); // existing team id
-        request.setManagerId(savedManager.getId()); // set managerId to an existing employee
         request.setExpertises(List.of(expertise1.getName(), expertise2.getName()));
 
         MvcResult result = mockMvc.perform(post("/api/employees")
@@ -273,28 +259,19 @@ public class EmployeeControllerTest {
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
 
         assertNotNull(response);
-        assertNotNull(response.getId());
-        assertEquals(response.getName(), request.getName());
-        assertEquals(response.getDateOfBirth(), request.getDateOfBirth());
-        assertEquals(response.getGraduationDate(), request.getGraduationDate());
-        assertEquals(response.getGender(), request.getGender());
-        assertEquals(response.getSalary(), request.getSalary());
-        assertEquals(response.getDepartmentId(), request.getDepartmentId());
-        assertEquals(response.getTeamId(), request.getTeamId());
-        assertEquals(response.getManagerId(), manager.getId());
         assertEquals(response.getExpertises(), request.getExpertises());
     }
 
     // when name of expertise not found && expertise are not empty so it will be created in expertise table and added to employee
     @Test
-    public void testAddEmployeeWithExistingDepartmentAndTeamAndNotExistExpertise_shouldSucceedAndReturnEmployeeInfo() throws Exception {
+    public void testAddEmployeeWithNotExistingExpertise_shouldSucceedAndReturnEmployeeInfo() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         Department department = departmentRepository.save(buildDepartment()); // add department in database
         Team team = teamRepository.save(buildTeam()); // add team in database
 
         request.setDepartmentId(department.getId()); // existing department id
         request.setTeamId(team.getId()); // existing team id
-        request.setExpertises(List.of("Java", "Spring boot"));
+        request.setExpertises(List.of("Java", "Spring boot")); // Not exist expertise
 
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
@@ -306,20 +283,12 @@ public class EmployeeControllerTest {
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
 
         assertNotNull(response);
-        assertNotNull(response.getId());
-        assertEquals(response.getName(), request.getName());
-        assertEquals(response.getDateOfBirth(), request.getDateOfBirth());
-        assertEquals(response.getGraduationDate(), request.getGraduationDate());
-        assertEquals(response.getGender(), request.getGender());
-        assertEquals(response.getSalary(), request.getSalary());
-        assertEquals(response.getDepartmentId(), request.getDepartmentId());
-        assertEquals(response.getTeamId(), request.getTeamId());
         assertEquals(response.getExpertises(), request.getExpertises());
     }
 
     // if expertise name are empty so it will skip it
     @Test
-    public void testAddEmployeeWithExistingDepartmentAndTeamWithEmptyExpertiseName_shouldSucceedAndReturnEmployeeInfoWithoutExpertise() throws Exception {
+    public void testAddEmployeeWithEmptyExpertiseName_shouldSucceedAndReturnEmployeeInfoWithoutExpertise() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         Department department = departmentRepository.save(buildDepartment()); // add department in database
         Team team = teamRepository.save(buildTeam()); // add team in database
@@ -338,14 +307,6 @@ public class EmployeeControllerTest {
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
 
         assertNotNull(response);
-        assertNotNull(response.getId());
-        assertEquals(response.getName(), request.getName());
-        assertEquals(response.getDateOfBirth(), request.getDateOfBirth());
-        assertEquals(response.getGraduationDate(), request.getGraduationDate());
-        assertEquals(response.getGender(), request.getGender());
-        assertEquals(response.getSalary(), request.getSalary());
-        assertEquals(response.getDepartmentId(), request.getDepartmentId());
-        assertEquals(response.getTeamId(), request.getTeamId());
         assertEquals(response.getExpertises(), List.of());
     }
 }
