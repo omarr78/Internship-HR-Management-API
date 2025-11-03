@@ -51,6 +51,8 @@ public class EmployeeControllerTest {
     @Autowired
     private ExpertiseRepository expertiseRepository;
 
+    private static final Long NON_EXISTENT_ID = -1L;
+    private static final String EMPTY_STRING = "";
 
     private CreateEmployeeRequest buildCreateEmployeeRequest() {
         return CreateEmployeeRequest.builder()
@@ -127,7 +129,7 @@ public class EmployeeControllerTest {
     @Test
     public void testAddEmployeeWithNotFoundDepartment_shouldFail() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        request.setDepartmentId(1L); // not found department
+        request.setDepartmentId(NON_EXISTENT_ID); // not found department id
         request.setTeamId(1L);
 
         mockMvc.perform(post("/api/employees")
@@ -146,7 +148,7 @@ public class EmployeeControllerTest {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         Department department = departmentRepository.save(buildDepartment()); // add department in database
         request.setDepartmentId(department.getId()); // existing department id
-        request.setTeamId(1L); // not found team
+        request.setTeamId(NON_EXISTENT_ID); // not found team id
 
         mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
@@ -166,7 +168,7 @@ public class EmployeeControllerTest {
         Team team = teamRepository.save(buildTeam()); // add team in database
         request.setDepartmentId(department.getId()); // existing department id
         request.setTeamId(team.getId()); // existing team id
-        request.setManagerId(10L); // there is no employee with this id = 10L
+        request.setManagerId(NON_EXISTENT_ID); // there is no employee with this id = 10L
 
         mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
@@ -324,7 +326,7 @@ public class EmployeeControllerTest {
 
         request.setDepartmentId(department.getId()); // existing department id
         request.setTeamId(team.getId()); // existing team id
-        request.setExpertises(List.of("", "")); // empty expertise names
+        request.setExpertises(List.of(EMPTY_STRING, EMPTY_STRING)); // empty expertise names -> ""
 
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))

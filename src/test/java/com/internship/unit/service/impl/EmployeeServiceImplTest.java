@@ -18,8 +18,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -34,7 +32,6 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class EmployeeServiceImplTest {
-    private static final Logger log = LoggerFactory.getLogger(EmployeeServiceImplTest.class);
     @Mock
     private EmployeeRepository employeeRepository;
 
@@ -103,6 +100,13 @@ public class EmployeeServiceImplTest {
                 .build();
     }
 
+    private static final Long NON_EXISTENT_ID = -1L;
+    private static final Long EMPLOYEE_ID = 1L;
+    private static final Long MANAGER_ID = 10L;
+    private static final Long EXPERTISE_ID1 = 1L;
+    private static final Long EXPERTISE_ID2 = 2L;
+    private static final String EMPTY_STRING = "";
+
     @Test
     public void testAddEmployeeWithGraduationDateNotAfterBirthDate_shouldFail() {
         // Given
@@ -137,7 +141,7 @@ public class EmployeeServiceImplTest {
     public void testAddEmployeeWithNotFoundDepartment_shouldFail() {
         // Given
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        request.setDepartmentId(1L); // there is no department with this id
+        request.setDepartmentId(NON_EXISTENT_ID); // there is no department with this id
 
         when(departmentRepository.findById(request.getDepartmentId()))
                 .thenReturn(Optional.empty());
@@ -155,11 +159,11 @@ public class EmployeeServiceImplTest {
 
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(department.getId());
-        request.setTeamId(1L); // there is no team with this id
+        request.setTeamId(NON_EXISTENT_ID); // there is no team with this id
 
         when(departmentRepository.findById(request.getDepartmentId()))
                 .thenReturn(Optional.of(department));
-        when(teamRepository.findById(request.getDepartmentId()))
+        when(teamRepository.findById(request.getTeamId()))
                 .thenReturn(Optional.empty());
         // When & Then - should throw an TEAM_NOT_FOUND
         BusinessException exception = assertThrows(BusinessException.class,
@@ -176,7 +180,7 @@ public class EmployeeServiceImplTest {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(department.getId());
         request.setTeamId(team.getId());
-        request.setManagerId(10L); // there is no employee with this id
+        request.setManagerId(NON_EXISTENT_ID); // there is no employee with this id
 
         when(departmentRepository.findById(request.getDepartmentId()))
                 .thenReturn(Optional.of(department));
@@ -202,12 +206,12 @@ public class EmployeeServiceImplTest {
         request.setTeamId(team.getId());
 
         Employee employee = buildEmployee();
-        employee.setId(1L);
+        employee.setId(EMPLOYEE_ID);
         employee.setDepartment(department);
         employee.setTeam(team);
 
         EmployeeResponse employeeResponse = buildEmployeeResponse();
-        employeeResponse.setId(1L);
+        employeeResponse.setId(EMPLOYEE_ID);
         employeeResponse.setDepartmentId(department.getId());
         employeeResponse.setTeamId(team.getId());
 
@@ -239,7 +243,7 @@ public class EmployeeServiceImplTest {
         Department department = buildDepartment(); // create department with id = 1L
         Team team = buildTeam(); // create team with id = 1L
         Employee manager = buildEmployee();
-        manager.setId(10L);
+        manager.setId(MANAGER_ID);
 
 
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
@@ -248,13 +252,13 @@ public class EmployeeServiceImplTest {
         request.setManagerId(manager.getId());
 
         Employee employee = buildEmployee();
-        employee.setId(1L);
+        employee.setId(EMPLOYEE_ID);
         employee.setDepartment(department);
         employee.setTeam(team);
         employee.setManager(manager);
 
         EmployeeResponse employeeResponse = buildEmployeeResponse();
-        employeeResponse.setId(1L);
+        employeeResponse.setId(EMPLOYEE_ID);
         employeeResponse.setDepartmentId(department.getId());
         employeeResponse.setTeamId(team.getId());
         employeeResponse.setManagerId(manager.getId());
@@ -290,11 +294,11 @@ public class EmployeeServiceImplTest {
         Department department = buildDepartment(); // create department with id = 1L
         Team team = buildTeam(); // create team with id = 1L
         Employee manager = buildEmployee();
-        manager.setId(10L);
+        manager.setId(MANAGER_ID);
         Expertise expertise1 = buildExpertise("Java");
-        expertise1.setId(1L);
+        expertise1.setId(EXPERTISE_ID1);
         Expertise expertise2 = buildExpertise("Spring boot");
-        expertise2.setId(2L);
+        expertise2.setId(EXPERTISE_ID2);
 
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(department.getId());
@@ -303,14 +307,14 @@ public class EmployeeServiceImplTest {
         request.setExpertises(List.of(expertise1.getName(), expertise2.getName()));
 
         Employee employee = buildEmployee();
-        employee.setId(1L);
+        employee.setId(EMPLOYEE_ID);
         employee.setDepartment(department);
         employee.setTeam(team);
         employee.setManager(manager);
         employee.setExpertises(List.of(expertise1, expertise2));
 
         EmployeeResponse employeeResponse = buildEmployeeResponse();
-        employeeResponse.setId(1L);
+        employeeResponse.setId(EMPLOYEE_ID);
         employeeResponse.setDepartmentId(department.getId());
         employeeResponse.setTeamId(team.getId());
         employeeResponse.setManagerId(manager.getId());
@@ -359,9 +363,9 @@ public class EmployeeServiceImplTest {
         Department department = buildDepartment(); // create department with id = 1L
         Team team = buildTeam(); // create team with id = 1L
         Expertise expertise1 = buildExpertise("Java");
-        expertise1.setId(1L);
+        expertise1.setId(EXPERTISE_ID1);
         Expertise expertise2 = buildExpertise("Spring boot");
-        expertise2.setId(2L);
+        expertise2.setId(EXPERTISE_ID2);
 
 
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
@@ -370,13 +374,13 @@ public class EmployeeServiceImplTest {
         request.setExpertises(List.of("Java", "Spring boot"));
 
         Employee employee = buildEmployee();
-        employee.setId(1L);
+        employee.setId(EMPLOYEE_ID);
         employee.setDepartment(department);
         employee.setTeam(team);
         employee.setExpertises(List.of(expertise1, expertise2));
 
         EmployeeResponse employeeResponse = buildEmployeeResponse();
-        employeeResponse.setId(1L);
+        employeeResponse.setId(EMPLOYEE_ID);
         employeeResponse.setDepartmentId(department.getId());
         employeeResponse.setTeamId(team.getId());
         employeeResponse.setExpertises(List.of("Java", "Spring boot"));
@@ -424,15 +428,15 @@ public class EmployeeServiceImplTest {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(department.getId());
         request.setTeamId(team.getId());
-        request.setExpertises(List.of("", "")); // empty expertise
+        request.setExpertises(List.of(EMPTY_STRING, EMPTY_STRING)); // empty expertise
 
         Employee employee = buildEmployee();
-        employee.setId(1L);
+        employee.setId(EMPLOYEE_ID);
         employee.setDepartment(department);
         employee.setTeam(team);
 
         EmployeeResponse employeeResponse = buildEmployeeResponse();
-        employeeResponse.setId(1L);
+        employeeResponse.setId(EMPLOYEE_ID);
         employeeResponse.setDepartmentId(department.getId());
         employeeResponse.setTeamId(team.getId());
         employeeResponse.setExpertises(List.of()); // empty expertise
