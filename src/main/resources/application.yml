@@ -8,12 +8,12 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     database-platform: org.hibernate.dialect.MySQLDialect
     show-sql: true
 
   flyway:
-    enabled: false
+    enabled: true
     baseline-on-migrate: true
     url: jdbc:mysql://${DB_URL}:${DB_PORT}/${DB_NAME}?createDatabaseIfNotExist=true&useMysqlMetadata=true
     user: ${DB_USERNAME}
