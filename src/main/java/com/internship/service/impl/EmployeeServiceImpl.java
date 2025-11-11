@@ -13,8 +13,10 @@ import com.internship.repository.EmployeeRepository;
 import com.internship.repository.ExpertiseRepository;
 import com.internship.repository.TeamRepository;
 import com.internship.service.EmployeeService;
+import com.internship.service.ExpertiseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,11 +33,13 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final DepartmentRepository departmentRepository;
     private final EmployeeMapper employeeMapper;
     private final TeamRepository teamRepository;
-    private final ExpertiseRepository expertiseRepository;
+    private final ExpertiseService ExpertiseService;
+    private final ExpertiseService expertiseService;
 
     @Override
+    @Transactional
     public EmployeeResponse addEmployee(CreateEmployeeRequest request) {
-        // graduation date must be after date of birth on at least 20 years
+        // the graduation date must be after the date of birth on at least 20 years
         if (request.getGraduationDate().getYear() - request.getDateOfBirth().getYear() < 20) {
             throw new BusinessException(INVALID_EMPLOYEE_DATES_EXCEPTION);
         }
@@ -56,23 +60,9 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         List<Expertise> expertises = new ArrayList<>();
-
         if (request.getExpertises() != null) {
-            for (String expertiseName : request.getExpertises()) {
-                // make sure that expertise name is not empty
-                if(!expertiseName.isEmpty()){
-                    Optional<Expertise> optional = expertiseRepository.findExpertiseByName(expertiseName);
-                    if (optional.isPresent()) {
-                        expertises.add(optional.get());
-                    } else {
-                        Expertise exp = Expertise.builder().name(expertiseName).build();
-                        Expertise savedExpertise = expertiseRepository.save(exp);
-                        expertises.add(savedExpertise);
-                    }
-                }
-            }
+            expertises = expertiseService.getExpertises(request.getExpertises());
         }
-
         Employee employee = employeeMapper.toEmployee(request, department, team, manager, expertises);
         Employee savedEmployee = employeeRepository.save(employee);
         return employeeMapper.toResponse(savedEmployee);
