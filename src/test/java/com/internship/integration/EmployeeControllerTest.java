@@ -1,12 +1,11 @@
 package com.internship.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.database.rider.core.api.dataset.DataSet;
+import com.github.database.rider.spring.api.DBRider;
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
-import com.internship.entity.Department;
-import com.internship.entity.Employee;
 import com.internship.entity.Expertise;
-import com.internship.entity.Team;
 import com.internship.exception.ErrorCode;
 import com.internship.repository.DepartmentRepository;
 import com.internship.repository.EmployeeRepository;
@@ -34,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@DBRider
 public class EmployeeControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -43,7 +43,6 @@ public class EmployeeControllerTest {
 
     @Autowired
     private DepartmentRepository departmentRepository;
-
     @Autowired
     private TeamRepository teamRepository;
     @Autowired
@@ -53,6 +52,12 @@ public class EmployeeControllerTest {
 
     private static final Long NON_EXISTENT_ID = -1L;
     private static final String EMPTY_STRING = "";
+    // from dataset/employees.xml
+    private static final Long EXISTENT_DEPARTMENT_ID = 1L;
+    private static final Long EXISTENT_TEAM_ID = 1L;
+    private static final Long EXISTENT_MANAGER_ID = 10L;
+    private static final Long EXISTENT_EXPERTISE1_ID = 1L;
+    private static final Long EXISTENT_EXPERTISE2_ID = 2L;
 
     private CreateEmployeeRequest buildCreateEmployeeRequest() {
         return CreateEmployeeRequest.builder()
@@ -64,39 +69,12 @@ public class EmployeeControllerTest {
                 .build();
     }
 
-    private Employee buildEmployee() {
-        return Employee.builder()
-                .name("omar")
-                .dateOfBirth(LocalDate.of(1999, 10, 5))
-                .graduationDate(LocalDate.of(2025, 6, 5))
-                .gender(MALE)
-                .salary(2000)
-                .build();
-    }
-
-    private Department buildDepartment() {
-        return Department.builder()
-                .name("Department 1")
-                .build();
-    }
-
-    private Team buildTeam() {
-        return Team.builder()
-                .name("Team 1")
-                .build();
-    }
-
-    private Expertise buildExpertise(String expertiseName) {
-        return Expertise.builder()
-                .name(expertiseName)
-                .build();
-    }
-
     @Test
+    @DataSet("dataset/employees.xml")
     public void testAddEmployeeWithoutDepartment_shouldFail() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        request.setTeamId(1L);
         request.setDepartmentId(null); // no department
+        request.setTeamId(EXISTENT_TEAM_ID);
 
         mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
@@ -110,9 +88,10 @@ public class EmployeeControllerTest {
     }
 
     @Test
+    @DataSet("dataset/employees.xml")
     public void testAddEmployeeWithoutTeam_shouldFail() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        request.setDepartmentId(1L);
+        request.setDepartmentId(EXISTENT_DEPARTMENT_ID);
         request.setTeamId(null); // no team
 
         mockMvc.perform(post("/api/employees")
@@ -127,10 +106,11 @@ public class EmployeeControllerTest {
     }
 
     @Test
+    @DataSet("dataset/employees.xml")
     public void testAddEmployeeWithNotFoundDepartment_shouldFail() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(NON_EXISTENT_ID); // not found department id
-        request.setTeamId(1L);
+        request.setTeamId(EXISTENT_TEAM_ID);
 
         mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
@@ -144,10 +124,10 @@ public class EmployeeControllerTest {
     }
 
     @Test
+    @DataSet("dataset/employees.xml")
     public void testAddEmployeeWithNotFoundTeam_shouldFail() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        Department department = departmentRepository.save(buildDepartment()); // add department in database
-        request.setDepartmentId(department.getId()); // existing department id
+        request.setDepartmentId(EXISTENT_DEPARTMENT_ID); // existing department id from dataset/employees.xml
         request.setTeamId(NON_EXISTENT_ID); // not found team id
 
         mockMvc.perform(post("/api/employees")
@@ -162,12 +142,11 @@ public class EmployeeControllerTest {
     }
 
     @Test
+    @DataSet("dataset/employees.xml")
     public void testAddEmployeeWithExistingDepartmentAndTeam_shouldSucceedAndReturnEmployeeInfo() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        Department department = departmentRepository.save(buildDepartment()); // add department in database
-        Team team = teamRepository.save(buildTeam()); // add team in database
-        request.setDepartmentId(department.getId()); // existing department id
-        request.setTeamId(team.getId()); // existing team id
+        request.setDepartmentId(EXISTENT_DEPARTMENT_ID); // existing department id from dataset/employees.xml
+        request.setTeamId(EXISTENT_TEAM_ID); // existing team id from dataset/employees.xml
 
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
@@ -190,12 +169,11 @@ public class EmployeeControllerTest {
     }
 
     @Test
+    @DataSet("dataset/employees.xml")
     public void testAddEmployeeWithNotFoundManager_shouldFail() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        Department department = departmentRepository.save(buildDepartment()); // add department in database
-        Team team = teamRepository.save(buildTeam()); // add team in database
-        request.setDepartmentId(department.getId()); // existing department id
-        request.setTeamId(team.getId()); // existing team id
+        request.setDepartmentId(EXISTENT_DEPARTMENT_ID); // existing department id from dataset/employees.xml
+        request.setTeamId(EXISTENT_TEAM_ID); // existing team id from dataset/employees.xml
         request.setManagerId(NON_EXISTENT_ID); // there is no employee with this id
 
         mockMvc.perform(post("/api/employees")
@@ -210,18 +188,12 @@ public class EmployeeControllerTest {
     }
 
     @Test
+    @DataSet("dataset/employees.xml")
     public void testAddEmployeeWithExistingManager_shouldSucceedAndReturnEmployeeInfo() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        Department department = departmentRepository.save(buildDepartment()); // add department in database
-        Team team = teamRepository.save(buildTeam()); // add team in database
-        Employee manager = buildEmployee();
-        manager.setDepartment(department);
-        manager.setTeam(team);
-        Employee savedManager = employeeRepository.save(manager); // add this manager in database
-        request.setDepartmentId(department.getId()); // existing department id
-        request.setTeamId(team.getId()); // existing team id
-        request.setManagerId(savedManager.getId()); // set managerId to an existing employee
-
+        request.setDepartmentId(EXISTENT_DEPARTMENT_ID); // existing department id from dataset/employees.xml
+        request.setTeamId(EXISTENT_TEAM_ID); // existing team id from dataset/employees.xml
+        request.setManagerId(EXISTENT_MANAGER_ID); // existing manager id from dataset/employees.xml
 
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
@@ -233,20 +205,18 @@ public class EmployeeControllerTest {
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
 
         assertNotNull(response);
-        assertEquals(response.getManagerId(), manager.getId());
+        assertEquals(EXISTENT_MANAGER_ID, response.getManagerId());
     }
 
     @Test
+    @DataSet("dataset/employees.xml")
     public void testAddEmployeeWithExistingExpertise_shouldSucceedAndReturnEmployeeInfo() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        Department department = departmentRepository.save(buildDepartment()); // add department in database
-        Team team = teamRepository.save(buildTeam()); // add team in database
-
-        Expertise expertise1 = expertiseRepository.save(buildExpertise("Java"));
-        Expertise expertise2 = expertiseRepository.save(buildExpertise("Spring boot"));
-
-        request.setDepartmentId(department.getId()); // existing department id
-        request.setTeamId(team.getId()); // existing team id
+        // existing expertises from dataset/employees.xml
+        Expertise expertise1 = expertiseRepository.findById(EXISTENT_EXPERTISE1_ID).get();
+        Expertise expertise2 = expertiseRepository.findById(EXISTENT_EXPERTISE2_ID).get();
+        request.setDepartmentId(EXISTENT_DEPARTMENT_ID); // existing department id from dataset/employees.xml
+        request.setTeamId(EXISTENT_TEAM_ID); // existing team id from dataset/employees.xml
         request.setExpertises(List.of(expertise1.getName(), expertise2.getName()));
 
         MvcResult result = mockMvc.perform(post("/api/employees")
@@ -262,16 +232,14 @@ public class EmployeeControllerTest {
         assertEquals(response.getExpertises(), request.getExpertises());
     }
 
-    // when name of expertise not found && expertise are not empty so it will be created in expertise table and added to employee
+    // when the name of expertise not found && expertise are not empty so it will be created in expertise table and added to employee
     @Test
+    @DataSet("dataset/employees.xml")
     public void testAddEmployeeWithNotExistingExpertise_shouldSucceedAndReturnEmployeeInfo() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        Department department = departmentRepository.save(buildDepartment()); // add department in database
-        Team team = teamRepository.save(buildTeam()); // add team in database
-
-        request.setDepartmentId(department.getId()); // existing department id
-        request.setTeamId(team.getId()); // existing team id
-        request.setExpertises(List.of("Java", "Spring boot")); // Not exist expertise
+        request.setDepartmentId(EXISTENT_DEPARTMENT_ID); // existing department id from dataset/employees.xml
+        request.setTeamId(EXISTENT_TEAM_ID); // existing team id from dataset/employees.xml
+        request.setExpertises(List.of("Python", "Database")); // Not exist expertise
 
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
@@ -286,15 +254,13 @@ public class EmployeeControllerTest {
         assertEquals(response.getExpertises(), request.getExpertises());
     }
 
-    // if expertise name are empty so it will skip it
+    // if expertise name is empty, so it will skip it
     @Test
+    @DataSet("dataset/employees.xml")
     public void testAddEmployeeWithEmptyExpertiseName_shouldSucceedAndReturnEmployeeInfoWithoutExpertise() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        Department department = departmentRepository.save(buildDepartment()); // add department in database
-        Team team = teamRepository.save(buildTeam()); // add team in database
-
-        request.setDepartmentId(department.getId()); // existing department id
-        request.setTeamId(team.getId()); // existing team id
+        request.setDepartmentId(EXISTENT_DEPARTMENT_ID); // existing department id from dataset/employees.xml
+        request.setTeamId(EXISTENT_TEAM_ID); // existing team id from dataset/employees.xml
         request.setExpertises(List.of(EMPTY_STRING, EMPTY_STRING)); // empty expertise names -> ""
 
         MvcResult result = mockMvc.perform(post("/api/employees")
