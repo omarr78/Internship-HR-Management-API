@@ -291,6 +291,22 @@ public class EmployeeControllerTest {
 
     @Test
     @DataSet("dataset/update_employees.xml")
+    public void testUpdateNotFoundEmployee_shouldFail() throws Exception {
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder().build();
+
+        mockMvc.perform(patch("/api/employees/" + NON_EXISTENT_ID)
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
     public void testUpdateEmployeeNameWithAnEmptyName_shouldFail() throws Exception {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 .name(EMPTY_STRING).build(); // set name with empty
@@ -374,6 +390,24 @@ public class EmployeeControllerTest {
         assertEquals(employee.getGender(), response.getGender());
         assertEquals(employee.getDepartment().getId(), response.getDepartmentId());
         assertEquals(employee.getTeam().getId(), response.getTeamId());
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testUpdateEmployeeManagerToSelfManagement_shouldFail() throws Exception {
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .managerId(Optional.of(EXISTENT_EMPLOYEE_ID)) // the same id as employee, means -> employee manager on himself
+                .build();
+
+        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE_ID)
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Employee cannot be self management", error.getErrorMessage());
+                });
     }
 
     @Test
