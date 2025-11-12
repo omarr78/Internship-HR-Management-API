@@ -20,7 +20,7 @@ public class UpdateEmployeeRequest {
     private LocalDate dateOfBirth;
     private LocalDate graduationDate;
     private Gender gender;
-    @Min(0)
+    @Min(value = 0, message = "salary must be greater than or equal to 0")
     private float salary;
     private Long departmentId;
     private Long teamId;

@@ -1,6 +1,5 @@
 package com.internship.integration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.database.rider.core.api.dataset.DataSet;
 import com.github.database.rider.spring.api.DBRider;
@@ -16,7 +15,6 @@ import com.internship.repository.EmployeeRepository;
 import com.internship.repository.ExpertiseRepository;
 import com.internship.repository.TeamRepository;
 import jakarta.transaction.Transactional;
-import org.hibernate.sql.Update;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -66,7 +64,8 @@ public class EmployeeControllerTest {
     private static final Long EXISTENT_EXPERTISE1_ID = 1L;
     private static final Long EXISTENT_EXPERTISE2_ID = 2L;
     // from dataset/update_create_employee.xml
-    private static final Long EXISTENT_EMPLOYEE_ID = 1L;
+    private static final Long EXISTENT_EMPLOYEE1_ID = 1L;
+    private static final Long EXISTENT_EMPLOYEE2_ID = 2L;
     private static final Long EXISTENT_DEPARTMENT2_ID = 2L;
     private static final Long EXISTENT_TEAM2_ID = 2L;
     private static final Long EXISTENT_MANAGER2_ID = 11L;
@@ -311,7 +310,7 @@ public class EmployeeControllerTest {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 .name(EMPTY_STRING).build(); // set name with empty
 
-        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE_ID)
+        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -328,14 +327,14 @@ public class EmployeeControllerTest {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 .salary(NEGATIVE_SALARY).build(); // set negative
 
-        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE_ID)
+        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> {
                     String json = result.getResponse().getContentAsString();
                     ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                    assertEquals("salary must be higher or equal to 0", error.getErrorMessage());
+                    assertEquals("salary must be greater than or equal to 0", error.getErrorMessage());
                 });
     }
 
@@ -348,7 +347,7 @@ public class EmployeeControllerTest {
                 .graduationDate(LocalDate.of(2020, 1, 1))
                 .build();
 
-        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE_ID)
+        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -372,9 +371,9 @@ public class EmployeeControllerTest {
                 .teamId(null)
                 .build();
 
-        Employee employee = employeeRepository.findById(EXISTENT_EMPLOYEE_ID).get();
+        Employee employee = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
 
-        MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE_ID)
+        MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -396,10 +395,10 @@ public class EmployeeControllerTest {
     @DataSet("dataset/update_employees.xml")
     public void testUpdateEmployeeManagerToSelfManagement_shouldFail() throws Exception {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
-                .managerId(Optional.of(EXISTENT_EMPLOYEE_ID)) // the same id as employee, means -> employee manager on himself
+                .managerId(Optional.of(EXISTENT_EMPLOYEE1_ID)) // the same id as employee, means -> employee manager on himself
                 .build();
 
-        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE_ID)
+        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -417,7 +416,7 @@ public class EmployeeControllerTest {
                 .managerId(Optional.empty())
                 .build();
 
-        MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE_ID)
+        MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -436,7 +435,7 @@ public class EmployeeControllerTest {
                 .expertises(List.of())
                 .build();
 
-        MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE_ID)
+        MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -455,10 +454,10 @@ public class EmployeeControllerTest {
                 .departmentId(NON_EXISTENT_ID)
                 .build();
 
-        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE_ID)
+        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(result -> {
                     String json = result.getResponse().getContentAsString();
                     ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
@@ -473,10 +472,10 @@ public class EmployeeControllerTest {
                 .teamId(NON_EXISTENT_ID)
                 .build();
 
-        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE_ID)
+        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(result -> {
                     String json = result.getResponse().getContentAsString();
                     ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
@@ -491,10 +490,10 @@ public class EmployeeControllerTest {
                 .managerId(Optional.of(NON_EXISTENT_ID))
                 .build();
 
-        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE_ID)
+        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(result -> {
                     String json = result.getResponse().getContentAsString();
                     ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
@@ -509,7 +508,7 @@ public class EmployeeControllerTest {
                 .expertises(List.of("Python", "Database"))
                 .build();
 
-        MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE_ID)
+        MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -520,6 +519,23 @@ public class EmployeeControllerTest {
 
         assertNotNull(response);
         assertEquals(response.getExpertises(), request.getExpertises());
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testUpdateEmployeeWithoutChangingExpertise_shouldSuccessAndReturnEmployeeWithTheSameExpertise() throws Exception {
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder().build();
+        String expertiseName = "spring boot"; // the employee with id 2 has this expertise from dataset/update_employees.xml
+
+        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE2_ID)
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+
+        Employee employee = employeeRepository.findById(EXISTENT_EMPLOYEE2_ID).get();
+
+        assertEquals(1, employee.getExpertises().size());
+        assertEquals(expertiseName, employee.getExpertises().get(0).getName());
     }
 
     @Test
@@ -555,7 +571,7 @@ public class EmployeeControllerTest {
                 .managerId(Optional.of(EXISTENT_MANAGER2_ID))
                 .build();
 
-        MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE_ID)
+        MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
