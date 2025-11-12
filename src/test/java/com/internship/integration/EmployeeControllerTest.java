@@ -58,6 +58,7 @@ public class EmployeeControllerTest {
 
     private static final Long NON_EXISTENT_ID = -1L;
     private static final String EMPTY_STRING = "";
+    private static final float NEGATIVE_SALARY = -1.0f;
     // from dataset/create_create_employee.xml
     private static final Long EXISTENT_DEPARTMENT1_ID = 1L;
     private static final Long EXISTENT_TEAM1_ID = 1L;
@@ -302,6 +303,23 @@ public class EmployeeControllerTest {
                     String json = result.getResponse().getContentAsString();
                     ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
                     assertEquals("name must not be empty and at least has 3 characters", error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testUpdateEmployeeSalaryWithNegativeSalary_shouldFail() throws Exception {
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .salary(NEGATIVE_SALARY).build(); // set negative
+
+        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE_ID)
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("salary must be higher or equal to 0", error.getErrorMessage());
                 });
     }
 
