@@ -13,6 +13,7 @@ import com.internship.repository.EmployeeRepository;
 import com.internship.repository.ExpertiseRepository;
 import com.internship.repository.TeamRepository;
 import com.internship.service.impl.EmployeeServiceImpl;
+import com.internship.service.impl.ExpertiseServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -37,6 +38,9 @@ public class EmployeeServiceImplTest {
 
     @InjectMocks
     private EmployeeServiceImpl service;
+
+    @Mock
+    private ExpertiseServiceImpl expertiseService;
 
     @Mock
     private EmployeeMapper mapper;
@@ -281,7 +285,7 @@ public class EmployeeServiceImplTest {
     }
 
     @Test
-    public void testAddEmployeeWithExistingExpertise_shouldSucceedAndReturnEmployeeInfo() {
+    public void testAddEmployeeWithExpertise_shouldSucceedAndReturnEmployeeInfo() {
         // Given
         Department department = buildDepartment(); // create department with id = 1L
         Team team = buildTeam(); // create team with id = 1L
@@ -311,104 +315,11 @@ public class EmployeeServiceImplTest {
                 .thenReturn(Optional.of(department));
         when(teamRepository.findById(request.getTeamId()))
                 .thenReturn(Optional.of(team));
-        when(expertiseRepository.findExpertiseByName(any(String.class)))
-                .thenReturn(Optional.of(expertise1))
-                .thenReturn(Optional.of(expertise2));
-        lenient().when(expertiseRepository.save(any(Expertise.class)))
-                .thenReturn(expertise1)
-                .thenReturn(expertise2);
+        when(expertiseService.getExpertises(request.getExpertises()))
+                .thenReturn(List.of(expertise1, expertise2));
         when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
 
         when(mapper.toEmployee(request, department, team, null, List.of(expertise1, expertise2))).thenReturn(employee);
-        when(mapper.toResponse(employee)).thenReturn(employeeResponse);
-
-        // action
-        EmployeeResponse response = service.addEmployee(request);
-        // then
-        assertNotNull(response);
-        assertEquals(response.getExpertises(), employeeResponse.getExpertises());
-    }
-
-    @Test
-    public void testAddEmployeeWithNotExistingExpertise_shouldSucceedAndReturnEmployeeInfo() {
-        // Given
-        Department department = buildDepartment(); // create department with id = 1L
-        Team team = buildTeam(); // create team with id = 1L
-        Expertise expertise1 = buildExpertise("Java");
-        expertise1.setId(EXPERTISE_ID1);
-        Expertise expertise2 = buildExpertise("Spring boot");
-        expertise2.setId(EXPERTISE_ID2);
-
-        CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        request.setDepartmentId(department.getId());
-        request.setTeamId(team.getId());
-        request.setExpertises(List.of("Java", "Spring boot"));
-
-        Employee employee = buildEmployee();
-        employee.setId(EMPLOYEE_ID);
-        employee.setDepartment(department);
-        employee.setTeam(team);
-        employee.setExpertises(List.of(expertise1, expertise2));
-
-        EmployeeResponse employeeResponse = buildEmployeeResponse();
-        employeeResponse.setId(EMPLOYEE_ID);
-        employeeResponse.setDepartmentId(department.getId());
-        employeeResponse.setTeamId(team.getId());
-        employeeResponse.setExpertises(List.of("Java", "Spring boot"));
-
-        when(departmentRepository.findById(request.getDepartmentId()))
-                .thenReturn(Optional.of(department));
-        when(teamRepository.findById(request.getTeamId()))
-                .thenReturn(Optional.of(team));
-        when(expertiseRepository.findExpertiseByName(any(String.class)))
-                .thenReturn(Optional.empty())
-                .thenReturn(Optional.empty());
-
-        lenient().when(expertiseRepository.save(any(Expertise.class)))
-                .thenReturn(expertise1)
-                .thenReturn(expertise2);
-
-        when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
-
-
-        when(mapper.toEmployee(request, department, team, null, List.of(expertise1, expertise2))).thenReturn(employee);
-        when(mapper.toResponse(employee)).thenReturn(employeeResponse);
-
-        // action
-        EmployeeResponse response = service.addEmployee(request);
-        // then
-        assertNotNull(response);
-        assertEquals(response.getExpertises(), employeeResponse.getExpertises());
-    }
-
-    @Test
-    public void testAddEmployeeWithEmptyExpertiseName_shouldSucceedAndReturnEmployeeInfoWithoutExpertise() {
-        // Given
-        Department department = buildDepartment(); // create department with id = 1L
-        Team team = buildTeam(); // create team with id = 1L
-
-        CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        request.setDepartmentId(department.getId());
-        request.setTeamId(team.getId());
-        request.setExpertises(List.of(EMPTY_STRING, EMPTY_STRING)); // empty expertise
-
-        Employee employee = buildEmployee();
-        employee.setId(EMPLOYEE_ID);
-        employee.setDepartment(department);
-        employee.setTeam(team);
-
-        EmployeeResponse employeeResponse = buildEmployeeResponse();
-        employeeResponse.setId(EMPLOYEE_ID);
-        employeeResponse.setDepartmentId(department.getId());
-        employeeResponse.setTeamId(team.getId());
-        employeeResponse.setExpertises(List.of()); // empty expertise
-
-        when(departmentRepository.findById(request.getDepartmentId()))
-                .thenReturn(Optional.of(department));
-        when(teamRepository.findById(request.getTeamId()))
-                .thenReturn(Optional.of(team));
-        when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
-        when(mapper.toEmployee(request, department, team, null, List.of())).thenReturn(employee);
         when(mapper.toResponse(employee)).thenReturn(employeeResponse);
 
         // action

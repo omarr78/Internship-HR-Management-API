@@ -39,6 +39,8 @@ dependencies {
     testImplementation 'com.h2database:h2:2.2.224'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation("org.dbunit:dbunit:2.7.3")
+    testImplementation("com.github.database-rider:rider-spring:1.41.0")
 }
 
 tasks.named('test') {
