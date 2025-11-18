@@ -1,7 +1,9 @@
 package com.internship.dto;
 
 import com.internship.enums.Gender;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -21,7 +23,7 @@ public class UpdateEmployeeRequest {
     private LocalDate graduationDate;
     private Gender gender;
     @Min(value = 0, message = "salary must be greater than or equal to 0")
-    private float salary;
+    private Float salary;
     private Long departmentId;
     private Long teamId;
     private Optional<Long> managerId;

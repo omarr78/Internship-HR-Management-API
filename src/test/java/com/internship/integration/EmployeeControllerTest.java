@@ -19,41 +19,26 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MvcResult;
-
 import static com.internship.enums.Gender.FEMALE;
 import static com.internship.enums.Gender.MALE;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
 @DBRider
 public class EmployeeControllerTest {
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private DepartmentRepository departmentRepository;
-    @Autowired
-    private TeamRepository teamRepository;
-    @Autowired
-    private EmployeeRepository employeeRepository;
-    @Autowired
-    private ExpertiseRepository expertiseRepository;
-
     private static final Long NON_EXISTENT_ID = -1L;
     private static final String EMPTY_STRING = "";
     private static final float NEGATIVE_SALARY = -1.0f;
@@ -69,7 +54,18 @@ public class EmployeeControllerTest {
     private static final Long EXISTENT_DEPARTMENT2_ID = 2L;
     private static final Long EXISTENT_TEAM2_ID = 2L;
     private static final Long EXISTENT_MANAGER2_ID = 11L;
-
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private ObjectMapper objectMapper;
+    @Autowired
+    private DepartmentRepository departmentRepository;
+    @Autowired
+    private TeamRepository teamRepository;
+    @Autowired
+    private EmployeeRepository employeeRepository;
+    @Autowired
+    private ExpertiseRepository expertiseRepository;
 
     private CreateEmployeeRequest buildCreateEmployeeRequest() {
         return CreateEmployeeRequest.builder()
@@ -87,7 +83,6 @@ public class EmployeeControllerTest {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(null); // no department
         request.setTeamId(EXISTENT_TEAM1_ID);
-
         mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -105,7 +100,6 @@ public class EmployeeControllerTest {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID);
         request.setTeamId(null); // no team
-
         mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -123,7 +117,6 @@ public class EmployeeControllerTest {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(NON_EXISTENT_ID); // not found department id
         request.setTeamId(EXISTENT_TEAM1_ID);
-
         mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -141,7 +134,6 @@ public class EmployeeControllerTest {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(NON_EXISTENT_ID); // not found team id
-
         mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -159,16 +151,13 @@ public class EmployeeControllerTest {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
-
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andReturn();
-
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-
         assertNotNull(response);
         assertNotNull(response.getId());
         assertEquals(response.getName(), request.getName());
@@ -187,7 +176,6 @@ public class EmployeeControllerTest {
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
         request.setManagerId(NON_EXISTENT_ID); // there is no employee with this id
-
         mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -206,16 +194,13 @@ public class EmployeeControllerTest {
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
         request.setManagerId(EXISTENT_MANAGER_ID); // existing manager id from dataset/create_employee.xml
-
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andReturn();
-
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-
         assertNotNull(response);
         assertEquals(EXISTENT_MANAGER_ID, response.getManagerId());
     }
@@ -230,16 +215,13 @@ public class EmployeeControllerTest {
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
         request.setExpertises(List.of(expertise1.getName(), expertise2.getName()));
-
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andReturn();
-
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-
         assertNotNull(response);
         assertEquals(response.getExpertises(), request.getExpertises());
     }
@@ -252,16 +234,13 @@ public class EmployeeControllerTest {
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
         request.setExpertises(List.of("Python", "Database")); // Not exist expertise
-
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andReturn();
-
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-
         assertNotNull(response);
         assertEquals(response.getExpertises(), request.getExpertises());
     }
@@ -274,16 +253,13 @@ public class EmployeeControllerTest {
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
         request.setExpertises(List.of(EMPTY_STRING, EMPTY_STRING)); // empty expertise names -> ""
-
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andReturn();
-
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-
         assertNotNull(response);
         assertEquals(response.getExpertises(), List.of());
     }
@@ -292,7 +268,6 @@ public class EmployeeControllerTest {
     @DataSet("dataset/update_employees.xml")
     public void testUpdateNotFoundEmployee_shouldFail() throws Exception {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder().build();
-
         mockMvc.perform(patch("/api/employees/" + NON_EXISTENT_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -309,7 +284,6 @@ public class EmployeeControllerTest {
     public void testUpdateEmployeeNameWithAnEmptyName_shouldFail() throws Exception {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 .name(EMPTY_STRING).build(); // set name with empty
-
         mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -326,7 +300,6 @@ public class EmployeeControllerTest {
     public void testUpdateEmployeeSalaryWithNegativeSalary_shouldFail() throws Exception {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 .salary(NEGATIVE_SALARY).build(); // set negative
-
         mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -340,13 +313,12 @@ public class EmployeeControllerTest {
 
     @Test
     @DataSet("dataset/update_employees.xml")
-    public void testUpdateEmployeeBirthOfDateAndGraduationDateToYearsCloseToEachOther_shouldFail() throws Exception {
+    public void testUpdateEmployeeBirthOfDateAndGraduationDateToDifferenceBetweenYearsLessThan20_shouldFail() throws Exception {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 // the different between years is 15 that is less than 20
                 .dateOfBirth(LocalDate.of(2005, 1, 1))
                 .graduationDate(LocalDate.of(2020, 1, 1))
                 .build();
-
         mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -370,18 +342,14 @@ public class EmployeeControllerTest {
                 .departmentId(null)
                 .teamId(null)
                 .build();
-
         Employee employee = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
-
         MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andReturn();
-
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-
         assertNotNull(response);
         assertEquals(employee.getName(), response.getName());
         assertEquals(employee.getDateOfBirth(), response.getDateOfBirth());
@@ -397,7 +365,6 @@ public class EmployeeControllerTest {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 .managerId(Optional.of(EXISTENT_EMPLOYEE1_ID)) // the same id as employee, means -> employee manager on himself
                 .build();
-
         mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -415,16 +382,13 @@ public class EmployeeControllerTest {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 .managerId(Optional.empty())
                 .build();
-
         MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andReturn();
-
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-
         assertNull(response.getManagerId());
     }
 
@@ -434,16 +398,13 @@ public class EmployeeControllerTest {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 .expertises(List.of())
                 .build();
-
         MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andReturn();
-
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-
         assertEquals(List.of(), response.getExpertises());
     }
 
@@ -453,7 +414,6 @@ public class EmployeeControllerTest {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 .departmentId(NON_EXISTENT_ID)
                 .build();
-
         mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -471,7 +431,6 @@ public class EmployeeControllerTest {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 .teamId(NON_EXISTENT_ID)
                 .build();
-
         mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -489,7 +448,6 @@ public class EmployeeControllerTest {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 .managerId(Optional.of(NON_EXISTENT_ID))
                 .build();
-
         mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -507,16 +465,13 @@ public class EmployeeControllerTest {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 .expertises(List.of("Python", "Database"))
                 .build();
-
         MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andReturn();
-
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-
         assertNotNull(response);
         assertEquals(response.getExpertises(), request.getExpertises());
     }
@@ -526,14 +481,11 @@ public class EmployeeControllerTest {
     public void testUpdateEmployeeWithoutChangingExpertise_shouldSuccessAndReturnEmployeeWithTheSameExpertise() throws Exception {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder().build();
         String expertiseName = "spring boot"; // the employee with id 2 has this expertise from dataset/update_employees.xml
-
         mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE2_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
-
         Employee employee = employeeRepository.findById(EXISTENT_EMPLOYEE2_ID).get();
-
         assertEquals(1, employee.getExpertises().size());
         assertEquals(expertiseName, employee.getExpertises().get(0).getName());
     }
@@ -559,7 +511,6 @@ public class EmployeeControllerTest {
         Gender updatedGender = FEMALE;
         // valid salary >= 0
         float updatedSalary = 1500;
-
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 .name(updatedName)
                 .dateOfBirth(updatedBirthDate)
@@ -570,16 +521,13 @@ public class EmployeeControllerTest {
                 .teamId(EXISTENT_TEAM2_ID)
                 .managerId(Optional.of(EXISTENT_MANAGER2_ID))
                 .build();
-
         MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andReturn();
-
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-
         assertNotNull(response);
         assertEquals(request.getName(), response.getName());
         assertEquals(request.getDateOfBirth(), response.getDateOfBirth());
