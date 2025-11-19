@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 
 public enum ApiError {
 
+    SELF_MANAGEMENT(HttpStatus.BAD_REQUEST, "Employee cannot be self management"),
     EMPLOYEE_NOT_FOUND(HttpStatus.NOT_FOUND, "Employee not found"),
     DEPARTMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Department not found"),
     TEAM_NOT_FOUND(HttpStatus.NOT_FOUND, "Team not found"),
