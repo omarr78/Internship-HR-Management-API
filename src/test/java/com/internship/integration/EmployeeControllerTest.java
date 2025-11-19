@@ -30,8 +30,7 @@ import java.util.Optional;
 import static com.internship.enums.Gender.FEMALE;
 import static com.internship.enums.Gender.MALE;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -537,5 +536,33 @@ public class EmployeeControllerTest {
         assertEquals(request.getDepartmentId(), response.getDepartmentId());
         assertEquals(request.getTeamId(), response.getTeamId());
         assertEquals(request.getManagerId().get(), response.getManagerId());
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testGetEmployeeInfo_shouldSuccessAndReturnEmployeeInfo() throws Exception {
+        // from dataset/update_employees.xml
+        /*
+        <employees id='1' name='Ahmed' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
+               salary='1000' department_id='1' team_id='1' manager_id='10'/>
+        <employee_expertise employee_id='1' expertise_id='1'/>  the employee has one expertise
+        */
+        // get employee with id = 1
+        MvcResult result = mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE1_ID))
+                .andExpect(status().isOk())
+                .andReturn();
+        EmployeeResponse response = objectMapper
+                .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
+        Employee employee = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
+        assertNotNull(response);
+        assertEquals(employee.getName(), response.getName());
+        assertEquals(employee.getDateOfBirth(), response.getDateOfBirth());
+        assertEquals(employee.getGraduationDate(), response.getGraduationDate());
+        assertEquals(employee.getGender(), response.getGender());
+        assertEquals(employee.getSalary(), response.getSalary());
+        assertEquals(employee.getDepartment().getId(), response.getDepartmentId());
+        assertEquals(employee.getTeam().getId(), response.getTeamId());
+        assertEquals(employee.getManager().getId(), response.getManagerId());
+        assertEquals(employee.getExpertises().getFirst().toString(), response.getExpertises().getFirst());
     }
 }
