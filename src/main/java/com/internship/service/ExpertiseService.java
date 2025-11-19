@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,23 +16,15 @@ public class ExpertiseService {
 
     @Transactional
     public List<Expertise> getExpertises(List<String> expertiseNames) {
-        List<Expertise> expertises = new ArrayList<>();
-        for (String expertiseName : expertiseNames) {
-            expertiseRepository.findExpertiseByName(expertiseName).ifPresent(expertises::add);
-        }
-        return expertises;
+        return expertiseRepository.findAllExpertiseByNameIn(expertiseNames);
     }
 
-    public List<Expertise> createNotFoundExpertise(List<String> expertiseNames) {
-        List<Expertise> expertises = new ArrayList<>();
+    public void createNotFoundExpertise(List<String> expertiseNames) {
         for (String expertiseName : expertiseNames) {
             Optional<Expertise> optional = expertiseRepository.findExpertiseByName(expertiseName);
-            if (optional.isEmpty()) {
-                Expertise exp = Expertise.builder().name(expertiseName).build();
-                expertiseRepository.save(exp);
-                expertises.add(exp);
-            }
+            if (optional.isPresent()) continue;
+            Expertise exp = Expertise.builder().name(expertiseName).build();
+            expertiseRepository.save(exp);
         }
-        return expertises;
     }
 }
