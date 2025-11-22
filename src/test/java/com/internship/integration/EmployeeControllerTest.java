@@ -563,6 +563,6 @@ public class EmployeeControllerTest {
         assertEquals(employee.getDepartment().getId(), response.getDepartmentId());
         assertEquals(employee.getTeam().getId(), response.getTeamId());
         assertEquals(employee.getManager().getId(), response.getManagerId());
-        assertEquals(employee.getExpertises().getFirst().toString(), response.getExpertises().getFirst());
+        assertEquals(employee.getExpertises().getFirst().getName(), response.getExpertises().getFirst());
     }
 }
