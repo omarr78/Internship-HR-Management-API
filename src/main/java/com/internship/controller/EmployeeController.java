@@ -28,4 +28,10 @@ public class EmployeeController {
         EmployeeResponse response = service.modifyEmployee(request, id);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<EmployeeResponse> getEmployee(@PathVariable final Long id) {
+        EmployeeResponse response = service.getEmployee(id);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }
