@@ -127,4 +127,8 @@ public class EmployeeService {
     private List<String> removeEmptyNames(List<String> expertiseNames) {
         return expertiseNames.stream().filter(name -> !name.isEmpty()).toList();
     }
+
+    public EmployeeResponse getEmployee(Long id) {
+        return employeeMapper.toResponse(employeeRepository.findById(id).get());
+    }
 }
