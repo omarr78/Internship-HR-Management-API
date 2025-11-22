@@ -565,4 +565,16 @@ public class EmployeeControllerTest {
         assertEquals(employee.getManager().getId(), response.getManagerId());
         assertEquals(employee.getExpertises().getFirst().getName(), response.getExpertises().getFirst());
     }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testGetEmployeeInfoWithNotFoundEmployee_shouldFail() throws Exception {
+        mockMvc.perform(get("/api/employees/" + NON_EXISTENT_ID))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
+                });
+    }
 }

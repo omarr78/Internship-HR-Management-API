@@ -129,6 +129,9 @@ public class EmployeeService {
     }
 
     public EmployeeResponse getEmployee(Long id) {
-        return employeeMapper.toResponse(employeeRepository.findById(id).get());
+        Employee employee = employeeRepository.findById(id).
+                orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+                        "Employee not found with id: " + id));
+        return employeeMapper.toResponse(employee);
     }
 }
