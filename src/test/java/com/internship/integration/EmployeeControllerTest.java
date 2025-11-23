@@ -53,8 +53,6 @@ public class EmployeeControllerTest {
     private static final Long EXISTENT_EMPLOYEE2_ID = 2L;
     private static final Long EXISTENT_EMPLOYEE3_ID = 3L;
     private static final Long EXISTENT_EMPLOYEE4_ID = 4L;
-    private static final Long EXISTENT_EMPLOYEE6_ID = 6L;
-    private static final Long EXISTENT_EMPLOYEE7_ID = 7L;
     private static final Long EXISTENT_DEPARTMENT2_ID = 2L;
     private static final Long EXISTENT_TEAM2_ID = 2L;
     private static final Long EXISTENT_MANAGER2_ID = 11L;
@@ -587,19 +585,19 @@ public class EmployeeControllerTest {
     @DataSet("dataset/delete_employees.xml")
     public void testDeleteEmployeeHasNoSubordinates_shouldSuccessAndReturnNoContent() throws Exception {
     /*
-              1            2
-             Omar        Islam
-              |          /   \
-              3         4      5
-            Ahmed    Marwan  Osama
+              1
+             Omar
+              |
+              2
+            Ahmed
             /    \
-            6     7
+            3     4
         Mohamed Mahmoud
     */
         mockMvc.perform(delete("/api/employees/" + EXISTENT_EMPLOYEE4_ID))
                 .andExpect(status().isNoContent());
         Optional<Employee> marwan = employeeRepository.findById(EXISTENT_EMPLOYEE4_ID);
-        // make sure the employee Marwan with id = 4 is deleted
+        // make sure the employee Mahmoud with id = 4 is deleted
         Assertions.assertTrue(marwan.isEmpty());
     }
 
@@ -607,25 +605,25 @@ public class EmployeeControllerTest {
     @DataSet("dataset/delete_employees.xml")
     public void testDeleteEmployeeHasManagerAndHasSubordinates_ShouldSuccessAndReturnNoContent() throws Exception {
     /*
-              1            2
-             Omar        Islam
-              |          /   \
-              3         4      5
-            Ahmed    Marwan  Osama
+              1
+             Omar
+              |
+              2
+            Ahmed
             /    \
-            6     7
+            3     4
         Mohamed Mahmoud
     */
-        mockMvc.perform(delete("/api/employees/" + EXISTENT_EMPLOYEE3_ID))
+        mockMvc.perform(delete("/api/employees/" + EXISTENT_EMPLOYEE2_ID))
                 .andExpect(status().isNoContent());
-        Optional<Employee> ahmed = employeeRepository.findById(EXISTENT_EMPLOYEE3_ID);
-        // first make sure that the employee Ahmed with id = 3 is deleted
+        Optional<Employee> ahmed = employeeRepository.findById(EXISTENT_EMPLOYEE2_ID);
+        // first make sure that the employee Ahmed with id = 2 is deleted
         Assertions.assertTrue(ahmed.isEmpty());
         // then make sure that Ahmed's Subordinates moved to his manager
         // now employee omar has Mohamed and Mahmoud as Subordinates
         Employee omar = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
-        Employee mohamed = employeeRepository.findById(EXISTENT_EMPLOYEE6_ID).get();
-        Employee mahmoud = employeeRepository.findById(EXISTENT_EMPLOYEE7_ID).get();
+        Employee mohamed = employeeRepository.findById(EXISTENT_EMPLOYEE3_ID).get();
+        Employee mahmoud = employeeRepository.findById(EXISTENT_EMPLOYEE4_ID).get();
         assertTrue(omar.getSubordinates().contains(mohamed));
         assertTrue(omar.getSubordinates().contains(mahmoud));
     }
@@ -646,13 +644,13 @@ public class EmployeeControllerTest {
     @DataSet("dataset/delete_employees.xml")
     public void testDeleteEmployeeHasNoManagerAndHasSubordinates_ShouldFailAndReturnBadRequest() throws Exception {
     /*
-              1            2
-             Omar        Islam
-              |          /   \
-              3         4      5
-            Ahmed    Marwan  Osama
+              1
+             Omar
+              |
+              2
+            Ahmed
             /    \
-            6     7
+            3     4
         Mohamed Mahmoud
     */
         // will try to delete omar and omar has no manager

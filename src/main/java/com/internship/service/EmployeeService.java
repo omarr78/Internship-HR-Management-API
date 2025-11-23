@@ -143,21 +143,19 @@ public class EmployeeService {
                 orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
 
-        if (employee.getSubordinates() != null) {
-            if (employee.getSubordinates().isEmpty()) {
-                employeeRepository.deleteById(id);
-            } else {
-                if (employee.getManager() != null) {
-                    Employee manager = employee.getManager();
-                    for (Employee subordinate : employee.getSubordinates()) {
-                        manager.getSubordinates().add(subordinate);
-                    }
-                    employeeRepository.save(manager);
-                    employeeRepository.deleteById(id);
-                } else {
-                    throw new BusinessException(INVALID_EMPLOYEE_REMOVAL);
+        if (employee.getSubordinates() != null && !employee.getSubordinates().isEmpty()) {
+            if (employee.getManager() != null) {
+                Employee manager = employee.getManager();
+                for (Employee subordinate : employee.getSubordinates()) {
+                    subordinate.setManager(manager);
+                    manager.getSubordinates().add(subordinate);
+                    employeeRepository.save(subordinate);
                 }
+                manager.getSubordinates().remove(employee);
+            } else {
+                throw new BusinessException(INVALID_EMPLOYEE_REMOVAL);
             }
         }
+        employeeRepository.delete(employee);
     }
 }
