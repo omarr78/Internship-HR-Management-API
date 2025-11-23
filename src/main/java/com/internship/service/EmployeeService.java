@@ -128,10 +128,30 @@ public class EmployeeService {
         return expertiseNames.stream().filter(name -> !name.isEmpty()).toList();
     }
 
+    @Transactional
     public EmployeeResponse getEmployee(Long id) {
         Employee employee = employeeRepository.findById(id).
                 orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
         return employeeMapper.toResponse(employee);
+    }
+
+    @Transactional
+    public void deleteEmployee(Long id) {
+        Employee employee = employeeRepository.findById(id).get();
+        if (employee.getSubordinates() != null) {
+            if (employee.getSubordinates().isEmpty()) {
+                employeeRepository.deleteById(id);
+            } else {
+                if (employee.getManager() != null) {
+                    Employee manager = employee.getManager();
+                    for (Employee subordinate : employee.getSubordinates()) {
+                        manager.getSubordinates().add(subordinate);
+                    }
+                    employeeRepository.save(manager);
+                    employeeRepository.deleteById(id);
+                }
+            }
+        }
     }
 }

@@ -15,6 +15,7 @@ import com.internship.repository.EmployeeRepository;
 import com.internship.repository.ExpertiseRepository;
 import com.internship.repository.TeamRepository;
 import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -50,6 +51,10 @@ public class EmployeeControllerTest {
     // from dataset/update_create_employee.xml
     private static final Long EXISTENT_EMPLOYEE1_ID = 1L;
     private static final Long EXISTENT_EMPLOYEE2_ID = 2L;
+    private static final Long EXISTENT_EMPLOYEE3_ID = 3L;
+    private static final Long EXISTENT_EMPLOYEE4_ID = 4L;
+    private static final Long EXISTENT_EMPLOYEE6_ID = 6L;
+    private static final Long EXISTENT_EMPLOYEE7_ID = 7L;
     private static final Long EXISTENT_DEPARTMENT2_ID = 2L;
     private static final Long EXISTENT_TEAM2_ID = 2L;
     private static final Long EXISTENT_MANAGER2_ID = 11L;
@@ -576,5 +581,52 @@ public class EmployeeControllerTest {
                     ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
                     assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
                 });
+    }
+
+    @Test
+    @DataSet("dataset/delete_employees.xml")
+    public void testDeleteEmployeeHasNoSubordinates_shouldSuccessAndReturnNoContent() throws Exception {
+    /*
+              1            2
+             Omar        Islam
+              |          /   \
+              3         4      5
+            Ahmed    Marwan  Osama
+            /    \
+            6     7
+        Mohamed Mahmoud
+    */
+        mockMvc.perform(delete("/api/employees/" + EXISTENT_EMPLOYEE4_ID))
+                .andExpect(status().isNoContent());
+        Optional<Employee> marwan = employeeRepository.findById(EXISTENT_EMPLOYEE4_ID);
+        // make sure the employee Marwan with id = 4 is deleted
+        Assertions.assertTrue(marwan.isEmpty());
+    }
+
+    @Test
+    @DataSet("dataset/delete_employees.xml")
+    public void testDeleteEmployeeHasManagerAndHasSubordinates_ShouldSuccessAndReturnNoContent() throws Exception {
+    /*
+              1            2
+             Omar        Islam
+              |          /   \
+              3         4      5
+            Ahmed    Marwan  Osama
+            /    \
+            6     7
+        Mohamed Mahmoud
+    */
+        mockMvc.perform(delete("/api/employees/" + EXISTENT_EMPLOYEE3_ID))
+                .andExpect(status().isNoContent());
+        Optional<Employee> ahmed = employeeRepository.findById(EXISTENT_EMPLOYEE3_ID);
+        // first make sure that the employee Ahmed with id = 3 is deleted
+        Assertions.assertTrue(ahmed.isEmpty());
+        // then make sure that Ahmed's Subordinates moved to his manager
+        // now employee omar has Mohamed and Mahmoud as Subordinates
+        Employee omar = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
+        Employee mohamed = employeeRepository.findById(EXISTENT_EMPLOYEE6_ID).get();
+        Employee mahmoud = employeeRepository.findById(EXISTENT_EMPLOYEE7_ID).get();
+        assertTrue(omar.getSubordinates().contains(mohamed));
+        assertTrue(omar.getSubordinates().contains(mahmoud));
     }
 }
