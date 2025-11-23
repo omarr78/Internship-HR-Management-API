@@ -138,7 +138,11 @@ public class EmployeeService {
 
     @Transactional
     public void deleteEmployee(Long id) {
-        Employee employee = employeeRepository.findById(id).get();
+        // check employee with id exists
+        Employee employee = employeeRepository.findById(id).
+                orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+                        "Employee not found with id: " + id));
+
         if (employee.getSubordinates() != null) {
             if (employee.getSubordinates().isEmpty()) {
                 employeeRepository.deleteById(id);
@@ -150,6 +154,8 @@ public class EmployeeService {
                     }
                     employeeRepository.save(manager);
                     employeeRepository.deleteById(id);
+                } else {
+                    throw new BusinessException(INVALID_EMPLOYEE_REMOVAL);
                 }
             }
         }

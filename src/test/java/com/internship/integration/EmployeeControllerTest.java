@@ -629,4 +629,40 @@ public class EmployeeControllerTest {
         assertTrue(omar.getSubordinates().contains(mohamed));
         assertTrue(omar.getSubordinates().contains(mahmoud));
     }
+
+    @Test
+    @DataSet("dataset/delete_employees.xml")
+    public void testDeleteNotFoundEmployee_ShouldFailAndReturnNotFound() throws Exception {
+        mockMvc.perform(delete("/api/employees/" + NON_EXISTENT_ID))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/delete_employees.xml")
+    public void testDeleteEmployeeHasNoManagerAndHasSubordinates_ShouldFailAndReturnBadRequest() throws Exception {
+    /*
+              1            2
+             Omar        Islam
+              |          /   \
+              3         4      5
+            Ahmed    Marwan  Osama
+            /    \
+            6     7
+        Mohamed Mahmoud
+    */
+        // will try to delete omar and omar has no manager
+        mockMvc.perform(delete("/api/employees/" + EXISTENT_EMPLOYEE1_ID))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Cannot remove manager (employee has subordinates) has no manager"
+                            , error.getErrorMessage());
+                });
+    }
 }
