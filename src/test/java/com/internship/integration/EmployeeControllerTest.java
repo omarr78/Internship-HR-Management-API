@@ -686,4 +686,16 @@ public class EmployeeControllerTest {
         Map<String, Float> map = objectMapper.readValue(result.getResponse().getContentAsString(), typeRef);
         assertEquals(netSalary, map.get("salary"), DELTA);
     }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testGetNotFoundEmployeeSalary_ShouldFailAndReturnEmployeeNotFound() throws Exception {
+        mockMvc.perform(get("/api/employees/" + NON_EXISTENT_ID + "/salary"))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
+                });
+    }
 }
