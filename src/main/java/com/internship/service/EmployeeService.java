@@ -16,9 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.internship.exception.ApiError.*;
 
@@ -171,5 +169,32 @@ public class EmployeeService {
         } else {
             throw new BusinessException(EMPLOYEE_NOT_FOUND, "Employee not found with id: " + id);
         }
+    }
+
+    public List<EmployeeResponse> getAllEmployeesUnderManager(Long managerId) {
+        Employee manager = employeeRepository.findById(managerId).get();
+        List<Employee> employeesUnderManager = getEmployeesByBfs(manager);
+        return employeesUnderManager.stream().map(employeeMapper::toResponse).toList();
+    }
+
+    private List<Employee> getEmployeesByBfs(Employee employee) {
+        List<Employee> employees = new ArrayList<>();
+        Set<Long> visitedEmployeeIds = new HashSet<>();
+        Queue<Employee> queue = new LinkedList<>();
+        queue.add(employee);
+        visitedEmployeeIds.add(employee.getId());
+        while (!queue.isEmpty()) {
+            Employee manager = queue.poll();
+            if (manager.getSubordinates() != null && !manager.getSubordinates().isEmpty()) {
+                for (Employee sub : manager.getSubordinates()) {
+                    if (!visitedEmployeeIds.contains(sub.getId())) {
+                        visitedEmployeeIds.add(sub.getId());
+                        queue.add(sub);
+                        employees.add(sub);
+                    }
+                }
+            }
+        }
+        return employees;
     }
 }

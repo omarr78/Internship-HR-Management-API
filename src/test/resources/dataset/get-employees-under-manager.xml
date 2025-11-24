@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+
+    <!--          1      -->
+    <!--          A      -->
+    <!--        /   \    -->
+    <!--       2     5   -->
+    <!--       B     E   -->
+    <!--      / \    |   -->
+    <!--     3   4   6   -->
+    <!--     C   D   F   -->
+
+    <!-- insert some department and team-->
+    <departments id='1' name='department1'/>
+    <departments id='2' name='department2'/>
+
+    <teams id='1' name='team1'/>
+    <teams id='2' name='team2'/>
+
+    <!-- insert some employees -->
+
+    <employees id='1' name='A' date_of_birth='2001-10-05' graduation_date='2023-06-05' gender='MALE'
+               salary='1000' department_id='1' team_id='1'/>
+
+    <employees id='2' name='B' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
+               salary='1000' department_id='1' team_id='1' manager_id='1'/>
+
+    <employees id='3' name='C' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
+               salary='1000' department_id='1' team_id='1' manager_id='2'/>
+
+    <employees id='4' name='D' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
+               salary='1000' department_id='1' team_id='1' manager_id='2'/>
+
+    <employees id='5' name='E' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
+               salary='1000' department_id='1' team_id='1' manager_id='1'/>
+
+    <employees id='6' name='F' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
+               salary='1000' department_id='1' team_id='1' manager_id='5'/>
+</dataset>

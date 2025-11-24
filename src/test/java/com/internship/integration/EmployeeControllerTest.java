@@ -715,4 +715,52 @@ public class EmployeeControllerTest {
         Map<String, Float> map = objectMapper.readValue(result.getResponse().getContentAsString(), typeRef);
         assertEquals(zero, map.get("salary"), DELTA);
     }
+
+    @Test
+    @DataSet("dataset/get-employees-under-manager.xml")
+    public void testGetEmployeesUnderManger_shouldSuccessAndReturnAllEmployeeUnderManger() throws Exception {
+        /*
+                1
+                A
+              /   \
+             2     5
+             B     E
+            / \    |
+           3   4   6
+           C   D   F
+        */
+        MvcResult result = mockMvc.perform(get("/api/employees/under-manager/" + EXISTENT_EMPLOYEE1_ID))
+                .andExpect(status().isOk())
+                .andReturn();
+        List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
+        List<String> expectedEmployeeName = List.of("B", "E", "C", "D", "F");
+        assertEquals(expectedEmployeeName.size(), response.size());
+        for (int i = 0; i < expectedEmployeeName.size(); i++) {
+            assertEquals(expectedEmployeeName.get(i), response.get(i).getName());
+        }
+    }
+
+    @Test
+    @DataSet("dataset/get-employees-under-manager.xml")
+    public void testGetEmployeesUnderEmployeeHasNoSubordinates_shouldSuccessAndReturnEmptyList() throws Exception {
+        /*
+                1
+                A
+              /   \
+             2     5
+             B     E
+            / \    |
+           3   4   6
+           C   D   F
+        */
+
+        // we will test employee C for example
+        MvcResult result = mockMvc.perform(get("/api/employees/under-manager/" + EXISTENT_EMPLOYEE3_ID))
+                .andExpect(status().isOk())
+                .andReturn();
+        List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
+        assertTrue(response.isEmpty());
+    }
 }
