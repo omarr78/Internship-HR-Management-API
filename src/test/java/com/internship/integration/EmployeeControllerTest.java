@@ -698,4 +698,21 @@ public class EmployeeControllerTest {
                     assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
                 });
     }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testGetEmployeeSalaryWithNegativeNetSalary_ShouldReturnEmployeeNetSalaryWithZero() throws Exception {
+        /*
+        from dataset/update_employees.xml
+        <employees id='2' name='mostafa' salary='100'/>
+        */
+        float zero = 0.0f;
+        MvcResult result = mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE2_ID + "/salary"))
+                .andExpect(status().isOk())
+                .andReturn();
+        TypeReference<Map<String, Float>> typeRef = new TypeReference<>() {
+        };
+        Map<String, Float> map = objectMapper.readValue(result.getResponse().getContentAsString(), typeRef);
+        assertEquals(zero, map.get("salary"), DELTA);
+    }
 }

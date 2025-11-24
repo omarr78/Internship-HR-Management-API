@@ -163,8 +163,11 @@ public class EmployeeService {
 
     public float getEmployeeSalaryInfo(Long id) {
         Optional<Float> salary = employeeRepository.getSalary(id);
+        // check if the employee exists or not
         if (salary.isPresent()) {
-            return salary.get() * TAX_REMINDER - INSURANCE_AMOUNT;
+            float netSalary = salary.get() * TAX_REMINDER - INSURANCE_AMOUNT;
+            // prevent negative salaries
+            return netSalary > 0 ? netSalary : 0.0f;
         } else {
             throw new BusinessException(EMPLOYEE_NOT_FOUND, "Employee not found with id: " + id);
         }
