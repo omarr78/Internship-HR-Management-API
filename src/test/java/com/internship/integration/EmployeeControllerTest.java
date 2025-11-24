@@ -601,9 +601,9 @@ public class EmployeeControllerTest {
     */
         mockMvc.perform(delete("/api/employees/" + EXISTENT_EMPLOYEE4_ID))
                 .andExpect(status().isNoContent());
-        Optional<Employee> marwan = employeeRepository.findById(EXISTENT_EMPLOYEE4_ID);
+        Optional<Employee> mahmoud = employeeRepository.findById(EXISTENT_EMPLOYEE4_ID);
         // make sure the employee Mahmoud with id = 4 is deleted
-        Assertions.assertTrue(marwan.isEmpty());
+        Assertions.assertTrue(mahmoud.isEmpty());
     }
 
     @Test
