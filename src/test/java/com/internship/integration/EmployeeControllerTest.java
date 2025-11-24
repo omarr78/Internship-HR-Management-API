@@ -563,17 +563,25 @@ public class EmployeeControllerTest {
                 .andReturn();
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-        Employee employee = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
+
+        // Ahmed's data
+        String name = "Ahmed";
+        LocalDate birthDate = LocalDate.of(2003, 10, 5);
+        LocalDate graduationDate = LocalDate.of(2025, 6, 5);
+        float salary = 1000;
+        Long managerId = 10L;
+        List<String> expertises = List.of("spring boot");
+
         assertNotNull(response);
-        assertEquals(employee.getName(), response.getName());
-        assertEquals(employee.getDateOfBirth(), response.getDateOfBirth());
-        assertEquals(employee.getGraduationDate(), response.getGraduationDate());
-        assertEquals(employee.getGender(), response.getGender());
-        assertEquals(employee.getSalary(), response.getSalary());
-        assertEquals(employee.getDepartment().getId(), response.getDepartmentId());
-        assertEquals(employee.getTeam().getId(), response.getTeamId());
-        assertEquals(employee.getManager().getId(), response.getManagerId());
-        assertEquals(employee.getExpertises().getFirst().getName(), response.getExpertises().getFirst());
+        assertEquals(name, response.getName());
+        assertEquals(birthDate, response.getDateOfBirth());
+        assertEquals(graduationDate, response.getGraduationDate());
+        assertEquals(MALE, response.getGender());
+        assertEquals(salary, response.getSalary());
+        assertEquals(EXISTENT_DEPARTMENT1_ID, response.getDepartmentId());
+        assertEquals(EXISTENT_TEAM1_ID, response.getTeamId());
+        assertEquals(managerId, response.getManagerId());
+        assertEquals(expertises.getFirst(), response.getExpertises().getFirst());
     }
 
     @Test
