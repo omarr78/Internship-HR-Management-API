@@ -172,7 +172,10 @@ public class EmployeeService {
     }
 
     public List<EmployeeResponse> getAllEmployeesUnderManager(Long managerId) {
-        Employee manager = employeeRepository.findById(managerId).get();
+        // check employee with id exists
+        Employee manager = employeeRepository.findById(managerId).
+                orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+                        "Employee not found with id: " + managerId));
         List<Employee> employeesUnderManager = getEmployeesByBfs(manager);
         return employeesUnderManager.stream().map(employeeMapper::toResponse).toList();
     }

@@ -763,4 +763,16 @@ public class EmployeeControllerTest {
                 objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
         assertTrue(response.isEmpty());
     }
+
+    @Test
+    @DataSet("dataset/get-employees-under-manager.xml")
+    public void testGetEmployeesUnderNotFoundEmployee_shouldFailAndReturnEmployeeNotFound() throws Exception {
+        mockMvc.perform(get("/api/employees/under-manager/" + NON_EXISTENT_ID))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
+                });
+    }
 }
