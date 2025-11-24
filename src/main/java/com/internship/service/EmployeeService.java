@@ -25,6 +25,8 @@ import static com.internship.exception.ApiError.*;
 @Service
 @RequiredArgsConstructor
 public class EmployeeService {
+    private static final float TAX_REMINDER = 0.85f;
+    private static final int INSURANCE_AMOUNT = 500;
     private static final int MAX_DIFFERENCE_YEARS = 20;
     private final EmployeeRepository employeeRepository;
     private final DepartmentRepository departmentRepository;
@@ -157,5 +159,9 @@ public class EmployeeService {
             }
         }
         employeeRepository.delete(employee);
+    }
+
+    public float getEmployeeSalaryInfo(Long id) {
+        return employeeRepository.getSalary(id).get() * TAX_REMINDER - INSURANCE_AMOUNT;
     }
 }

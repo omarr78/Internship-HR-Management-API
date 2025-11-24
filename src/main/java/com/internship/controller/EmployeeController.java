@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/employees")
 @RequiredArgsConstructor
@@ -39,5 +41,11 @@ public class EmployeeController {
     public ResponseEntity<EmployeeResponse> DeleteEmployee(@PathVariable final Long id) {
         service.deleteEmployee(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @GetMapping("/{id}/salary")
+    public ResponseEntity<Map<String, Float>> getEmployeeSalary(@PathVariable final Long id) {
+        float salary = service.getEmployeeSalaryInfo(id);
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of("salary", salary));
     }
 }

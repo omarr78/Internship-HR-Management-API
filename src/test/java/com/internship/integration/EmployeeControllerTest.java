@@ -1,5 +1,6 @@
 package com.internship.integration;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.database.rider.core.api.dataset.DataSet;
 import com.github.database.rider.spring.api.DBRider;
@@ -26,6 +27,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.internship.enums.Gender.FEMALE;
@@ -39,6 +41,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @DBRider
 public class EmployeeControllerTest {
+    private static final float DELTA = 0.0003f;
+    private static final float TAX_REMINDER = 0.85f;
+    private static final int INSURANCE_AMOUNT = 500;
     private static final Long NON_EXISTENT_ID = -1L;
     private static final String EMPTY_STRING = "";
     private static final float NEGATIVE_SALARY = -1.0f;
@@ -662,5 +667,23 @@ public class EmployeeControllerTest {
                     assertEquals("Cannot remove manager (employee has subordinates) has no manager"
                             , error.getErrorMessage());
                 });
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testGetEmployeeSalary_ShouldReturnEmployeeNetSalary() throws Exception {
+        /*
+        from dataset/update_employees.xml
+        <employees id='1' name='Ahmed' salary='1000' />
+        */
+        float ahmedSalary = 1000;
+        float netSalary = ahmedSalary * TAX_REMINDER - INSURANCE_AMOUNT;
+        MvcResult result = mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE1_ID + "/salary"))
+                .andExpect(status().isOk())
+                .andReturn();
+        TypeReference<Map<String, Float>> typeRef = new TypeReference<>() {
+        };
+        Map<String, Float> map = objectMapper.readValue(result.getResponse().getContentAsString(), typeRef);
+        assertEquals(netSalary, map.get("salary"), DELTA);
     }
 }
