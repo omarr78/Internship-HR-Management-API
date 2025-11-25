@@ -42,20 +42,18 @@ public class EmployeeControllerTest {
     private static final Long NON_EXISTENT_ID = -1L;
     private static final String EMPTY_STRING = "";
     private static final float NEGATIVE_SALARY = -1.0f;
-    // from dataset/create_create_employee.xml
     private static final Long EXISTENT_DEPARTMENT1_ID = 1L;
+    private static final Long EXISTENT_DEPARTMENT2_ID = 2L;
     private static final Long EXISTENT_TEAM1_ID = 1L;
-    private static final Long EXISTENT_MANAGER_ID = 10L;
-    private static final Long EXISTENT_EXPERTISE1_ID = 1L;
-    private static final Long EXISTENT_EXPERTISE2_ID = 2L;
-    // from dataset/update_create_employee.xml
+    private static final Long EXISTENT_TEAM2_ID = 2L;
+    private static final Long EXISTENT_MANAGER1_ID = 10L;
+    private static final Long EXISTENT_MANAGER2_ID = 11L;
     private static final Long EXISTENT_EMPLOYEE1_ID = 1L;
     private static final Long EXISTENT_EMPLOYEE2_ID = 2L;
-    private static final Long EXISTENT_EMPLOYEE3_ID = 3L;
-    private static final Long EXISTENT_EMPLOYEE4_ID = 4L;
-    private static final Long EXISTENT_DEPARTMENT2_ID = 2L;
-    private static final Long EXISTENT_TEAM2_ID = 2L;
-    private static final Long EXISTENT_MANAGER2_ID = 11L;
+    private static final Long EXISTENT_SUBORDINATES1_ID = 3L;
+    private static final Long EXISTENT_SUBORDINATES2_ID = 4L;
+    private static final Long EXISTENT_EXPERTISE1_ID = 1L;
+    private static final Long EXISTENT_EXPERTISE2_ID = 2L;
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -195,7 +193,7 @@ public class EmployeeControllerTest {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
-        request.setManagerId(EXISTENT_MANAGER_ID); // existing manager id from dataset/create_employee.xml
+        request.setManagerId(EXISTENT_MANAGER1_ID); // existing manager id from dataset/create_employee.xml
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -204,7 +202,7 @@ public class EmployeeControllerTest {
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
         assertNotNull(response);
-        assertEquals(EXISTENT_MANAGER_ID, response.getManagerId());
+        assertEquals(EXISTENT_MANAGER1_ID, response.getManagerId());
     }
 
     @Test
@@ -594,9 +592,9 @@ public class EmployeeControllerTest {
             3     4
         Mohamed Mahmoud
     */
-        mockMvc.perform(delete("/api/employees/" + EXISTENT_EMPLOYEE4_ID))
+        mockMvc.perform(delete("/api/employees/" + EXISTENT_SUBORDINATES1_ID))
                 .andExpect(status().isNoContent());
-        Optional<Employee> marwan = employeeRepository.findById(EXISTENT_EMPLOYEE4_ID);
+        Optional<Employee> marwan = employeeRepository.findById(EXISTENT_SUBORDINATES1_ID);
         // make sure the employee Mahmoud with id = 4 is deleted
         Assertions.assertTrue(marwan.isEmpty());
     }
@@ -622,8 +620,8 @@ public class EmployeeControllerTest {
         // then make sure that Ahmed's Subordinates moved to his manager
         // now employee omar has Mohamed and Mahmoud as Subordinates
         Employee omar = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
-        Employee mohamed = employeeRepository.findById(EXISTENT_EMPLOYEE3_ID).get();
-        Employee mahmoud = employeeRepository.findById(EXISTENT_EMPLOYEE4_ID).get();
+        Employee mohamed = employeeRepository.findById(EXISTENT_SUBORDINATES1_ID).get();
+        Employee mahmoud = employeeRepository.findById(EXISTENT_SUBORDINATES2_ID).get();
         assertTrue(omar.getSubordinates().contains(mohamed));
         assertTrue(omar.getSubordinates().contains(mahmoud));
     }
