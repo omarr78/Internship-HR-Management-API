@@ -618,12 +618,12 @@ public class EmployeeControllerTest {
         // first make sure that the employee Ahmed with id = 2 is deleted
         Assertions.assertTrue(ahmed.isEmpty());
         // then make sure that Ahmed's Subordinates moved to his manager
-        // now employee omar has Mohamed and Mahmoud as Subordinates
+        // now employee omar is the manager of Mohamed and Mahmoud
         Employee omar = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
         Employee mohamed = employeeRepository.findById(EXISTENT_SUBORDINATES1_ID).get();
         Employee mahmoud = employeeRepository.findById(EXISTENT_SUBORDINATES2_ID).get();
-        assertTrue(omar.getSubordinates().contains(mohamed));
-        assertTrue(omar.getSubordinates().contains(mahmoud));
+        assertEquals(mohamed.getManager(), omar);
+        assertEquals(mahmoud.getManager(), omar);
     }
 
     @Test
