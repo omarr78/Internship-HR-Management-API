@@ -653,7 +653,7 @@ public class EmployeeControllerTest {
     */
         // will try to delete omar and omar has no manager
         mockMvc.perform(delete("/api/employees/" + EXISTENT_EMPLOYEE1_ID))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isConflict())
                 .andExpect(result -> {
                     String json = result.getResponse().getContentAsString();
                     ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
