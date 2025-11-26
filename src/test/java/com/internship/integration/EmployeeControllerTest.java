@@ -729,7 +729,8 @@ public class EmployeeControllerTest {
            3   4   6
            C   D   F
         */
-        MvcResult result = mockMvc.perform(get("/api/employees/under-manager/" + EXISTENT_EMPLOYEE1_ID))
+        MvcResult result = mockMvc.perform(get("/api/employees")
+                        .param("managerId", String.valueOf(EXISTENT_EMPLOYEE1_ID)))
                 .andExpect(status().isOk())
                 .andReturn();
         List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
@@ -756,7 +757,8 @@ public class EmployeeControllerTest {
         */
 
         // we will test employee C for example
-        MvcResult result = mockMvc.perform(get("/api/employees/under-manager/" + EXISTENT_EMPLOYEE3_ID))
+        MvcResult result = mockMvc.perform(get("/api/employees")
+                        .param("managerId", String.valueOf(EXISTENT_EMPLOYEE3_ID)))
                 .andExpect(status().isOk())
                 .andReturn();
         List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
@@ -767,7 +769,8 @@ public class EmployeeControllerTest {
     @Test
     @DataSet("dataset/get-employees-under-manager.xml")
     public void testGetEmployeesUnderNotFoundEmployee_shouldFailAndReturnEmployeeNotFound() throws Exception {
-        mockMvc.perform(get("/api/employees/under-manager/" + NON_EXISTENT_ID))
+        mockMvc.perform(get("/api/employees")
+                        .param("managerId", String.valueOf(NON_EXISTENT_ID)))
                 .andExpect(status().isNotFound())
                 .andExpect(result -> {
                     String json = result.getResponse().getContentAsString();

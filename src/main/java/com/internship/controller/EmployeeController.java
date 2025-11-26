@@ -50,8 +50,8 @@ public class EmployeeController {
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("salary", salary));
     }
 
-    @GetMapping("/under-manager/{managerId}")
-    public ResponseEntity<List<EmployeeResponse>> getUnderManager(@PathVariable final Long managerId) {
+    @GetMapping
+    public ResponseEntity<List<EmployeeResponse>> getEmployees(@RequestParam final Long managerId) {
         List<EmployeeResponse> employeeResponses = service.getAllEmployeesUnderManager(managerId);
         return ResponseEntity.status(HttpStatus.OK).body(employeeResponses);
     }
