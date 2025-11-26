@@ -2,6 +2,7 @@ package com.internship.service;
 
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
+import com.internship.dto.SalaryDto;
 import com.internship.dto.UpdateEmployeeRequest;
 import com.internship.entity.Department;
 import com.internship.entity.Employee;
@@ -161,13 +162,13 @@ public class EmployeeService {
         employeeRepository.delete(employee);
     }
 
-    public float getEmployeeSalaryInfo(Long id) {
+    public SalaryDto getEmployeeSalaryInfo(Long id) {
         Optional<Float> salary = employeeRepository.getSalary(id);
         // check if the employee exists or not
         if (salary.isPresent()) {
             float netSalary = salary.get() * TAX_REMINDER - INSURANCE_AMOUNT;
             // prevent negative salaries
-            return netSalary > 0 ? netSalary : 0.0f;
+            return netSalary > 0 ? SalaryDto.builder().salary(netSalary).build() : SalaryDto.builder().salary(0.0f).build();
         } else {
             throw new BusinessException(EMPLOYEE_NOT_FOUND, "Employee not found with id: " + id);
         }
