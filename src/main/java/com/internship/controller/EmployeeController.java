@@ -2,6 +2,7 @@ package com.internship.controller;
 
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
+import com.internship.dto.SalaryDto;
 import com.internship.dto.UpdateEmployeeRequest;
 import com.internship.service.EmployeeService;
 import jakarta.validation.Valid;
@@ -45,9 +46,9 @@ public class EmployeeController {
     }
 
     @GetMapping("/{id}/salary")
-    public ResponseEntity<Map<String, Float>> getEmployeeSalary(@PathVariable final Long id) {
-        float salary = service.getEmployeeSalaryInfo(id);
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of("salary", salary));
+    public ResponseEntity<SalaryDto> getEmployeeSalary(@PathVariable final Long id) {
+        SalaryDto salaryResponse = service.getEmployeeSalaryInfo(id);
+        return ResponseEntity.status(HttpStatus.OK).body(salaryResponse);
     }
 
     @GetMapping

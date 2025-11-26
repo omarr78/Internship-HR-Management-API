@@ -1,11 +1,11 @@
 package com.internship.integration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.database.rider.core.api.dataset.DataSet;
 import com.github.database.rider.spring.api.DBRider;
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
+import com.internship.dto.SalaryDto;
 import com.internship.dto.UpdateEmployeeRequest;
 import com.internship.entity.Employee;
 import com.internship.entity.Expertise;
@@ -28,7 +28,6 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static com.internship.enums.Gender.FEMALE;
@@ -684,10 +683,8 @@ public class EmployeeControllerTest {
         MvcResult result = mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE1_ID + "/salary"))
                 .andExpect(status().isOk())
                 .andReturn();
-        TypeReference<Map<String, Float>> typeRef = new TypeReference<>() {
-        };
-        Map<String, Float> map = objectMapper.readValue(result.getResponse().getContentAsString(), typeRef);
-        assertEquals(netSalary, map.get("salary"), DELTA);
+        SalaryDto response = objectMapper.readValue(result.getResponse().getContentAsString(), SalaryDto.class);
+        assertEquals(netSalary, response.getSalary(), DELTA);
     }
 
     @Test
@@ -713,10 +710,8 @@ public class EmployeeControllerTest {
         MvcResult result = mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE2_ID + "/salary"))
                 .andExpect(status().isOk())
                 .andReturn();
-        TypeReference<Map<String, Float>> typeRef = new TypeReference<>() {
-        };
-        Map<String, Float> map = objectMapper.readValue(result.getResponse().getContentAsString(), typeRef);
-        assertEquals(zero, map.get("salary"), DELTA);
+        SalaryDto response = objectMapper.readValue(result.getResponse().getContentAsString(), SalaryDto.class);
+        assertEquals(zero, response.getSalary(), DELTA);
     }
 
     @Test
