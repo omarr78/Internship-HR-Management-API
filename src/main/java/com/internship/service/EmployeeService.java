@@ -188,14 +188,11 @@ public class EmployeeService {
         visitedEmployeeIds.add(employee.getId());
         while (!queue.isEmpty()) {
             Employee manager = queue.poll();
-            if (manager.getSubordinates() != null && !manager.getSubordinates().isEmpty()) {
-                for (Employee sub : manager.getSubordinates()) {
-                    if (!visitedEmployeeIds.contains(sub.getId())) {
-                        visitedEmployeeIds.add(sub.getId());
-                        queue.add(sub);
-                        employees.add(sub);
-                    }
-                }
+            for (Employee sub : manager.getSubordinates()) {
+                if (visitedEmployeeIds.contains(sub.getId())) throw new BusinessException(HIERARCHY_CYCLE_DETECTED);
+                visitedEmployeeIds.add(sub.getId());
+                queue.add(sub);
+                employees.add(sub);
             }
         }
         return employees;
