@@ -3,6 +3,7 @@ package com.internship.exception;
 import org.springframework.http.HttpStatus;
 
 public enum ApiError {
+    NEGATIVE_SALARY(HttpStatus.CONFLICT, "Salary cannot be Negative after deduction"),
     HIERARCHY_CYCLE_DETECTED(HttpStatus.CONFLICT, "Cycle detected in employee hierarchy"),
     SELF_MANAGEMENT(HttpStatus.BAD_REQUEST, "Employee cannot be self management"),
     EMPLOYEE_NOT_FOUND(HttpStatus.NOT_FOUND, "Employee not found"),
