@@ -161,15 +161,13 @@ public class EmployeeService {
     }
 
     public SalaryDto getEmployeeSalaryInfo(Long id) {
-        Optional<Float> salary = employeeRepository.getSalary(id);
-        // check if the employee exists or not
-        if (salary.isPresent()) {
-            float netSalary = salary.get() * TAX_REMINDER - INSURANCE_AMOUNT;
-            // prevent negative salaries
-            return netSalary > 0 ? SalaryDto.builder().salary(netSalary).build() : SalaryDto.builder().salary(0.0f).build();
-        } else {
-            throw new BusinessException(EMPLOYEE_NOT_FOUND, "Employee not found with id: " + id);
-        }
+        // check employee with id exists
+        Employee employee = employeeRepository.findById(id).
+                orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+                        "Employee not found with id: " + id));
+        float netSalary = employee.getSalary() * TAX_REMINDER - INSURANCE_AMOUNT;
+        // prevent negative salaries
+        return netSalary > 0 ? SalaryDto.builder().salary(netSalary).build() : SalaryDto.builder().salary(0.0f).build();
     }
 
     public List<EmployeeResponse> getAllEmployeesUnderManager(Long managerId) {
