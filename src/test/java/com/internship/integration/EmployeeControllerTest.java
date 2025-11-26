@@ -703,11 +703,13 @@ public class EmployeeControllerTest {
         from dataset/update_employees.xml
         <employees id='2' name='mostafa' salary='100'/>
         */
-        float zero = 0.0f;
-        MvcResult result = mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE2_ID + "/salary"))
-                .andExpect(status().isOk())
-                .andReturn();
-        SalaryDto response = objectMapper.readValue(result.getResponse().getContentAsString(), SalaryDto.class);
-        assertEquals(zero, response.getSalary(), DELTA);
+        mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE2_ID + "/salary"))
+                .andExpect(status().isConflict())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Salary cannot be Negative after deduction"
+                            , error.getErrorMessage());
+                });
     }
 }

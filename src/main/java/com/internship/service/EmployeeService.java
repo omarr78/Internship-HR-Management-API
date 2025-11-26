@@ -169,6 +169,9 @@ public class EmployeeService {
                         "Employee not found with id: " + id));
         float netSalary = employee.getSalary() * TAX_REMINDER - INSURANCE_AMOUNT;
         // prevent negative salaries
-        return netSalary > 0 ? SalaryDto.builder().salary(netSalary).build() : SalaryDto.builder().salary(0.0f).build();
+        if (netSalary < 0) {
+            throw new BusinessException(NEGATIVE_SALARY);
+        }
+        return SalaryDto.builder().salary(netSalary).build();
     }
 }
