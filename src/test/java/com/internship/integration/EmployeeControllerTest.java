@@ -776,4 +776,32 @@ public class EmployeeControllerTest {
                     assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
                 });
     }
+
+    @Test
+    @DataSet("dataset/get-employees-under-manager.xml")
+    public void testGetEmployeesUnderMangerWithHierarchyCycleDetected_shouldSuccessAndReturnAllEmployeeUnderManger() throws Exception {
+        /*
+                1
+                A  <------|
+              /   \       |
+             2     5      |
+             B     E      |
+            / \    |      |
+           3   4   6      |
+           C   D   F -----|
+        */
+        // if F is manager of A entered by mistake it will throw an exception when get all employee under manager
+        Long employeeFId = 6L;
+        // Set F as the manager of A
+        employeeRepository.updateManager(EXISTENT_EMPLOYEE1_ID, employeeFId);
+
+        mockMvc.perform(get("/api/employees")
+                        .param("managerId", String.valueOf(EXISTENT_EMPLOYEE1_ID)))
+                .andExpect(status().isConflict())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Cycle detected in employee hierarchy", error.getErrorMessage());
+                });
+    }
 }
