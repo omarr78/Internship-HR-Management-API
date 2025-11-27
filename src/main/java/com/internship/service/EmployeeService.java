@@ -143,11 +143,9 @@ public class EmployeeService {
                 orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
         Employee manager = employee.getManager();
-        if (manager == null) { // if the employee has no manager then it can't be deleted
+        if (manager == null) // if the employee has no manager then it can't be deleted
             throw new BusinessException(INVALID_EMPLOYEE_REMOVAL);
-        } else {
-            employeeRepository.reassignManager(employee.getId(), manager.getId());
-        }
+        employeeRepository.reassignManager(employee.getId(), manager.getId());
         employeeRepository.delete(employee);
     }
 }
