@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -61,6 +62,8 @@ public class EmployeeControllerTest {
     private static final Long EXISTENT_DEPARTMENT2_ID = 2L;
     private static final Long EXISTENT_TEAM2_ID = 2L;
     private static final Long EXISTENT_MANAGER2_ID = 11L;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -793,7 +796,8 @@ public class EmployeeControllerTest {
         // if F is manager of A entered by mistake it will throw an exception when get all employee under manager
         Long employeeFId = 6L;
         // Set F as the manager of A
-        employeeRepository.updateManager(EXISTENT_EMPLOYEE1_ID, employeeFId);
+        String updateManagerQuery = "UPDATE employees SET manager_id = ? WHERE id = ?";
+        jdbcTemplate.update(updateManagerQuery, employeeFId, EXISTENT_EMPLOYEE1_ID);
 
         mockMvc.perform(get("/api/employees")
                         .param("managerId", String.valueOf(EXISTENT_EMPLOYEE1_ID)))
