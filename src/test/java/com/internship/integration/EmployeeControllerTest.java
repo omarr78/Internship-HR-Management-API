@@ -742,9 +742,9 @@ public class EmployeeControllerTest {
                 .andReturn();
         List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
                 objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
-        List<String> actualEmployeeName = response.stream().map(EmployeeResponse::getName).toList();
-        List<String> expectedEmployeeName = List.of("B", "E", "C", "D", "F");
-        assertEquals(expectedEmployeeName, actualEmployeeName);
+        List<String> actualEmployeeNames = response.stream().map(EmployeeResponse::getName).toList();
+        List<String> expectedEmployeeNames = List.of("B", "E", "C", "D", "F");
+        assertEquals(expectedEmployeeNames, actualEmployeeNames);
     }
 
     @Test
