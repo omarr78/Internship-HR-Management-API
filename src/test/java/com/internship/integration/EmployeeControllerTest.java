@@ -1,11 +1,11 @@
 package com.internship.integration;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.database.rider.core.api.dataset.DataSet;
 import com.github.database.rider.spring.api.DBRider;
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
+import com.internship.dto.SalaryDto;
 import com.internship.dto.UpdateEmployeeRequest;
 import com.internship.entity.Employee;
 import com.internship.entity.Expertise;
@@ -27,7 +27,6 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static com.internship.enums.Gender.FEMALE;
@@ -47,20 +46,18 @@ public class EmployeeControllerTest {
     private static final Long NON_EXISTENT_ID = -1L;
     private static final String EMPTY_STRING = "";
     private static final float NEGATIVE_SALARY = -1.0f;
-    // from dataset/create_create_employee.xml
     private static final Long EXISTENT_DEPARTMENT1_ID = 1L;
+    private static final Long EXISTENT_DEPARTMENT2_ID = 2L;
     private static final Long EXISTENT_TEAM1_ID = 1L;
-    private static final Long EXISTENT_MANAGER_ID = 10L;
-    private static final Long EXISTENT_EXPERTISE1_ID = 1L;
-    private static final Long EXISTENT_EXPERTISE2_ID = 2L;
-    // from dataset/update_create_employee.xml
+    private static final Long EXISTENT_TEAM2_ID = 2L;
+    private static final Long EXISTENT_MANAGER1_ID = 10L;
+    private static final Long EXISTENT_MANAGER2_ID = 11L;
     private static final Long EXISTENT_EMPLOYEE1_ID = 1L;
     private static final Long EXISTENT_EMPLOYEE2_ID = 2L;
-    private static final Long EXISTENT_EMPLOYEE3_ID = 3L;
-    private static final Long EXISTENT_EMPLOYEE4_ID = 4L;
-    private static final Long EXISTENT_DEPARTMENT2_ID = 2L;
-    private static final Long EXISTENT_TEAM2_ID = 2L;
-    private static final Long EXISTENT_MANAGER2_ID = 11L;
+    private static final Long EXISTENT_SUBORDINATES1_ID = 3L;
+    private static final Long EXISTENT_SUBORDINATES2_ID = 4L;
+    private static final Long EXISTENT_EXPERTISE1_ID = 1L;
+    private static final Long EXISTENT_EXPERTISE2_ID = 2L;
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -200,7 +197,7 @@ public class EmployeeControllerTest {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
-        request.setManagerId(EXISTENT_MANAGER_ID); // existing manager id from dataset/create_employee.xml
+        request.setManagerId(EXISTENT_MANAGER1_ID); // existing manager id from dataset/create_employee.xml
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -209,7 +206,7 @@ public class EmployeeControllerTest {
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
         assertNotNull(response);
-        assertEquals(EXISTENT_MANAGER_ID, response.getManagerId());
+        assertEquals(EXISTENT_MANAGER1_ID, response.getManagerId());
     }
 
     @Test
@@ -561,17 +558,25 @@ public class EmployeeControllerTest {
                 .andReturn();
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-        Employee employee = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
+
+        // Ahmed's data
+        String expectedName = "Ahmed";
+        LocalDate expectedBirthDate = LocalDate.of(2003, 10, 5);
+        LocalDate expectedGraduationDate = LocalDate.of(2025, 6, 5);
+        float expectedSalary = 1000;
+        Long expectedManagerId = 10L;
+        List<String> expectedExpertises = List.of("spring boot");
+
         assertNotNull(response);
-        assertEquals(employee.getName(), response.getName());
-        assertEquals(employee.getDateOfBirth(), response.getDateOfBirth());
-        assertEquals(employee.getGraduationDate(), response.getGraduationDate());
-        assertEquals(employee.getGender(), response.getGender());
-        assertEquals(employee.getSalary(), response.getSalary());
-        assertEquals(employee.getDepartment().getId(), response.getDepartmentId());
-        assertEquals(employee.getTeam().getId(), response.getTeamId());
-        assertEquals(employee.getManager().getId(), response.getManagerId());
-        assertEquals(employee.getExpertises().getFirst().getName(), response.getExpertises().getFirst());
+        assertEquals(expectedName, response.getName());
+        assertEquals(expectedBirthDate, response.getDateOfBirth());
+        assertEquals(expectedGraduationDate, response.getGraduationDate());
+        assertEquals(MALE, response.getGender());
+        assertEquals(expectedSalary, response.getSalary());
+        assertEquals(EXISTENT_DEPARTMENT1_ID, response.getDepartmentId());
+        assertEquals(EXISTENT_TEAM1_ID, response.getTeamId());
+        assertEquals(expectedManagerId, response.getManagerId());
+        assertEquals(expectedExpertises.getFirst(), response.getExpertises().getFirst());
     }
 
     @Test
@@ -599,11 +604,12 @@ public class EmployeeControllerTest {
             3     4
         Mohamed Mahmoud
     */
-        mockMvc.perform(delete("/api/employees/" + EXISTENT_EMPLOYEE4_ID))
+        // try to delete employee Mahmoud
+        mockMvc.perform(delete("/api/employees/" + EXISTENT_SUBORDINATES1_ID))
                 .andExpect(status().isNoContent());
-        Optional<Employee> mahmoud = employeeRepository.findById(EXISTENT_EMPLOYEE4_ID);
         // make sure the employee Mahmoud with id = 4 is deleted
-        Assertions.assertTrue(mahmoud.isEmpty());
+        Optional<Employee> mahmoud = employeeRepository.findById(EXISTENT_SUBORDINATES1_ID);
+        assertTrue(mahmoud.isEmpty());
     }
 
     @Test
@@ -625,12 +631,12 @@ public class EmployeeControllerTest {
         // first make sure that the employee Ahmed with id = 2 is deleted
         Assertions.assertTrue(ahmed.isEmpty());
         // then make sure that Ahmed's Subordinates moved to his manager
-        // now employee omar has Mohamed and Mahmoud as Subordinates
+        // now employee omar is the manager of Mohamed and Mahmoud
         Employee omar = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
-        Employee mohamed = employeeRepository.findById(EXISTENT_EMPLOYEE3_ID).get();
-        Employee mahmoud = employeeRepository.findById(EXISTENT_EMPLOYEE4_ID).get();
-        assertTrue(omar.getSubordinates().contains(mohamed));
-        assertTrue(omar.getSubordinates().contains(mahmoud));
+        Employee mohamed = employeeRepository.findById(EXISTENT_SUBORDINATES1_ID).get();
+        Employee mahmoud = employeeRepository.findById(EXISTENT_SUBORDINATES2_ID).get();
+        assertEquals(mohamed.getManager(), omar);
+        assertEquals(mahmoud.getManager(), omar);
     }
 
     @Test
@@ -647,7 +653,7 @@ public class EmployeeControllerTest {
 
     @Test
     @DataSet("dataset/delete_employees.xml")
-    public void testDeleteEmployeeHasNoManagerAndHasSubordinates_ShouldFailAndReturnBadRequest() throws Exception {
+    public void testDeleteEmployeeHasNoManagerAndHasSubordinates_ShouldFailAndReturnConflict() throws Exception {
     /*
               1
              Omar
@@ -660,7 +666,7 @@ public class EmployeeControllerTest {
     */
         // will try to delete omar and omar has no manager
         mockMvc.perform(delete("/api/employees/" + EXISTENT_EMPLOYEE1_ID))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isConflict())
                 .andExpect(result -> {
                     String json = result.getResponse().getContentAsString();
                     ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
@@ -681,10 +687,8 @@ public class EmployeeControllerTest {
         MvcResult result = mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE1_ID + "/salary"))
                 .andExpect(status().isOk())
                 .andReturn();
-        TypeReference<Map<String, Float>> typeRef = new TypeReference<>() {
-        };
-        Map<String, Float> map = objectMapper.readValue(result.getResponse().getContentAsString(), typeRef);
-        assertEquals(netSalary, map.get("salary"), DELTA);
+        SalaryDto response = objectMapper.readValue(result.getResponse().getContentAsString(), SalaryDto.class);
+        assertEquals(netSalary, response.getSalary(), DELTA);
     }
 
     @Test
@@ -706,14 +710,14 @@ public class EmployeeControllerTest {
         from dataset/update_employees.xml
         <employees id='2' name='mostafa' salary='100'/>
         */
-        float zero = 0.0f;
-        MvcResult result = mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE2_ID + "/salary"))
-                .andExpect(status().isOk())
-                .andReturn();
-        TypeReference<Map<String, Float>> typeRef = new TypeReference<>() {
-        };
-        Map<String, Float> map = objectMapper.readValue(result.getResponse().getContentAsString(), typeRef);
-        assertEquals(zero, map.get("salary"), DELTA);
+        mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE2_ID + "/salary"))
+                .andExpect(status().isConflict())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Salary cannot be Negative after deduction"
+                            , error.getErrorMessage());
+                });
     }
 
     @Test
@@ -756,7 +760,7 @@ public class EmployeeControllerTest {
 
         // we will test employee C for example
         MvcResult result = mockMvc.perform(get("/api/employees")
-                        .param("managerId", String.valueOf(EXISTENT_EMPLOYEE3_ID)))
+                        .param("managerId", String.valueOf(EXISTENT_SUBORDINATES1_ID)))
                 .andExpect(status().isOk())
                 .andReturn();
         List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),

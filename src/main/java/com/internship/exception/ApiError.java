@@ -4,12 +4,13 @@ import org.springframework.http.HttpStatus;
 
 public enum ApiError {
     HIERARCHY_CYCLE_DETECTED(HttpStatus.CONFLICT, "Cycle detected in employee hierarchy"),
+    NEGATIVE_SALARY(HttpStatus.CONFLICT, "Salary cannot be Negative after deduction"),
     SELF_MANAGEMENT(HttpStatus.BAD_REQUEST, "Employee cannot be self management"),
     EMPLOYEE_NOT_FOUND(HttpStatus.NOT_FOUND, "Employee not found"),
     DEPARTMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Department not found"),
     TEAM_NOT_FOUND(HttpStatus.NOT_FOUND, "Team not found"),
     INVALID_EMPLOYEE_DATES_EXCEPTION(HttpStatus.BAD_REQUEST, "graduation date must be after birth date at least 20 years"),
-    INVALID_EMPLOYEE_REMOVAL(HttpStatus.BAD_REQUEST, "Cannot remove manager (employee has subordinates) has no manager");
+    INVALID_EMPLOYEE_REMOVAL(HttpStatus.CONFLICT, "Cannot remove manager (employee has subordinates) has no manager");
 
     private final HttpStatus httpStatus;
     private final String defaultMessage;

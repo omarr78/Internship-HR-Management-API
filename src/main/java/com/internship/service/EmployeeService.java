@@ -2,6 +2,7 @@ package com.internship.service;
 
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
+import com.internship.dto.SalaryDto;
 import com.internship.dto.UpdateEmployeeRequest;
 import com.internship.entity.Department;
 import com.internship.entity.Employee;
@@ -142,33 +143,24 @@ public class EmployeeService {
         Employee employee = employeeRepository.findById(id).
                 orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
-
-        if (employee.getSubordinates() != null && !employee.getSubordinates().isEmpty()) {
-            if (employee.getManager() != null) {
-                Employee manager = employee.getManager();
-                for (Employee subordinate : employee.getSubordinates()) {
-                    subordinate.setManager(manager);
-                    manager.getSubordinates().add(subordinate);
-                    employeeRepository.save(subordinate);
-                }
-                manager.getSubordinates().remove(employee);
-            } else {
-                throw new BusinessException(INVALID_EMPLOYEE_REMOVAL);
-            }
-        }
+        Employee manager = employee.getManager();
+        if (manager == null) // if the employee has no manager then it can't be deleted
+            throw new BusinessException(INVALID_EMPLOYEE_REMOVAL);
+        employeeRepository.reassignManager(employee.getId(), manager.getId());
         employeeRepository.delete(employee);
     }
 
-    public float getEmployeeSalaryInfo(Long id) {
-        Optional<Float> salary = employeeRepository.getSalary(id);
-        // check if the employee exists or not
-        if (salary.isPresent()) {
-            float netSalary = salary.get() * TAX_REMINDER - INSURANCE_AMOUNT;
-            // prevent negative salaries
-            return netSalary > 0 ? netSalary : 0.0f;
-        } else {
-            throw new BusinessException(EMPLOYEE_NOT_FOUND, "Employee not found with id: " + id);
+    public SalaryDto getEmployeeSalaryInfo(Long id) {
+        // check employee with id exists
+        Employee employee = employeeRepository.findById(id).
+                orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+                        "Employee not found with id: " + id));
+        float netSalary = employee.getSalary() * TAX_REMINDER - INSURANCE_AMOUNT;
+        // prevent negative salaries
+        if (netSalary < 0) {
+            throw new BusinessException(NEGATIVE_SALARY);
         }
+        return SalaryDto.builder().salary(netSalary).build();
     }
 
     public List<EmployeeResponse> getAllEmployeesUnderManager(Long managerId) {
