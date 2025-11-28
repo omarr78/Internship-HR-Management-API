@@ -128,10 +128,24 @@ public class EmployeeService {
         return expertiseNames.stream().filter(name -> !name.isEmpty()).toList();
     }
 
+    @Transactional
     public EmployeeResponse getEmployee(Long id) {
         Employee employee = employeeRepository.findById(id).
                 orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
         return employeeMapper.toResponse(employee);
+    }
+
+    @Transactional
+    public void deleteEmployee(Long id) {
+        // check employee with id exists
+        Employee employee = employeeRepository.findById(id).
+                orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+                        "Employee not found with id: " + id));
+        Employee manager = employee.getManager();
+        if (manager == null) // if the employee has no manager then it can't be deleted
+            throw new BusinessException(INVALID_EMPLOYEE_REMOVAL);
+        employeeRepository.reassignManager(employee.getId(), manager.getId());
+        employeeRepository.delete(employee);
     }
 }

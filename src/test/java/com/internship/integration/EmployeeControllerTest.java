@@ -15,6 +15,7 @@ import com.internship.repository.EmployeeRepository;
 import com.internship.repository.ExpertiseRepository;
 import com.internship.repository.TeamRepository;
 import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -41,18 +42,18 @@ public class EmployeeControllerTest {
     private static final Long NON_EXISTENT_ID = -1L;
     private static final String EMPTY_STRING = "";
     private static final float NEGATIVE_SALARY = -1.0f;
-    // from dataset/create_create_employee.xml
     private static final Long EXISTENT_DEPARTMENT1_ID = 1L;
+    private static final Long EXISTENT_DEPARTMENT2_ID = 2L;
     private static final Long EXISTENT_TEAM1_ID = 1L;
-    private static final Long EXISTENT_MANAGER_ID = 10L;
-    private static final Long EXISTENT_EXPERTISE1_ID = 1L;
-    private static final Long EXISTENT_EXPERTISE2_ID = 2L;
-    // from dataset/update_create_employee.xml
+    private static final Long EXISTENT_TEAM2_ID = 2L;
+    private static final Long EXISTENT_MANAGER1_ID = 10L;
+    private static final Long EXISTENT_MANAGER2_ID = 11L;
     private static final Long EXISTENT_EMPLOYEE1_ID = 1L;
     private static final Long EXISTENT_EMPLOYEE2_ID = 2L;
-    private static final Long EXISTENT_DEPARTMENT2_ID = 2L;
-    private static final Long EXISTENT_TEAM2_ID = 2L;
-    private static final Long EXISTENT_MANAGER2_ID = 11L;
+    private static final Long EXISTENT_SUBORDINATES1_ID = 3L;
+    private static final Long EXISTENT_SUBORDINATES2_ID = 4L;
+    private static final Long EXISTENT_EXPERTISE1_ID = 1L;
+    private static final Long EXISTENT_EXPERTISE2_ID = 2L;
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -192,7 +193,7 @@ public class EmployeeControllerTest {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
-        request.setManagerId(EXISTENT_MANAGER_ID); // existing manager id from dataset/create_employee.xml
+        request.setManagerId(EXISTENT_MANAGER1_ID); // existing manager id from dataset/create_employee.xml
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -201,7 +202,7 @@ public class EmployeeControllerTest {
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
         assertNotNull(response);
-        assertEquals(EXISTENT_MANAGER_ID, response.getManagerId());
+        assertEquals(EXISTENT_MANAGER1_ID, response.getManagerId());
     }
 
     @Test
@@ -583,6 +584,90 @@ public class EmployeeControllerTest {
                     String json = result.getResponse().getContentAsString();
                     ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
                     assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/delete_employees.xml")
+    public void testDeleteEmployeeHasNoSubordinates_shouldSuccessAndReturnNoContent() throws Exception {
+    /*
+              1
+             Omar
+              |
+              2
+            Ahmed
+            /    \
+            3     4
+        Mohamed Mahmoud
+    */
+        // try to delete employee Mahmoud
+        mockMvc.perform(delete("/api/employees/" + EXISTENT_SUBORDINATES1_ID))
+                .andExpect(status().isNoContent());
+        // make sure the employee Mahmoud with id = 4 is deleted
+        Optional<Employee> mahmoud = employeeRepository.findById(EXISTENT_SUBORDINATES1_ID);
+        assertTrue(mahmoud.isEmpty());
+    }
+
+    @Test
+    @DataSet("dataset/delete_employees.xml")
+    public void testDeleteEmployeeHasManagerAndHasSubordinates_ShouldSuccessAndReturnNoContent() throws Exception {
+    /*
+              1
+             Omar
+              |
+              2
+            Ahmed
+            /    \
+            3     4
+        Mohamed Mahmoud
+    */
+        mockMvc.perform(delete("/api/employees/" + EXISTENT_EMPLOYEE2_ID))
+                .andExpect(status().isNoContent());
+        Optional<Employee> ahmed = employeeRepository.findById(EXISTENT_EMPLOYEE2_ID);
+        // first make sure that the employee Ahmed with id = 2 is deleted
+        Assertions.assertTrue(ahmed.isEmpty());
+        // then make sure that Ahmed's Subordinates moved to his manager
+        // now employee omar is the manager of Mohamed and Mahmoud
+        Employee omar = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
+        Employee mohamed = employeeRepository.findById(EXISTENT_SUBORDINATES1_ID).get();
+        Employee mahmoud = employeeRepository.findById(EXISTENT_SUBORDINATES2_ID).get();
+        assertEquals(mohamed.getManager(), omar);
+        assertEquals(mahmoud.getManager(), omar);
+    }
+
+    @Test
+    @DataSet("dataset/delete_employees.xml")
+    public void testDeleteNotFoundEmployee_ShouldFailAndReturnNotFound() throws Exception {
+        mockMvc.perform(delete("/api/employees/" + NON_EXISTENT_ID))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/delete_employees.xml")
+    public void testDeleteEmployeeHasNoManagerAndHasSubordinates_ShouldFailAndReturnConflict() throws Exception {
+    /*
+              1
+             Omar
+              |
+              2
+            Ahmed
+            /    \
+            3     4
+        Mohamed Mahmoud
+    */
+        // will try to delete omar and omar has no manager
+        mockMvc.perform(delete("/api/employees/" + EXISTENT_EMPLOYEE1_ID))
+                .andExpect(status().isConflict())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Cannot remove manager (employee has subordinates) has no manager"
+                            , error.getErrorMessage());
                 });
     }
 }
