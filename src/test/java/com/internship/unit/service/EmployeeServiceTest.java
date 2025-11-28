@@ -1,4 +1,4 @@
-package com.internship.unit.service.impl;
+package com.internship.unit.service;
 
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
@@ -12,7 +12,8 @@ import com.internship.repository.DepartmentRepository;
 import com.internship.repository.EmployeeRepository;
 import com.internship.repository.ExpertiseRepository;
 import com.internship.repository.TeamRepository;
-import com.internship.service.impl.EmployeeServiceImpl;
+import com.internship.service.EmployeeService;
+import com.internship.service.ExpertiseService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,26 +28,28 @@ import static com.internship.enums.Gender.MALE;
 import static com.internship.exception.ApiError.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class EmployeeServiceImplTest {
+public class EmployeeServiceTest {
+    private static final Long NON_EXISTENT_ID = -1L;
+    private static final Long EMPLOYEE_ID = 1L;
+    private static final Long MANAGER_ID = 10L;
+    private static final Long EXPERTISE_ID1 = 1L;
+    private static final Long EXPERTISE_ID2 = 2L;
+    private static final String EMPTY_STRING = "";
     @Mock
     private EmployeeRepository employeeRepository;
-
     @InjectMocks
-    private EmployeeServiceImpl service;
-
+    private EmployeeService service;
+    @Mock
+    private ExpertiseService expertiseService;
     @Mock
     private EmployeeMapper mapper;
-
     @Mock
     private DepartmentRepository departmentRepository;
-
     @Mock
     private TeamRepository teamRepository;
-
     @Mock
     private ExpertiseRepository expertiseRepository;
 
@@ -100,13 +103,6 @@ public class EmployeeServiceImplTest {
                 .build();
     }
 
-    private static final Long NON_EXISTENT_ID = -1L;
-    private static final Long EMPLOYEE_ID = 1L;
-    private static final Long MANAGER_ID = 10L;
-    private static final Long EXPERTISE_ID1 = 1L;
-    private static final Long EXPERTISE_ID2 = 2L;
-    private static final String EMPTY_STRING = "";
-
     @Test
     public void testAddEmployeeWithGraduationDateNotAfterBirthDate_shouldFail() {
         // Given
@@ -115,7 +111,6 @@ public class EmployeeServiceImplTest {
         // if birth of date after or equal graduation date should fail
         request.setGraduationDate(LocalDate.of(2005, 6, 5));
         request.setDateOfBirth(LocalDate.of(2007, 6, 5));
-
         // When & Then - should throw an INVALID_EMPLOYEE_DATES_EXCEPTION
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> service.addEmployee(request));
@@ -130,7 +125,6 @@ public class EmployeeServiceImplTest {
         // if birth of date after or equal graduation date should fail
         request.setGraduationDate(LocalDate.of(2005, 6, 5));
         request.setDateOfBirth(LocalDate.of(2024, 6, 5));
-
         // When & Then - should throw an INVALID_EMPLOYEE_DATES_EXCEPTION
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> service.addEmployee(request));
@@ -142,10 +136,8 @@ public class EmployeeServiceImplTest {
         // Given
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(NON_EXISTENT_ID); // there is no department with this id
-
         when(departmentRepository.findById(request.getDepartmentId()))
                 .thenReturn(Optional.empty());
-
         // When & Then - should throw an DEPARTMENT_NOT_FOUND
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> service.addEmployee(request));
@@ -156,11 +148,9 @@ public class EmployeeServiceImplTest {
     public void testAddEmployeeWithNotFoundTeam_shouldFail() {
         // Given
         Department department = buildDepartment(); // create department with id = 1L
-
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(department.getId());
         request.setTeamId(NON_EXISTENT_ID); // there is no team with this id
-
         when(departmentRepository.findById(request.getDepartmentId()))
                 .thenReturn(Optional.of(department));
         when(teamRepository.findById(request.getTeamId()))
@@ -176,19 +166,16 @@ public class EmployeeServiceImplTest {
         // Given
         Department department = buildDepartment(); // create department with id = 1L
         Team team = buildTeam(); // create team with id = 1L
-
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(department.getId());
         request.setTeamId(team.getId());
         request.setManagerId(NON_EXISTENT_ID); // there is no employee with this id
-
         when(departmentRepository.findById(request.getDepartmentId()))
                 .thenReturn(Optional.of(department));
         when(teamRepository.findById(request.getTeamId()))
                 .thenReturn(Optional.of(team));
         when(employeeRepository.findById(request.getManagerId()))
                 .thenReturn(Optional.empty());
-
         // When & Then - should throw an EMPLOYEE_NOT_FOUND
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> service.addEmployee(request));
@@ -200,21 +187,17 @@ public class EmployeeServiceImplTest {
         // Given
         Department department = buildDepartment(); // create department with id = 1L
         Team team = buildTeam(); // create team with id = 1L
-
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(department.getId());
         request.setTeamId(team.getId());
-
         Employee employee = buildEmployee();
         employee.setId(EMPLOYEE_ID);
         employee.setDepartment(department);
         employee.setTeam(team);
-
         EmployeeResponse employeeResponse = buildEmployeeResponse();
         employeeResponse.setId(EMPLOYEE_ID);
         employeeResponse.setDepartmentId(department.getId());
         employeeResponse.setTeamId(team.getId());
-
         when(departmentRepository.findById(request.getDepartmentId()))
                 .thenReturn(Optional.of(department));
         when(teamRepository.findById(request.getTeamId()))
@@ -222,7 +205,6 @@ public class EmployeeServiceImplTest {
         when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
         when(mapper.toEmployee(request, department, team, null, List.of())).thenReturn(employee);
         when(mapper.toResponse(employee)).thenReturn(employeeResponse);
-
         // action
         EmployeeResponse response = service.addEmployee(request);
         // then
@@ -244,25 +226,20 @@ public class EmployeeServiceImplTest {
         Team team = buildTeam(); // create team with id = 1L
         Employee manager = buildEmployee();
         manager.setId(MANAGER_ID);
-
-
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(department.getId());
         request.setTeamId(team.getId());
         request.setManagerId(manager.getId());
-
         Employee employee = buildEmployee();
         employee.setId(EMPLOYEE_ID);
         employee.setDepartment(department);
         employee.setTeam(team);
         employee.setManager(manager);
-
         EmployeeResponse employeeResponse = buildEmployeeResponse();
         employeeResponse.setId(EMPLOYEE_ID);
         employeeResponse.setDepartmentId(department.getId());
         employeeResponse.setTeamId(team.getId());
         employeeResponse.setManagerId(manager.getId());
-
         when(departmentRepository.findById(request.getDepartmentId()))
                 .thenReturn(Optional.of(department));
         when(teamRepository.findById(request.getTeamId()))
@@ -272,7 +249,6 @@ public class EmployeeServiceImplTest {
         when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
         when(mapper.toEmployee(request, department, team, manager, List.of())).thenReturn(employee);
         when(mapper.toResponse(employee)).thenReturn(employeeResponse);
-
         // action
         EmployeeResponse response = service.addEmployee(request);
         // then
@@ -281,7 +257,7 @@ public class EmployeeServiceImplTest {
     }
 
     @Test
-    public void testAddEmployeeWithExistingExpertise_shouldSucceedAndReturnEmployeeInfo() {
+    public void testAddEmployeeWithExpertise_shouldSucceedAndReturnEmployeeInfo() {
         // Given
         Department department = buildDepartment(); // create department with id = 1L
         Team team = buildTeam(); // create team with id = 1L
@@ -289,128 +265,29 @@ public class EmployeeServiceImplTest {
         expertise1.setId(EXPERTISE_ID1);
         Expertise expertise2 = buildExpertise("Spring boot");
         expertise2.setId(EXPERTISE_ID2);
-
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(department.getId());
         request.setTeamId(team.getId());
         request.setExpertises(List.of(expertise1.getName(), expertise2.getName()));
-
         Employee employee = buildEmployee();
         employee.setId(EMPLOYEE_ID);
         employee.setDepartment(department);
         employee.setTeam(team);
         employee.setExpertises(List.of(expertise1, expertise2));
-
         EmployeeResponse employeeResponse = buildEmployeeResponse();
         employeeResponse.setId(EMPLOYEE_ID);
         employeeResponse.setDepartmentId(department.getId());
         employeeResponse.setTeamId(team.getId());
         employeeResponse.setExpertises(List.of(expertise1.getName(), expertise2.getName()));
-
         when(departmentRepository.findById(request.getDepartmentId()))
                 .thenReturn(Optional.of(department));
         when(teamRepository.findById(request.getTeamId()))
                 .thenReturn(Optional.of(team));
-        when(expertiseRepository.findExpertiseByName(any(String.class)))
-                .thenReturn(Optional.of(expertise1))
-                .thenReturn(Optional.of(expertise2));
-        lenient().when(expertiseRepository.save(any(Expertise.class)))
-                .thenReturn(expertise1)
-                .thenReturn(expertise2);
+        when(expertiseService.getExpertises(request.getExpertises()))
+                .thenReturn(List.of(expertise1, expertise2));
         when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
-
         when(mapper.toEmployee(request, department, team, null, List.of(expertise1, expertise2))).thenReturn(employee);
         when(mapper.toResponse(employee)).thenReturn(employeeResponse);
-
-        // action
-        EmployeeResponse response = service.addEmployee(request);
-        // then
-        assertNotNull(response);
-        assertEquals(response.getExpertises(), employeeResponse.getExpertises());
-    }
-
-    @Test
-    public void testAddEmployeeWithNotExistingExpertise_shouldSucceedAndReturnEmployeeInfo() {
-        // Given
-        Department department = buildDepartment(); // create department with id = 1L
-        Team team = buildTeam(); // create team with id = 1L
-        Expertise expertise1 = buildExpertise("Java");
-        expertise1.setId(EXPERTISE_ID1);
-        Expertise expertise2 = buildExpertise("Spring boot");
-        expertise2.setId(EXPERTISE_ID2);
-
-        CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        request.setDepartmentId(department.getId());
-        request.setTeamId(team.getId());
-        request.setExpertises(List.of("Java", "Spring boot"));
-
-        Employee employee = buildEmployee();
-        employee.setId(EMPLOYEE_ID);
-        employee.setDepartment(department);
-        employee.setTeam(team);
-        employee.setExpertises(List.of(expertise1, expertise2));
-
-        EmployeeResponse employeeResponse = buildEmployeeResponse();
-        employeeResponse.setId(EMPLOYEE_ID);
-        employeeResponse.setDepartmentId(department.getId());
-        employeeResponse.setTeamId(team.getId());
-        employeeResponse.setExpertises(List.of("Java", "Spring boot"));
-
-        when(departmentRepository.findById(request.getDepartmentId()))
-                .thenReturn(Optional.of(department));
-        when(teamRepository.findById(request.getTeamId()))
-                .thenReturn(Optional.of(team));
-        when(expertiseRepository.findExpertiseByName(any(String.class)))
-                .thenReturn(Optional.empty())
-                .thenReturn(Optional.empty());
-
-        lenient().when(expertiseRepository.save(any(Expertise.class)))
-                .thenReturn(expertise1)
-                .thenReturn(expertise2);
-
-        when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
-
-
-        when(mapper.toEmployee(request, department, team, null, List.of(expertise1, expertise2))).thenReturn(employee);
-        when(mapper.toResponse(employee)).thenReturn(employeeResponse);
-
-        // action
-        EmployeeResponse response = service.addEmployee(request);
-        // then
-        assertNotNull(response);
-        assertEquals(response.getExpertises(), employeeResponse.getExpertises());
-    }
-
-    @Test
-    public void testAddEmployeeWithEmptyExpertiseName_shouldSucceedAndReturnEmployeeInfoWithoutExpertise() {
-        // Given
-        Department department = buildDepartment(); // create department with id = 1L
-        Team team = buildTeam(); // create team with id = 1L
-
-        CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        request.setDepartmentId(department.getId());
-        request.setTeamId(team.getId());
-        request.setExpertises(List.of(EMPTY_STRING, EMPTY_STRING)); // empty expertise
-
-        Employee employee = buildEmployee();
-        employee.setId(EMPLOYEE_ID);
-        employee.setDepartment(department);
-        employee.setTeam(team);
-
-        EmployeeResponse employeeResponse = buildEmployeeResponse();
-        employeeResponse.setId(EMPLOYEE_ID);
-        employeeResponse.setDepartmentId(department.getId());
-        employeeResponse.setTeamId(team.getId());
-        employeeResponse.setExpertises(List.of()); // empty expertise
-
-        when(departmentRepository.findById(request.getDepartmentId()))
-                .thenReturn(Optional.of(department));
-        when(teamRepository.findById(request.getTeamId()))
-                .thenReturn(Optional.of(team));
-        when(employeeRepository.save(any(Employee.class))).thenReturn(employee);
-        when(mapper.toEmployee(request, department, team, null, List.of())).thenReturn(employee);
-        when(mapper.toResponse(employee)).thenReturn(employeeResponse);
-
         // action
         EmployeeResponse response = service.addEmployee(request);
         // then

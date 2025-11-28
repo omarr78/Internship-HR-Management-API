@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <!-- insert some department and team-->
+    <departments id='1' name='department1'/>
+    <departments id='2' name='department2'/>
+
+    <teams id='1' name='team1'/>
+    <teams id='2' name='team2'/>
+
+    <!-- insert expertise-->
+    <expertises id='1' name='spring boot'/>
+
+    <!-- insert some employee (manager) -->
+    <employees id='10' name='Omar' date_of_birth='2001-10-05' graduation_date='2023-06-05' gender='MALE'
+               salary='1000000' department_id='1' team_id='1'/>
+
+    <employees id='11' name='Mohamed' date_of_birth='1999-10-05' graduation_date='2021-06-05' gender='MALE'
+               salary='1000000' department_id='1' team_id='1'/>
+
+    <!-- insert employee -->
+    <employees id='1' name='Ahmed' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
+               salary='1000' department_id='1' team_id='1' manager_id='10'/>
+
+    <!-- insert employee with expertise -->
+    <employees id='2' name='mostafa' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
+               salary='1000' department_id='1' team_id='1' manager_id='10'/>
+
+    <!-- Link employee with expertise  -->
+    <employee_expertise employee_id='2' expertise_id='1'/>
+
+</dataset>

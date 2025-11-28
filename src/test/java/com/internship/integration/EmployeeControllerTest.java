@@ -1,12 +1,14 @@
 package com.internship.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.database.rider.core.api.dataset.DataSet;
+import com.github.database.rider.spring.api.DBRider;
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
-import com.internship.entity.Department;
+import com.internship.dto.UpdateEmployeeRequest;
 import com.internship.entity.Employee;
 import com.internship.entity.Expertise;
-import com.internship.entity.Team;
+import com.internship.enums.Gender;
 import com.internship.exception.ErrorCode;
 import com.internship.repository.DepartmentRepository;
 import com.internship.repository.EmployeeRepository;
@@ -17,42 +19,53 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MvcResult;
-
+import static com.internship.enums.Gender.FEMALE;
 import static com.internship.enums.Gender.MALE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@DBRider
 public class EmployeeControllerTest {
+    private static final Long NON_EXISTENT_ID = -1L;
+    private static final String EMPTY_STRING = "";
+    private static final float NEGATIVE_SALARY = -1.0f;
+    // from dataset/create_create_employee.xml
+    private static final Long EXISTENT_DEPARTMENT1_ID = 1L;
+    private static final Long EXISTENT_TEAM1_ID = 1L;
+    private static final Long EXISTENT_MANAGER_ID = 10L;
+    private static final Long EXISTENT_EXPERTISE1_ID = 1L;
+    private static final Long EXISTENT_EXPERTISE2_ID = 2L;
+    // from dataset/update_create_employee.xml
+    private static final Long EXISTENT_EMPLOYEE1_ID = 1L;
+    private static final Long EXISTENT_EMPLOYEE2_ID = 2L;
+    private static final Long EXISTENT_DEPARTMENT2_ID = 2L;
+    private static final Long EXISTENT_TEAM2_ID = 2L;
+    private static final Long EXISTENT_MANAGER2_ID = 11L;
     @Autowired
     private MockMvc mockMvc;
-
     @Autowired
     private ObjectMapper objectMapper;
-
     @Autowired
     private DepartmentRepository departmentRepository;
-
     @Autowired
     private TeamRepository teamRepository;
     @Autowired
     private EmployeeRepository employeeRepository;
     @Autowired
     private ExpertiseRepository expertiseRepository;
-
-    private static final Long NON_EXISTENT_ID = -1L;
-    private static final String EMPTY_STRING = "";
 
     private CreateEmployeeRequest buildCreateEmployeeRequest() {
         return CreateEmployeeRequest.builder()
@@ -64,40 +77,12 @@ public class EmployeeControllerTest {
                 .build();
     }
 
-    private Employee buildEmployee() {
-        return Employee.builder()
-                .name("omar")
-                .dateOfBirth(LocalDate.of(1999, 10, 5))
-                .graduationDate(LocalDate.of(2025, 6, 5))
-                .gender(MALE)
-                .salary(2000)
-                .build();
-    }
-
-    private Department buildDepartment() {
-        return Department.builder()
-                .name("Department 1")
-                .build();
-    }
-
-    private Team buildTeam() {
-        return Team.builder()
-                .name("Team 1")
-                .build();
-    }
-
-    private Expertise buildExpertise(String expertiseName) {
-        return Expertise.builder()
-                .name(expertiseName)
-                .build();
-    }
-
     @Test
+    @DataSet("dataset/create_employee.xml")
     public void testAddEmployeeWithoutDepartment_shouldFail() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        request.setTeamId(1L);
         request.setDepartmentId(null); // no department
-
+        request.setTeamId(EXISTENT_TEAM1_ID);
         mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -110,11 +95,11 @@ public class EmployeeControllerTest {
     }
 
     @Test
+    @DataSet("dataset/create_employee.xml")
     public void testAddEmployeeWithoutTeam_shouldFail() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        request.setDepartmentId(1L);
+        request.setDepartmentId(EXISTENT_DEPARTMENT1_ID);
         request.setTeamId(null); // no team
-
         mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -127,11 +112,11 @@ public class EmployeeControllerTest {
     }
 
     @Test
+    @DataSet("dataset/create_employee.xml")
     public void testAddEmployeeWithNotFoundDepartment_shouldFail() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(NON_EXISTENT_ID); // not found department id
-        request.setTeamId(1L);
-
+        request.setTeamId(EXISTENT_TEAM1_ID);
         mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -144,12 +129,11 @@ public class EmployeeControllerTest {
     }
 
     @Test
+    @DataSet("dataset/create_employee.xml")
     public void testAddEmployeeWithNotFoundTeam_shouldFail() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        Department department = departmentRepository.save(buildDepartment()); // add department in database
-        request.setDepartmentId(department.getId()); // existing department id
+        request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(NON_EXISTENT_ID); // not found team id
-
         mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -162,22 +146,18 @@ public class EmployeeControllerTest {
     }
 
     @Test
+    @DataSet("dataset/create_employee.xml")
     public void testAddEmployeeWithExistingDepartmentAndTeam_shouldSucceedAndReturnEmployeeInfo() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        Department department = departmentRepository.save(buildDepartment()); // add department in database
-        Team team = teamRepository.save(buildTeam()); // add team in database
-        request.setDepartmentId(department.getId()); // existing department id
-        request.setTeamId(team.getId()); // existing team id
-
+        request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
+        request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andReturn();
-
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-
         assertNotNull(response);
         assertNotNull(response.getId());
         assertEquals(response.getName(), request.getName());
@@ -190,14 +170,12 @@ public class EmployeeControllerTest {
     }
 
     @Test
+    @DataSet("dataset/create_employee.xml")
     public void testAddEmployeeWithNotFoundManager_shouldFail() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        Department department = departmentRepository.save(buildDepartment()); // add department in database
-        Team team = teamRepository.save(buildTeam()); // add team in database
-        request.setDepartmentId(department.getId()); // existing department id
-        request.setTeamId(team.getId()); // existing team id
+        request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
+        request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
         request.setManagerId(NON_EXISTENT_ID); // there is no employee with this id
-
         mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -210,103 +188,354 @@ public class EmployeeControllerTest {
     }
 
     @Test
+    @DataSet("dataset/create_employee.xml")
     public void testAddEmployeeWithExistingManager_shouldSucceedAndReturnEmployeeInfo() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        Department department = departmentRepository.save(buildDepartment()); // add department in database
-        Team team = teamRepository.save(buildTeam()); // add team in database
-        Employee manager = buildEmployee();
-        manager.setDepartment(department);
-        manager.setTeam(team);
-        Employee savedManager = employeeRepository.save(manager); // add this manager in database
-        request.setDepartmentId(department.getId()); // existing department id
-        request.setTeamId(team.getId()); // existing team id
-        request.setManagerId(savedManager.getId()); // set managerId to an existing employee
-
-
+        request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
+        request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
+        request.setManagerId(EXISTENT_MANAGER_ID); // existing manager id from dataset/create_employee.xml
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andReturn();
-
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-
         assertNotNull(response);
-        assertEquals(response.getManagerId(), manager.getId());
+        assertEquals(EXISTENT_MANAGER_ID, response.getManagerId());
     }
 
     @Test
+    @DataSet("dataset/create_employee.xml")
     public void testAddEmployeeWithExistingExpertise_shouldSucceedAndReturnEmployeeInfo() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        Department department = departmentRepository.save(buildDepartment()); // add department in database
-        Team team = teamRepository.save(buildTeam()); // add team in database
-
-        Expertise expertise1 = expertiseRepository.save(buildExpertise("Java"));
-        Expertise expertise2 = expertiseRepository.save(buildExpertise("Spring boot"));
-
-        request.setDepartmentId(department.getId()); // existing department id
-        request.setTeamId(team.getId()); // existing team id
+        // existing expertises from dataset/create_employee.xml
+        Expertise expertise1 = expertiseRepository.findById(EXISTENT_EXPERTISE1_ID).get();
+        Expertise expertise2 = expertiseRepository.findById(EXISTENT_EXPERTISE2_ID).get();
+        request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
+        request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
         request.setExpertises(List.of(expertise1.getName(), expertise2.getName()));
-
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andReturn();
-
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-
         assertNotNull(response);
         assertEquals(response.getExpertises(), request.getExpertises());
     }
 
-    // when name of expertise not found && expertise are not empty so it will be created in expertise table and added to employee
+    // when the name of expertise not found && expertise are not empty so it will be created in expertise table and added to employee
     @Test
+    @DataSet("dataset/create_employee.xml")
     public void testAddEmployeeWithNotExistingExpertise_shouldSucceedAndReturnEmployeeInfo() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        Department department = departmentRepository.save(buildDepartment()); // add department in database
-        Team team = teamRepository.save(buildTeam()); // add team in database
-
-        request.setDepartmentId(department.getId()); // existing department id
-        request.setTeamId(team.getId()); // existing team id
-        request.setExpertises(List.of("Java", "Spring boot")); // Not exist expertise
-
+        request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
+        request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
+        request.setExpertises(List.of("Python", "Database")); // Not exist expertise
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andReturn();
-
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-
         assertNotNull(response);
         assertEquals(response.getExpertises(), request.getExpertises());
     }
 
-    // if expertise name are empty so it will skip it
+    // if expertise name is empty, so it will skip it
     @Test
+    @DataSet("dataset/create_employee.xml")
     public void testAddEmployeeWithEmptyExpertiseName_shouldSucceedAndReturnEmployeeInfoWithoutExpertise() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
-        Department department = departmentRepository.save(buildDepartment()); // add department in database
-        Team team = teamRepository.save(buildTeam()); // add team in database
-
-        request.setDepartmentId(department.getId()); // existing department id
-        request.setTeamId(team.getId()); // existing team id
+        request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
+        request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
         request.setExpertises(List.of(EMPTY_STRING, EMPTY_STRING)); // empty expertise names -> ""
-
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andReturn();
-
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-
         assertNotNull(response);
         assertEquals(response.getExpertises(), List.of());
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testUpdateNotFoundEmployee_shouldFail() throws Exception {
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder().build();
+        mockMvc.perform(patch("/api/employees/" + NON_EXISTENT_ID)
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testUpdateEmployeeNameWithAnEmptyName_shouldFail() throws Exception {
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .name(EMPTY_STRING).build(); // set name with empty
+        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("name must not be empty and at least has 3 characters", error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testUpdateEmployeeSalaryWithNegativeSalary_shouldFail() throws Exception {
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .salary(NEGATIVE_SALARY).build(); // set negative
+        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("salary must be greater than or equal to 0", error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testUpdateEmployeeBirthOfDateAndGraduationDateToDifferenceBetweenYearsLessThan20_shouldFail() throws Exception {
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                // the different between years is 15 that is less than 20
+                .dateOfBirth(LocalDate.of(2005, 1, 1))
+                .graduationDate(LocalDate.of(2020, 1, 1))
+                .build();
+        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("graduation date must be after birth date at least 20 years", error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testUpdateEmployeeByRemovingHisAllFieldBySetItToNull_shouldSuccessAndReturningEmployeeInfoIgnoringChanges() throws Exception {
+        // this applied for name, dateOfBirth, graduationDate, gender, departmentId, teamId
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .name(null)
+                .dateOfBirth(null)
+                .graduationDate(null)
+                .gender(null)
+                .departmentId(null)
+                .teamId(null)
+                .build();
+        Employee employee = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
+        MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andReturn();
+        EmployeeResponse response = objectMapper
+                .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
+        assertNotNull(response);
+        assertEquals(employee.getName(), response.getName());
+        assertEquals(employee.getDateOfBirth(), response.getDateOfBirth());
+        assertEquals(employee.getGraduationDate(), response.getGraduationDate());
+        assertEquals(employee.getGender(), response.getGender());
+        assertEquals(employee.getDepartment().getId(), response.getDepartmentId());
+        assertEquals(employee.getTeam().getId(), response.getTeamId());
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testUpdateEmployeeManagerToSelfManagement_shouldFail() throws Exception {
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .managerId(Optional.of(EXISTENT_EMPLOYEE1_ID)) // the same id as employee, means -> employee manager on himself
+                .build();
+        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Employee cannot be self management", error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testUpdateEmployeeByRemovingHisManager_shouldSuccessAndReturnEmployeeInfoWithNoManager() throws Exception {
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .managerId(Optional.empty())
+                .build();
+        MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andReturn();
+        EmployeeResponse response = objectMapper
+                .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
+        assertNull(response.getManagerId());
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testUpdateEmployeeByRemovingHisExpertise_shouldSuccessAndReturnEmployeeInfoWithNoExpertise() throws Exception {
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .expertises(List.of())
+                .build();
+        MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andReturn();
+        EmployeeResponse response = objectMapper
+                .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
+        assertEquals(List.of(), response.getExpertises());
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testUpdateEmployeeWithNotFoundDepartment_shouldFail() throws Exception {
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .departmentId(NON_EXISTENT_ID)
+                .build();
+        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Department not found with id: " + request.getDepartmentId(), error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testUpdateEmployeeWithNotFoundTeam_shouldFail() throws Exception {
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .teamId(NON_EXISTENT_ID)
+                .build();
+        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Team not found with id: " + request.getTeamId(), error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testUpdateEmployeeWithNotFoundManager_shouldFail() throws Exception {
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .managerId(Optional.of(NON_EXISTENT_ID))
+                .build();
+        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Manager not found with id: " + request.getManagerId(), error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testUpdateEmployeeWithNotFoundExpertise_shouldSuccessAndReturnEmployeeInfo() throws Exception {
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .expertises(List.of("Python", "Database"))
+                .build();
+        MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andReturn();
+        EmployeeResponse response = objectMapper
+                .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
+        assertNotNull(response);
+        assertEquals(response.getExpertises(), request.getExpertises());
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testUpdateEmployeeWithoutChangingExpertise_shouldSuccessAndReturnEmployeeWithTheSameExpertise() throws Exception {
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder().build();
+        String expertiseName = "spring boot"; // the employee with id 2 has this expertise from dataset/update_employees.xml
+        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE2_ID)
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+        Employee employee = employeeRepository.findById(EXISTENT_EMPLOYEE2_ID).get();
+        assertEquals(1, employee.getExpertises().size());
+        assertEquals(expertiseName, employee.getExpertises().get(0).getName());
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testUpdateEmployeeWithCorrectValues_shouldSuccessAndReturnEmployeeInfo() throws Exception {
+        /*
+            will update this employee
+
+            <employees id='1' name='Ahmed' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
+               salary='1000' department_id='1' team_id='1' manager_id='10'/>
+
+            to
+
+            <employees id='1' name='mai' date_of_birth='2003-01-01' graduation_date='2025-01-01' gender='FEMALE'
+               salary='1500' department_id='2' team_id='2' manager_id='11'/>
+        */
+        String updatedName = "mai"; // valid name, the length of character >= 3
+        // valid dates, the difference between years >= 20
+        LocalDate updatedBirthDate = LocalDate.of(2003, 1, 1); // valid date, the date in the past
+        LocalDate updatedGraduationDate = LocalDate.of(2025, 1, 1);
+        Gender updatedGender = FEMALE;
+        // valid salary >= 0
+        float updatedSalary = 1500;
+        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
+                .name(updatedName)
+                .dateOfBirth(updatedBirthDate)
+                .graduationDate(updatedGraduationDate)
+                .gender(updatedGender)
+                .salary(updatedSalary)
+                .departmentId(EXISTENT_DEPARTMENT2_ID)
+                .teamId(EXISTENT_TEAM2_ID)
+                .managerId(Optional.of(EXISTENT_MANAGER2_ID))
+                .build();
+        MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andReturn();
+        EmployeeResponse response = objectMapper
+                .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
+        assertNotNull(response);
+        assertEquals(request.getName(), response.getName());
+        assertEquals(request.getDateOfBirth(), response.getDateOfBirth());
+        assertEquals(request.getGraduationDate(), response.getGraduationDate());
+        assertEquals(request.getGender(), response.getGender());
+        assertEquals(request.getSalary(), response.getSalary());
+        assertEquals(request.getDepartmentId(), response.getDepartmentId());
+        assertEquals(request.getTeamId(), response.getTeamId());
+        assertEquals(request.getManagerId().get(), response.getManagerId());
     }
 }
