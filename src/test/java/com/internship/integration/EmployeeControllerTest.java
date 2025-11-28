@@ -719,4 +719,93 @@ public class EmployeeControllerTest {
                             , error.getErrorMessage());
                 });
     }
+
+    @Test
+    @DataSet("dataset/get-employees-under-manager.xml")
+    public void testGetEmployeesUnderManger_shouldSuccessAndReturnAllEmployeeUnderManger() throws Exception {
+        /*
+                1
+                A
+              /   \
+             2     5
+             B     E
+            / \    |
+           3   4   6
+           C   D   F
+        */
+        MvcResult result = mockMvc.perform(get("/api/employees")
+                        .param("managerId", String.valueOf(EXISTENT_EMPLOYEE1_ID)))
+                .andExpect(status().isOk())
+                .andReturn();
+        List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
+        List<String> actualEmployeeName = response.stream().map(EmployeeResponse::getName).toList();
+        List<String> expectedEmployeeName = List.of("B", "E", "C", "D", "F");
+        assertEquals(expectedEmployeeName, actualEmployeeName);
+    }
+
+    @Test
+    @DataSet("dataset/get-employees-under-manager.xml")
+    public void testGetEmployeesUnderEmployeeHasNoSubordinates_shouldSuccessAndReturnEmptyList() throws Exception {
+        /*
+                1
+                A
+              /   \
+             2     5
+             B     E
+            / \    |
+           3   4   6
+           C   D   F
+        */
+
+        // we will test employee C for example
+        MvcResult result = mockMvc.perform(get("/api/employees")
+                        .param("managerId", String.valueOf(EXISTENT_SUBORDINATES1_ID)))
+                .andExpect(status().isOk())
+                .andReturn();
+        List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
+        assertTrue(response.isEmpty());
+    }
+
+    @Test
+    @DataSet("dataset/get-employees-under-manager.xml")
+    public void testGetEmployeesUnderNotFoundEmployee_shouldFailAndReturnEmployeeNotFound() throws Exception {
+        mockMvc.perform(get("/api/employees")
+                        .param("managerId", String.valueOf(NON_EXISTENT_ID)))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/get-employees-under-manager.xml")
+    public void testGetEmployeesUnderMangerWithHierarchyCycleDetected_shouldSuccessAndReturnAllEmployeeUnderManger() throws Exception {
+        /*
+                1
+                A  <------|
+              /   \       |
+             2     5      |
+             B     E      |
+            / \    |      |
+           3   4   6      |
+           C   D   F -----|
+        */
+        // if F is manager of A entered by mistake it will throw an exception when get all employee under manager
+        Long employeeFId = 6L;
+        // Set F as the manager of A
+        employeeRepository.updateManager(EXISTENT_EMPLOYEE1_ID, employeeFId);
+
+        mockMvc.perform(get("/api/employees")
+                        .param("managerId", String.valueOf(EXISTENT_EMPLOYEE1_ID)))
+                .andExpect(status().isConflict())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Cycle detected in employee hierarchy", error.getErrorMessage());
+                });
+    }
 }

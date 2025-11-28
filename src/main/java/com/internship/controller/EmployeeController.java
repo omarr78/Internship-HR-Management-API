@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/employees")
 @RequiredArgsConstructor
@@ -46,5 +48,11 @@ public class EmployeeController {
     public ResponseEntity<SalaryDto> getEmployeeSalary(@PathVariable final Long id) {
         SalaryDto salaryResponse = service.getEmployeeSalaryInfo(id);
         return ResponseEntity.status(HttpStatus.OK).body(salaryResponse);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<EmployeeResponse>> getEmployees(@RequestParam final Long managerId) {
+        List<EmployeeResponse> employeeResponses = service.getAllEmployeesUnderManager(managerId);
+        return ResponseEntity.status(HttpStatus.OK).body(employeeResponses);
     }
 }
