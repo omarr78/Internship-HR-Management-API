@@ -641,7 +641,7 @@ public class EmployeeControllerTest {
 
     @Test
     @DataSet("dataset/delete_employees.xml")
-    public void testDeleteEmployeeHasNoManagerAndHasSubordinates_ShouldFailAndReturnBadRequest() throws Exception {
+    public void testDeleteEmployeeHasNoManagerAndHasSubordinates_ShouldFailAndReturnConflict() throws Exception {
     /*
               1
              Omar
