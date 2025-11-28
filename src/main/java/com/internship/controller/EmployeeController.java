@@ -2,6 +2,7 @@ package com.internship.controller;
 
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
+import com.internship.dto.SalaryDto;
 import com.internship.dto.UpdateEmployeeRequest;
 import com.internship.service.EmployeeService;
 import jakarta.validation.Valid;
@@ -39,5 +40,11 @@ public class EmployeeController {
     public ResponseEntity<EmployeeResponse> DeleteEmployee(@PathVariable final Long id) {
         service.deleteEmployee(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @GetMapping("/{id}/salary")
+    public ResponseEntity<SalaryDto> getEmployeeSalary(@PathVariable final Long id) {
+        SalaryDto salaryResponse = service.getEmployeeSalaryInfo(id);
+        return ResponseEntity.status(HttpStatus.OK).body(salaryResponse);
     }
 }

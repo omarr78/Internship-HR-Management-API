@@ -2,6 +2,7 @@ package com.internship.service;
 
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
+import com.internship.dto.SalaryDto;
 import com.internship.dto.UpdateEmployeeRequest;
 import com.internship.entity.Department;
 import com.internship.entity.Employee;
@@ -25,6 +26,8 @@ import static com.internship.exception.ApiError.*;
 @Service
 @RequiredArgsConstructor
 public class EmployeeService {
+    private static final float TAX_REMINDER = 0.85f;
+    private static final int INSURANCE_AMOUNT = 500;
     private static final int MAX_DIFFERENCE_YEARS = 20;
     private final EmployeeRepository employeeRepository;
     private final DepartmentRepository departmentRepository;
@@ -147,5 +150,18 @@ public class EmployeeService {
             throw new BusinessException(INVALID_EMPLOYEE_REMOVAL);
         employeeRepository.reassignManager(employee.getId(), manager.getId());
         employeeRepository.delete(employee);
+    }
+
+    public SalaryDto getEmployeeSalaryInfo(Long id) {
+        // check employee with id exists
+        Employee employee = employeeRepository.findById(id).
+                orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+                        "Employee not found with id: " + id));
+        float netSalary = employee.getSalary() * TAX_REMINDER - INSURANCE_AMOUNT;
+        // prevent negative salaries
+        if (netSalary < 0) {
+            throw new BusinessException(NEGATIVE_SALARY);
+        }
+        return SalaryDto.builder().salary(netSalary).build();
     }
 }

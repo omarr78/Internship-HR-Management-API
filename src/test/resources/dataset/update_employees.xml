@@ -23,7 +23,7 @@
 
     <!-- insert employee with expertise -->
     <employees id='2' name='mostafa' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
-               salary='1000' department_id='1' team_id='1' manager_id='10'/>
+               salary='100' department_id='1' team_id='1' manager_id='10'/>
 
     <!-- Link employee with expertise  -->
     <employee_expertise employee_id='2' expertise_id='1'/>
