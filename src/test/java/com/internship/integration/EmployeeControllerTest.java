@@ -30,8 +30,7 @@ import java.util.Optional;
 import static com.internship.enums.Gender.FEMALE;
 import static com.internship.enums.Gender.MALE;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -537,5 +536,53 @@ public class EmployeeControllerTest {
         assertEquals(request.getDepartmentId(), response.getDepartmentId());
         assertEquals(request.getTeamId(), response.getTeamId());
         assertEquals(request.getManagerId().get(), response.getManagerId());
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testGetEmployeeInfo_shouldSuccessAndReturnEmployeeInfo() throws Exception {
+        // from dataset/update_employees.xml
+        /*
+        <employees id='1' name='Ahmed' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
+               salary='1000' department_id='1' team_id='1' manager_id='10'/>
+        <employee_expertise employee_id='1' expertise_id='1'/>  the employee has one expertise
+        */
+        // get employee with id = 1
+        MvcResult result = mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE1_ID))
+                .andExpect(status().isOk())
+                .andReturn();
+        EmployeeResponse response = objectMapper
+                .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
+
+        // Ahmed's data
+        String expectedName = "Ahmed";
+        LocalDate expectedBirthDate = LocalDate.of(2003, 10, 5);
+        LocalDate expectedGraduationDate = LocalDate.of(2025, 6, 5);
+        float expectedSalary = 1000;
+        Long expectedManagerId = 10L;
+        List<String> expectedExpertises = List.of("spring boot");
+
+        assertNotNull(response);
+        assertEquals(expectedName, response.getName());
+        assertEquals(expectedBirthDate, response.getDateOfBirth());
+        assertEquals(expectedGraduationDate, response.getGraduationDate());
+        assertEquals(MALE, response.getGender());
+        assertEquals(expectedSalary, response.getSalary());
+        assertEquals(EXISTENT_DEPARTMENT1_ID, response.getDepartmentId());
+        assertEquals(EXISTENT_TEAM1_ID, response.getTeamId());
+        assertEquals(expectedManagerId, response.getManagerId());
+        assertEquals(expectedExpertises.getFirst(), response.getExpertises().getFirst());
+    }
+
+    @Test
+    @DataSet("dataset/update_employees.xml")
+    public void testGetEmployeeInfoWithNotFoundEmployee_shouldFail() throws Exception {
+        mockMvc.perform(get("/api/employees/" + NON_EXISTENT_ID))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
+                });
     }
 }

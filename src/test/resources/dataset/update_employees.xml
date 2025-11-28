@@ -27,5 +27,6 @@
 
     <!-- Link employee with expertise  -->
     <employee_expertise employee_id='2' expertise_id='1'/>
+    <employee_expertise employee_id='1' expertise_id='1'/>
 
 </dataset>
