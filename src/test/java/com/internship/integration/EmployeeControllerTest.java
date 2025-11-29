@@ -32,6 +32,8 @@ import java.util.Optional;
 
 import static com.internship.enums.Gender.FEMALE;
 import static com.internship.enums.Gender.MALE;
+import static com.internship.enums.GetEmployeeType.RECURSIVE;
+import static com.internship.enums.GetEmployeeType.TEAM;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -737,6 +739,7 @@ public class EmployeeControllerTest {
            C   D   F
         */
         MvcResult result = mockMvc.perform(get("/api/employees")
+                        .param("type", String.valueOf(RECURSIVE))
                         .param("managerId", String.valueOf(EXISTENT_EMPLOYEE1_ID)))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -763,6 +766,7 @@ public class EmployeeControllerTest {
 
         // we will test employee C for example
         MvcResult result = mockMvc.perform(get("/api/employees")
+                        .param("type", String.valueOf(RECURSIVE))
                         .param("managerId", String.valueOf(EXISTENT_SUBORDINATES1_ID)))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -775,6 +779,7 @@ public class EmployeeControllerTest {
     @DataSet("dataset/get-employees-under-manager.xml")
     public void testGetEmployeesUnderNotFoundEmployee_shouldFailAndReturnEmployeeNotFound() throws Exception {
         mockMvc.perform(get("/api/employees")
+                        .param("type", String.valueOf(RECURSIVE))
                         .param("managerId", String.valueOf(NON_EXISTENT_ID)))
                 .andExpect(status().isNotFound())
                 .andExpect(result -> {
@@ -804,6 +809,7 @@ public class EmployeeControllerTest {
         jdbcTemplate.update(updateManagerQuery, employeeFId, EXISTENT_EMPLOYEE1_ID);
 
         mockMvc.perform(get("/api/employees")
+                        .param("type", String.valueOf(RECURSIVE))
                         .param("managerId", String.valueOf(EXISTENT_EMPLOYEE1_ID)))
                 .andExpect(status().isConflict())
                 .andExpect(result -> {
@@ -811,5 +817,32 @@ public class EmployeeControllerTest {
                     ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
                     assertEquals("Cycle detected in employee hierarchy", error.getErrorMessage());
                 });
+    }
+
+    @Test
+    @DataSet("dataset/get-employees-under-team.xml")
+    public void testGetEmployeesUnderTeam_shouldSuccessAndReturnEmployeesUnderTeam() throws Exception {
+        /*
+            -- From data set
+            1- team A -> Omar, Ahmed, Mostafa
+            2- team B -> Ali, Mohamed
+            3- team C ->
+        */
+        // we will get all employees under team A
+        MvcResult result = mockMvc.perform(get("/api/employees")
+                        .param("type", String.valueOf(TEAM))
+                        .param("teamId", String.valueOf(EXISTENT_TEAM1_ID)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        List<EmployeeResponse> employeeResponses = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
+
+        List<String> expectedEmployeeNames = List.of("Omar", "Ahmed", "Mostafa");
+        List<String> actualEmployeeNames = employeeResponses.stream().map(EmployeeResponse::getName).toList();
+
+        assertEquals(expectedEmployeeNames.size(), actualEmployeeNames.size());
+        assertTrue(expectedEmployeeNames.containsAll(actualEmployeeNames));
+        assertTrue(actualEmployeeNames.containsAll(expectedEmployeeNames));
     }
 }
