@@ -189,4 +189,11 @@ public class EmployeeService {
         }
         return employees;
     }
+
+    public List<EmployeeResponse> getAllEmployeeUnderTeam(Long teamId) {
+        Team team = teamRepository.findById(teamId).get();
+        return employeeRepository
+                .findAllByTeam(team)
+                .stream().map(employeeMapper::toResponse).toList();
+    }
 }

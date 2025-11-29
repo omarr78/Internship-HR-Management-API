@@ -4,6 +4,7 @@ import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeResponse;
 import com.internship.dto.SalaryDto;
 import com.internship.dto.UpdateEmployeeRequest;
+import com.internship.enums.GetEmployeeType;
 import com.internship.service.EmployeeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -51,8 +52,15 @@ public class EmployeeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<EmployeeResponse>> getEmployees(@RequestParam final Long managerId) {
-        List<EmployeeResponse> employeeResponses = service.getAllEmployeesUnderManager(managerId);
+    public ResponseEntity<List<EmployeeResponse>> getEmployees(
+            @RequestParam(required = false) final Long managerId,
+            @RequestParam(required = false) final Long teamId,
+            @RequestParam(required = false) final GetEmployeeType type) {
+        List<EmployeeResponse> employeeResponses = List.of();
+        switch (type) {
+            case RECURSIVE -> employeeResponses = service.getAllEmployeesUnderManager(managerId);
+            case TEAM -> employeeResponses = service.getAllEmployeeUnderTeam(teamId);
+        }
         return ResponseEntity.status(HttpStatus.OK).body(employeeResponses);
     }
 }
