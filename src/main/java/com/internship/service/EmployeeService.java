@@ -191,6 +191,7 @@ public class EmployeeService {
     }
 
     public List<EmployeeResponse> getAllEmployeeUnderTeam(Long teamId) {
+        if (teamId == null) throw new BusinessException(INVALID_REQUEST);
         Team team = teamRepository.findById(teamId).get();
         return employeeRepository
                 .findAllByTeam(team)
