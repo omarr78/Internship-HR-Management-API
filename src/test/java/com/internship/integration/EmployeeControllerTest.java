@@ -53,6 +53,7 @@ public class EmployeeControllerTest {
     private static final Long EXISTENT_DEPARTMENT2_ID = 2L;
     private static final Long EXISTENT_TEAM1_ID = 1L;
     private static final Long EXISTENT_TEAM2_ID = 2L;
+    private static final Long EXISTENT_EMPTY_TEAM_ID = 3L;
     private static final Long EXISTENT_MANAGER1_ID = 10L;
     private static final Long EXISTENT_MANAGER2_ID = 11L;
     private static final Long EXISTENT_EMPLOYEE1_ID = 1L;
@@ -845,4 +846,27 @@ public class EmployeeControllerTest {
         assertTrue(expectedEmployeeNames.containsAll(actualEmployeeNames));
         assertTrue(actualEmployeeNames.containsAll(expectedEmployeeNames));
     }
+
+    @Test
+    @DataSet("dataset/get-employees-under-team.xml")
+    public void testGetEmployeesUnderEmptyTeam_shouldSuccessAndReturnEmptyList() throws Exception {
+        /*
+            -- From data set
+            1- team A -> Omar, Ahmed, Mostafa
+            2- team B -> Ali, Mohamed
+            3- team C ->
+        */
+        // we will get all employees under team C
+        MvcResult result = mockMvc.perform(get("/api/employees")
+                        .param("type", String.valueOf(TEAM))
+                        .param("teamId", String.valueOf(EXISTENT_EMPTY_TEAM_ID)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        List<EmployeeResponse> employeeResponses = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
+
+        assertTrue(employeeResponses.isEmpty());
+    }
+
 }
