@@ -869,4 +869,16 @@ public class EmployeeControllerTest {
         assertTrue(employeeResponses.isEmpty());
     }
 
+    @Test
+    @DataSet("dataset/get-employees-under-team.xml")
+    public void testGetEmployeesUnderTeamWithoutTeamId_shouldFailAndReturnBadRequest() throws Exception {
+        mockMvc.perform(get("/api/employees")
+                        .param("type", String.valueOf(TEAM)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("teamId is required for team type", error.getErrorMessage());
+                });
+    }
 }
