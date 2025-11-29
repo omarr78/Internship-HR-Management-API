@@ -2,6 +2,7 @@ package com.internship.repository;
 
 import com.internship.entity.Employee;
 import com.internship.entity.Team;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,5 +16,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     void reassignManager(@Param("oldManager") Long oldManager,
                          @Param("newManager") Long newManager);
 
+    // to avoid N + 1 problem
+    @EntityGraph(attributePaths = "expertises")
     List<Employee> findAllByTeam(Team team);
 }
