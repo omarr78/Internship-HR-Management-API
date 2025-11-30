@@ -898,9 +898,22 @@ public class EmployeeControllerTest {
 
     @Test
     @DataSet("dataset/get-employees-under-team.xml")
-    public void testGetEmployeesWithInvaildType_shouldFailAndReturnBadRequest() throws Exception {
+    public void testGetEmployeesWithMissedType_shouldFailAndReturnBadRequest() throws Exception {
         mockMvc.perform(get("/api/employees"))
                 // missing type or entered invalid type
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Invalid type", error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/get-employees-under-team.xml")
+    public void testGetEmployeesWithInvalidType_shouldFailAndReturnBadRequest() throws Exception {
+        mockMvc.perform(get("/api/employees")
+                        .param("type", "teem")) // entered invalid team
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> {
                     String json = result.getResponse().getContentAsString();
