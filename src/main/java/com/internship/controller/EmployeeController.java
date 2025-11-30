@@ -5,7 +5,6 @@ import com.internship.dto.EmployeeResponse;
 import com.internship.dto.SalaryDto;
 import com.internship.dto.UpdateEmployeeRequest;
 import com.internship.enums.GetEmployeeType;
-import com.internship.exception.BusinessException;
 import com.internship.service.EmployeeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import static com.internship.exception.ApiError.INVALID_TYPE;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -60,12 +57,10 @@ public class EmployeeController {
             @RequestParam(required = false) final Long teamId,
             @RequestParam(required = false) final String type) {
         List<EmployeeResponse> employeeResponses = List.of();
-        if (type == null) throw new BusinessException(INVALID_TYPE);
         GetEmployeeType requestType = service.convertToType(type);
         switch (requestType) {
             case RECURSIVE -> employeeResponses = service.getAllEmployeesUnderManager(managerId);
             case TEAM -> employeeResponses = service.getAllEmployeeUnderTeam(teamId);
-            default -> throw new BusinessException(INVALID_TYPE);
         }
         return ResponseEntity.status(HttpStatus.OK).body(employeeResponses);
     }

@@ -204,7 +204,7 @@ public class EmployeeService {
     public GetEmployeeType convertToType(String type) {
         try {
             return GetEmployeeType.valueOf(type.toUpperCase());
-        } catch (IllegalArgumentException e) {
+        } catch (NullPointerException | IllegalArgumentException e) {
             throw new BusinessException(INVALID_TYPE);
         }
     }
