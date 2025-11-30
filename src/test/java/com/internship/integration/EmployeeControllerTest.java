@@ -792,7 +792,7 @@ public class EmployeeControllerTest {
 
     @Test
     @DataSet("dataset/get-employees-under-manager.xml")
-    public void testGetEmployeesUnderMangerWithHierarchyCycleDetected_shouldSuccessAndReturnAllEmployeeUnderManger() throws Exception {
+    public void testGetEmployeesUnderMangerWithHierarchyCycleDetected_shouldFailAndReturnIsConflict() throws Exception {
         /*
                 1
                 A  <------|
