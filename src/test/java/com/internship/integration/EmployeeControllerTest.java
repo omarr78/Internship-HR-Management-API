@@ -821,6 +821,20 @@ public class EmployeeControllerTest {
     }
 
     @Test
+    @DataSet("dataset/get-employees-under-manager.xml")
+    public void testGetEmployeesUnderManagerWithoutManagerId_shouldFailAndReturnBadRequest() throws Exception {
+        mockMvc.perform(get("/api/employees")
+                        .param("type", String.valueOf(RECURSIVE)))
+                // missing managerId
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("ManagerId is required for recursive type", error.getErrorMessage());
+                });
+    }
+
+    @Test
     @DataSet("dataset/get-employees-under-team.xml")
     public void testGetEmployeesUnderTeam_shouldSuccessAndReturnEmployeesUnderTeam() throws Exception {
         /*
