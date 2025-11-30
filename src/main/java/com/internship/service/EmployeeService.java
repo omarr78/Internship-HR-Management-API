@@ -192,7 +192,9 @@ public class EmployeeService {
 
     public List<EmployeeResponse> getAllEmployeeUnderTeam(Long teamId) {
         if (teamId == null) throw new BusinessException(INVALID_REQUEST);
-        Team team = teamRepository.findById(teamId).get();
+        Team team = teamRepository.findById(teamId).
+                orElseThrow(() -> new BusinessException(TEAM_NOT_FOUND,
+                        "Team not found with id: " + teamId));
         return employeeRepository
                 .findAllByTeam(team)
                 .stream().map(employeeMapper::toResponse).toList();
