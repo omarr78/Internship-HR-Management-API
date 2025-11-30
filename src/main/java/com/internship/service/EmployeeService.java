@@ -8,6 +8,7 @@ import com.internship.entity.Department;
 import com.internship.entity.Employee;
 import com.internship.entity.Expertise;
 import com.internship.entity.Team;
+import com.internship.enums.GetEmployeeType;
 import com.internship.exception.BusinessException;
 import com.internship.mapper.EmployeeMapper;
 import com.internship.repository.DepartmentRepository;
@@ -198,5 +199,13 @@ public class EmployeeService {
         return employeeRepository
                 .findAllByTeam(team)
                 .stream().map(employeeMapper::toResponse).toList();
+    }
+
+    public GetEmployeeType convertToType(String type) {
+        try {
+            return GetEmployeeType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(INVALID_TYPE);
+        }
     }
 }

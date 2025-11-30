@@ -58,10 +58,11 @@ public class EmployeeController {
     public ResponseEntity<List<EmployeeResponse>> getEmployees(
             @RequestParam(required = false) final Long managerId,
             @RequestParam(required = false) final Long teamId,
-            @RequestParam(required = false) final GetEmployeeType type) {
+            @RequestParam(required = false) final String type) {
         List<EmployeeResponse> employeeResponses = List.of();
         if (type == null) throw new BusinessException(INVALID_TYPE);
-        switch (type) {
+        GetEmployeeType requestType = service.convertToType(type);
+        switch (requestType) {
             case RECURSIVE -> employeeResponses = service.getAllEmployeesUnderManager(managerId);
             case TEAM -> employeeResponses = service.getAllEmployeeUnderTeam(teamId);
             default -> throw new BusinessException(INVALID_TYPE);
