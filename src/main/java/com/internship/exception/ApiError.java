@@ -3,6 +3,7 @@ package com.internship.exception;
 import org.springframework.http.HttpStatus;
 
 public enum ApiError {
+    INVALID_TYPE(HttpStatus.BAD_REQUEST, "Invalid type"),
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "teamId is required for team type"),
     HIERARCHY_CYCLE_DETECTED(HttpStatus.CONFLICT, "Cycle detected in employee hierarchy"),
     NEGATIVE_SALARY(HttpStatus.CONFLICT, "Salary cannot be Negative after deduction"),

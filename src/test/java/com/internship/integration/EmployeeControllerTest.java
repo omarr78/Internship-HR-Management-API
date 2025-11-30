@@ -895,4 +895,17 @@ public class EmployeeControllerTest {
                     assertEquals("teamId is required for team type", error.getErrorMessage());
                 });
     }
+
+    @Test
+    @DataSet("dataset/get-employees-under-team.xml")
+    public void testGetEmployeesWithInvaildType_shouldFailAndReturnBadRequest() throws Exception {
+        mockMvc.perform(get("/api/employees"))
+                // missing type or entered invalid type
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Invalid type", error.getErrorMessage());
+                });
+    }
 }
