@@ -32,6 +32,8 @@ import java.util.Optional;
 
 import static com.internship.enums.Gender.FEMALE;
 import static com.internship.enums.Gender.MALE;
+import static com.internship.enums.GetEmployeeType.RECURSIVE;
+import static com.internship.enums.GetEmployeeType.TEAM;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -51,6 +53,7 @@ public class EmployeeControllerTest {
     private static final Long EXISTENT_DEPARTMENT2_ID = 2L;
     private static final Long EXISTENT_TEAM1_ID = 1L;
     private static final Long EXISTENT_TEAM2_ID = 2L;
+    private static final Long EXISTENT_EMPTY_TEAM_ID = 3L;
     private static final Long EXISTENT_MANAGER1_ID = 10L;
     private static final Long EXISTENT_MANAGER2_ID = 11L;
     private static final Long EXISTENT_EMPLOYEE1_ID = 1L;
@@ -737,6 +740,7 @@ public class EmployeeControllerTest {
            C   D   F
         */
         MvcResult result = mockMvc.perform(get("/api/employees")
+                        .param("type", String.valueOf(RECURSIVE))
                         .param("managerId", String.valueOf(EXISTENT_EMPLOYEE1_ID)))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -763,6 +767,7 @@ public class EmployeeControllerTest {
 
         // we will test employee C for example
         MvcResult result = mockMvc.perform(get("/api/employees")
+                        .param("type", String.valueOf(RECURSIVE))
                         .param("managerId", String.valueOf(EXISTENT_SUBORDINATES1_ID)))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -775,6 +780,7 @@ public class EmployeeControllerTest {
     @DataSet("dataset/get-employees-under-manager.xml")
     public void testGetEmployeesUnderNotFoundEmployee_shouldFailAndReturnEmployeeNotFound() throws Exception {
         mockMvc.perform(get("/api/employees")
+                        .param("type", String.valueOf(RECURSIVE))
                         .param("managerId", String.valueOf(NON_EXISTENT_ID)))
                 .andExpect(status().isNotFound())
                 .andExpect(result -> {
@@ -786,7 +792,7 @@ public class EmployeeControllerTest {
 
     @Test
     @DataSet("dataset/get-employees-under-manager.xml")
-    public void testGetEmployeesUnderMangerWithHierarchyCycleDetected_shouldSuccessAndReturnAllEmployeeUnderManger() throws Exception {
+    public void testGetEmployeesUnderMangerWithHierarchyCycleDetected_shouldFailAndReturnIsConflict() throws Exception {
         /*
                 1
                 A  <------|
@@ -804,12 +810,129 @@ public class EmployeeControllerTest {
         jdbcTemplate.update(updateManagerQuery, employeeFId, EXISTENT_EMPLOYEE1_ID);
 
         mockMvc.perform(get("/api/employees")
+                        .param("type", String.valueOf(RECURSIVE))
                         .param("managerId", String.valueOf(EXISTENT_EMPLOYEE1_ID)))
                 .andExpect(status().isConflict())
                 .andExpect(result -> {
                     String json = result.getResponse().getContentAsString();
                     ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
                     assertEquals("Cycle detected in employee hierarchy", error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/get-employees-under-manager.xml")
+    public void testGetEmployeesUnderManagerWithoutManagerId_shouldFailAndReturnBadRequest() throws Exception {
+        mockMvc.perform(get("/api/employees")
+                        .param("type", String.valueOf(RECURSIVE)))
+                // missing managerId
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("ManagerId is required for recursive type", error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/get-employees-under-team.xml")
+    public void testGetEmployeesUnderTeam_shouldSuccessAndReturnEmployeesUnderTeam() throws Exception {
+        /*
+            -- From data set
+            1- team A -> Omar, Ahmed, Mostafa
+            2- team B -> Ali, Mohamed
+            3- team C ->
+        */
+        // we will get all employees under team A
+        MvcResult result = mockMvc.perform(get("/api/employees")
+                        .param("type", String.valueOf(TEAM))
+                        .param("teamId", String.valueOf(EXISTENT_TEAM1_ID)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        List<EmployeeResponse> employeeResponses = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
+
+        List<String> expectedEmployeeNames = List.of("Omar", "Ahmed", "Mostafa");
+        List<String> actualEmployeeNames = employeeResponses.stream().map(EmployeeResponse::getName).toList();
+
+        assertEquals(expectedEmployeeNames.size(), actualEmployeeNames.size());
+        assertTrue(expectedEmployeeNames.containsAll(actualEmployeeNames));
+        assertTrue(actualEmployeeNames.containsAll(expectedEmployeeNames));
+    }
+
+    @Test
+    @DataSet("dataset/get-employees-under-team.xml")
+    public void testGetEmployeesUnderEmptyTeam_shouldSuccessAndReturnEmptyList() throws Exception {
+        /*
+            -- From data set
+            1- team A -> Omar, Ahmed, Mostafa
+            2- team B -> Ali, Mohamed
+            3- team C ->
+        */
+        // we will get all employees under team C
+        MvcResult result = mockMvc.perform(get("/api/employees")
+                        .param("type", String.valueOf(TEAM))
+                        .param("teamId", String.valueOf(EXISTENT_EMPTY_TEAM_ID)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        List<EmployeeResponse> employeeResponses = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
+
+        assertTrue(employeeResponses.isEmpty());
+    }
+
+    @Test
+    @DataSet("dataset/get-employees-under-team.xml")
+    public void testGetEmployeesUnderNotFoundTeam_shouldFailAndReturnNotFound() throws Exception {
+        mockMvc.perform(get("/api/employees")
+                        .param("type", String.valueOf(TEAM))
+                        .param("teamId", String.valueOf(NON_EXISTENT_ID)))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Team not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/get-employees-under-team.xml")
+    public void testGetEmployeesUnderTeamWithoutTeamId_shouldFailAndReturnBadRequest() throws Exception {
+        mockMvc.perform(get("/api/employees")
+                        .param("type", String.valueOf(TEAM)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("teamId is required for team type", error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/get-employees-under-team.xml")
+    public void testGetEmployeesWithMissedType_shouldFailAndReturnBadRequest() throws Exception {
+        mockMvc.perform(get("/api/employees"))
+                // missing type or entered invalid type
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Invalid type", error.getErrorMessage());
+                });
+    }
+
+    @Test
+    @DataSet("dataset/get-employees-under-team.xml")
+    public void testGetEmployeesWithInvalidType_shouldFailAndReturnBadRequest() throws Exception {
+        mockMvc.perform(get("/api/employees")
+                        .param("type", "teem")) // entered invalid team
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Invalid type", error.getErrorMessage());
                 });
     }
 }

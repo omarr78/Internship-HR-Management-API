@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <!--    insert department and team    -->
+    <departments id='1' name='department1'/>
+    <teams id='1' name='A'/>
+    <teams id='2' name='B'/>
+    <teams id='3' name='C'/>
+    <!--    insert some employees    -->
+    <employees id='1' name='Omar' date_of_birth='1999-10-05' graduation_date='2022-06-05' gender='MALE'
+               salary='1000000' department_id='1' team_id='1'/>
+    <employees id='2' name='Ahmed' date_of_birth='1999-10-05' graduation_date='2022-06-05' gender='MALE'
+               salary='1000' department_id='1' team_id='1'/>
+    <employees id='3' name='Mostafa' date_of_birth='1999-10-05' graduation_date='2022-06-05' gender='MALE'
+               salary='1000' department_id='1' team_id='1'/>
+    <employees id='4' name='Ali' date_of_birth='1999-10-05' graduation_date='2022-06-05' gender='MALE'
+               salary='1000' department_id='1' team_id='2'/>
+    <employees id='5' name='Mohamed' date_of_birth='1999-10-05' graduation_date='2022-06-05' gender='MALE'
+               salary='1000' department_id='1' team_id='2'/>
+</dataset>

@@ -8,6 +8,7 @@ import com.internship.entity.Department;
 import com.internship.entity.Employee;
 import com.internship.entity.Expertise;
 import com.internship.entity.Team;
+import com.internship.enums.GetEmployeeType;
 import com.internship.exception.BusinessException;
 import com.internship.mapper.EmployeeMapper;
 import com.internship.repository.DepartmentRepository;
@@ -164,6 +165,7 @@ public class EmployeeService {
     }
 
     public List<EmployeeResponse> getAllEmployeesUnderManager(Long managerId) {
+        if (managerId == null) throw new BusinessException(INVALID_REQUEST, "ManagerId is required for recursive type");
         // check employee with id exists
         Employee manager = employeeRepository.findById(managerId).
                 orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
@@ -188,5 +190,23 @@ public class EmployeeService {
             }
         }
         return employees;
+    }
+
+    public List<EmployeeResponse> getAllEmployeeUnderTeam(Long teamId) {
+        if (teamId == null) throw new BusinessException(INVALID_REQUEST, "teamId is required for team type");
+        Team team = teamRepository.findById(teamId).
+                orElseThrow(() -> new BusinessException(TEAM_NOT_FOUND,
+                        "Team not found with id: " + teamId));
+        return employeeRepository
+                .findAllByTeam(team)
+                .stream().map(employeeMapper::toResponse).toList();
+    }
+
+    public GetEmployeeType convertToType(String type) {
+        try {
+            return GetEmployeeType.valueOf(type.toUpperCase());
+        } catch (NullPointerException | IllegalArgumentException e) {
+            throw new BusinessException(INVALID_TYPE);
+        }
     }
 }
