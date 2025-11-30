@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 
 public enum ApiError {
     INVALID_TYPE(HttpStatus.BAD_REQUEST, "Invalid type"),
-    INVALID_REQUEST(HttpStatus.BAD_REQUEST, "teamId is required for team type"),
+    INVALID_REQUEST(HttpStatus.BAD_REQUEST, "Filed required"),
     HIERARCHY_CYCLE_DETECTED(HttpStatus.CONFLICT, "Cycle detected in employee hierarchy"),
     NEGATIVE_SALARY(HttpStatus.CONFLICT, "Salary cannot be Negative after deduction"),
     SELF_MANAGEMENT(HttpStatus.BAD_REQUEST, "Employee cannot be self management"),

@@ -165,6 +165,7 @@ public class EmployeeService {
     }
 
     public List<EmployeeResponse> getAllEmployeesUnderManager(Long managerId) {
+        if (managerId == null) throw new BusinessException(INVALID_REQUEST, "ManagerId is required for recursive type");
         // check employee with id exists
         Employee manager = employeeRepository.findById(managerId).
                 orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
@@ -192,7 +193,7 @@ public class EmployeeService {
     }
 
     public List<EmployeeResponse> getAllEmployeeUnderTeam(Long teamId) {
-        if (teamId == null) throw new BusinessException(INVALID_REQUEST);
+        if (teamId == null) throw new BusinessException(INVALID_REQUEST, "teamId is required for team type");
         Team team = teamRepository.findById(teamId).
                 orElseThrow(() -> new BusinessException(TEAM_NOT_FOUND,
                         "Team not found with id: " + teamId));
