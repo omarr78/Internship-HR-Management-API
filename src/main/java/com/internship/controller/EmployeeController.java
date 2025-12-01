@@ -51,8 +51,8 @@ public class EmployeeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<EmployeeResponse>> getEmployees(@RequestParam final Long managerId) {
-        List<EmployeeResponse> employeeResponses = service.getAllEmployeesUnderManager(managerId);
+    public ResponseEntity<List<EmployeeResponse>> getEmployeesUnderManager(@RequestParam final Long recursiveManagerId) {
+        List<EmployeeResponse> employeeResponses = service.getAllEmployeesUnderManager(recursiveManagerId);
         return ResponseEntity.status(HttpStatus.OK).body(employeeResponses);
     }
 }
