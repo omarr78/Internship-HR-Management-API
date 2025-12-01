@@ -737,7 +737,7 @@ public class EmployeeControllerTest {
            C   D   F
         */
         MvcResult result = mockMvc.perform(get("/api/employees")
-                        .param("managerId", String.valueOf(EXISTENT_EMPLOYEE1_ID)))
+                        .param("recursiveManagerId", String.valueOf(EXISTENT_EMPLOYEE1_ID)))
                 .andExpect(status().isOk())
                 .andReturn();
         List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
@@ -763,7 +763,7 @@ public class EmployeeControllerTest {
 
         // we will test employee C for example
         MvcResult result = mockMvc.perform(get("/api/employees")
-                        .param("managerId", String.valueOf(EXISTENT_SUBORDINATES1_ID)))
+                        .param("recursiveManagerId", String.valueOf(EXISTENT_SUBORDINATES1_ID)))
                 .andExpect(status().isOk())
                 .andReturn();
         List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
@@ -775,7 +775,7 @@ public class EmployeeControllerTest {
     @DataSet("dataset/get-employees-under-manager.xml")
     public void testGetEmployeesUnderNotFoundEmployee_shouldFailAndReturnEmployeeNotFound() throws Exception {
         mockMvc.perform(get("/api/employees")
-                        .param("managerId", String.valueOf(NON_EXISTENT_ID)))
+                        .param("recursiveManagerId", String.valueOf(NON_EXISTENT_ID)))
                 .andExpect(status().isNotFound())
                 .andExpect(result -> {
                     String json = result.getResponse().getContentAsString();
@@ -804,7 +804,7 @@ public class EmployeeControllerTest {
         jdbcTemplate.update(updateManagerQuery, employeeFId, EXISTENT_EMPLOYEE1_ID);
 
         mockMvc.perform(get("/api/employees")
-                        .param("managerId", String.valueOf(EXISTENT_EMPLOYEE1_ID)))
+                        .param("recursiveManagerId", String.valueOf(EXISTENT_EMPLOYEE1_ID)))
                 .andExpect(status().isConflict())
                 .andExpect(result -> {
                     String json = result.getResponse().getContentAsString();
