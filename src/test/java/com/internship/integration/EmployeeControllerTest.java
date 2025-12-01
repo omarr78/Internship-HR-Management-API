@@ -812,4 +812,17 @@ public class EmployeeControllerTest {
                     assertEquals("Cycle detected in employee hierarchy", error.getErrorMessage());
                 });
     }
+
+    @Test
+    @DataSet("dataset/get-employees-under-manager.xml")
+    public void testGetEmployeesUnderManagerWithMissedParameter_shouldFailAndReturnEmployeeBadRequest() throws Exception {
+        mockMvc.perform(get("/api/employees"))
+//                    missed recursiveManagerId parameter
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("recursiveManagerId parameter is missing", error.getErrorMessage());
+                });
+    }
 }
