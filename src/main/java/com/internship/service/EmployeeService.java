@@ -1,9 +1,6 @@
 package com.internship.service;
 
-import com.internship.dto.CreateEmployeeRequest;
-import com.internship.dto.EmployeeResponse;
-import com.internship.dto.SalaryDto;
-import com.internship.dto.UpdateEmployeeRequest;
+import com.internship.dto.*;
 import com.internship.entity.Department;
 import com.internship.entity.Employee;
 import com.internship.entity.Expertise;
@@ -164,12 +161,8 @@ public class EmployeeService {
     }
 
     public List<EmployeeResponse> getAllEmployeesUnderManager(Long managerId) {
-        // check employee with id exists
-        Employee manager = employeeRepository.findById(managerId).
-                orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
-                        "Employee not found with id: " + managerId));
-        List<Employee> employeesUnderManager = getEmployeesByBfs(manager);
-        return employeesUnderManager.stream().map(employeeMapper::toResponse).toList();
+        List<EmployeeDtoInterface> employeesUnderManager = employeeRepository.getAllEmployeesUnderManager(managerId);
+        return employeesUnderManager.stream().map(employeeMapper::formInterfaceToResponse).toList();
     }
 
     private List<Employee> getEmployeesByBfs(Employee employee) {
