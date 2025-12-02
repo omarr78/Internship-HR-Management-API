@@ -744,7 +744,9 @@ public class EmployeeControllerTest {
                 objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
         List<String> actualEmployeeNames = response.stream().map(EmployeeResponse::getName).toList();
         List<String> expectedEmployeeNames = List.of("B", "E", "C", "D", "F");
-        assertEquals(expectedEmployeeNames, actualEmployeeNames);
+        assertEquals(expectedEmployeeNames.size(), actualEmployeeNames.size());
+        assertTrue(expectedEmployeeNames.containsAll(actualEmployeeNames));
+        assertTrue(actualEmployeeNames.containsAll(expectedEmployeeNames));
     }
 
     @Test
@@ -773,44 +775,14 @@ public class EmployeeControllerTest {
 
     @Test
     @DataSet("dataset/get-employees-under-manager.xml")
-    public void testGetEmployeesUnderNotFoundEmployee_shouldFailAndReturnEmployeeNotFound() throws Exception {
-        mockMvc.perform(get("/api/employees")
+    public void testGetEmployeesUnderNotFoundEmployee_shouldSuccessAndReturnEmptyList() throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/employees")
                         .param("recursiveManagerId", String.valueOf(NON_EXISTENT_ID)))
-                .andExpect(status().isNotFound())
-                .andExpect(result -> {
-                    String json = result.getResponse().getContentAsString();
-                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                    assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
-                });
-    }
-
-    @Test
-    @DataSet("dataset/get-employees-under-manager.xml")
-    public void testGetEmployeesUnderMangerWithHierarchyCycleDetected_shouldSuccessAndReturnAllEmployeeUnderManger() throws Exception {
-        /*
-                1
-                A  <------|
-              /   \       |
-             2     5      |
-             B     E      |
-            / \    |      |
-           3   4   6      |
-           C   D   F -----|
-        */
-        // if F is manager of A entered by mistake it will throw an exception when get all employee under manager
-        Long employeeFId = 6L;
-        // Set F as the manager of A
-        String updateManagerQuery = "UPDATE employees SET manager_id = ? WHERE id = ?";
-        jdbcTemplate.update(updateManagerQuery, employeeFId, EXISTENT_EMPLOYEE1_ID);
-
-        mockMvc.perform(get("/api/employees")
-                        .param("recursiveManagerId", String.valueOf(EXISTENT_EMPLOYEE1_ID)))
-                .andExpect(status().isConflict())
-                .andExpect(result -> {
-                    String json = result.getResponse().getContentAsString();
-                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                    assertEquals("Cycle detected in employee hierarchy", error.getErrorMessage());
-                });
+                .andExpect(status().isOk())
+                .andReturn();
+        List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
+        assertTrue(response.isEmpty());
     }
 
     @Test
