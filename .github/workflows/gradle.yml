@@ -27,6 +27,10 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Run Checkstyle
+        run: ./gradlew checkstyleMain checkstyleTest checkstyleIntegration
+        continue-on-error: false   # FAIL the job if violations exist
+
       - name: Build and run all tests
         run: ./gradlew clean build --info
 
@@ -36,6 +40,13 @@ jobs:
       - name: Run integration tests
         run: ./gradlew integrationTest --info
         if: success()
+
+      - name: Publish Checkstyle reports (if any)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkstyle-reports
+          path: build/reports/checkstyle/
 
       - name: Publish test results (if any)
         if: always()

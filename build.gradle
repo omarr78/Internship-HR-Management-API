@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.6'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'checkstyle'
 }
 
 group = 'com.internship'
@@ -62,4 +63,31 @@ tasks.register('integrationTest', Test) {
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
     shouldRunAfter(tasks.test)
+}
+
+// Checkstyle Configuration
+checkstyle {
+    toolVersion = "10.12.0"
+    configFile = file("config/checkstyle/checkstyle.xml")
+    // Build fails on violations
+    ignoreFailures = false
+}
+
+// Checkstyle for integrationTest source set
+tasks.register('checkstyleIntegration', Checkstyle) {
+    description = 'Runs Checkstyle on integration tests.'
+    group = 'verification'
+    source = sourceSets.integrationTest.allJava
+    classpath = sourceSets.integrationTest.compileClasspath
+    configFile = file("config/checkstyle/checkstyle.xml")
+    ignoreFailures = false
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+// Ensure check task runs all Checkstyle tasks
+tasks.check {
+    dependsOn 'checkstyleMain', 'checkstyleTest', 'checkstyleIntegration'
 }

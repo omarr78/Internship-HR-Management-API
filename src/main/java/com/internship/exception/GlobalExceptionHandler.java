@@ -46,7 +46,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             HttpStatusCode status,
             WebRequest request) {
 
-        ErrorCode errorDetails = new ErrorCode(HttpStatus.BAD_REQUEST, Objects.requireNonNull(ex.getFieldError()).getDefaultMessage());
+        ErrorCode errorDetails = new ErrorCode(HttpStatus.BAD_REQUEST,
+                Objects.requireNonNull(ex.getFieldError()).getDefaultMessage());
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 }

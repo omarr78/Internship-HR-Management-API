@@ -233,7 +233,8 @@ public class EmployeeControllerTest {
         assertEquals(response.getExpertises(), request.getExpertises());
     }
 
-    // when the name of expertise not found && expertise are not empty so it will be created in expertise table and added to employee
+    // when the name of expertise not found && expertise are not empty
+    // so it will be created in expertise table and added to employee
     @Test
     @DataSet("dataset/create_employee.xml")
     public void testAddEmployeeWithNotExistingExpertise_shouldSucceedAndReturnEmployeeInfo() throws Exception {
@@ -255,7 +256,7 @@ public class EmployeeControllerTest {
     // if expertise name is empty, so it will skip it
     @Test
     @DataSet("dataset/create_employee.xml")
-    public void testAddEmployeeWithEmptyExpertiseName_shouldSucceedAndReturnEmployeeInfoWithoutExpertise() throws Exception {
+    public void testAddEmployeeEmptyExpertiseName_shouldSucceedAndReturnEmployeeWithoutExpertise() throws Exception {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
@@ -320,7 +321,7 @@ public class EmployeeControllerTest {
 
     @Test
     @DataSet("dataset/update_employees.xml")
-    public void testUpdateEmployeeBirthOfDateAndGraduationDateToDifferenceBetweenYearsLessThan20_shouldFail() throws Exception {
+    public void testUpdateEmployeeDatesWithAgeGapUnder20_shouldFail() throws Exception {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 // the different between years is 15 that is less than 20
                 .dateOfBirth(LocalDate.of(2005, 1, 1))
@@ -337,9 +338,10 @@ public class EmployeeControllerTest {
                 });
     }
 
+    // testUpdateEmployeeByRemovingHisAllField
     @Test
     @DataSet("dataset/update_employees.xml")
-    public void testUpdateEmployeeByRemovingHisAllFieldBySetItToNull_shouldSuccessAndReturningEmployeeInfoIgnoringChanges() throws Exception {
+    public void testUpdateEmployeeSetAllFieldsNull_shouldSucceedIgnoreChanges() throws Exception {
         // this applied for name, dateOfBirth, graduationDate, gender, departmentId, teamId
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 .name(null)
@@ -370,7 +372,8 @@ public class EmployeeControllerTest {
     @DataSet("dataset/update_employees.xml")
     public void testUpdateEmployeeManagerToSelfManagement_shouldFail() throws Exception {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
-                .managerId(Optional.of(EXISTENT_EMPLOYEE1_ID)) // the same id as employee, means -> employee manager on himself
+                // the same id as employee, means -> employee manager on himself
+                .managerId(Optional.of(EXISTENT_EMPLOYEE1_ID))
                 .build();
         mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
@@ -385,7 +388,7 @@ public class EmployeeControllerTest {
 
     @Test
     @DataSet("dataset/update_employees.xml")
-    public void testUpdateEmployeeByRemovingHisManager_shouldSuccessAndReturnEmployeeInfoWithNoManager() throws Exception {
+    public void testUpdateEmployeeRemoveManager_shouldSuccessAndReturnEmployeeInfoWithNoManager() throws Exception {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 .managerId(Optional.empty())
                 .build();
@@ -401,7 +404,7 @@ public class EmployeeControllerTest {
 
     @Test
     @DataSet("dataset/update_employees.xml")
-    public void testUpdateEmployeeByRemovingHisExpertise_shouldSuccessAndReturnEmployeeInfoWithNoExpertise() throws Exception {
+    public void testUpdateEmployeeRemoveExpertise_shouldSuccessAndReturnEmployeeInfoWithNoExpertise() throws Exception {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 .expertises(List.of())
                 .build();
@@ -485,7 +488,7 @@ public class EmployeeControllerTest {
 
     @Test
     @DataSet("dataset/update_employees.xml")
-    public void testUpdateEmployeeWithoutChangingExpertise_shouldSuccessAndReturnEmployeeWithTheSameExpertise() throws Exception {
+    public void testUpdateEmployeeKeepExpertise_shouldSuccessAndReturnEmployeeWithTheSameExpertise() throws Exception {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder().build();
         String expertiseName = "spring boot"; // the employee with id 2 has this expertise from dataset/update_employees.xml
         mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE2_ID)
@@ -563,23 +566,29 @@ public class EmployeeControllerTest {
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
 
         // Ahmed's data
-        String expectedName = "Ahmed";
-        LocalDate expectedBirthDate = LocalDate.of(2003, 10, 5);
-        LocalDate expectedGraduationDate = LocalDate.of(2025, 6, 5);
-        float expectedSalary = 1000;
-        Long expectedManagerId = 10L;
-        List<String> expectedExpertises = List.of("spring boot");
-
         assertNotNull(response);
+
+        String expectedName = "Ahmed";
         assertEquals(expectedName, response.getName());
+
+        LocalDate expectedBirthDate = LocalDate.of(2003, 10, 5);
         assertEquals(expectedBirthDate, response.getDateOfBirth());
+
+        LocalDate expectedGraduationDate = LocalDate.of(2025, 6, 5);
         assertEquals(expectedGraduationDate, response.getGraduationDate());
-        assertEquals(MALE, response.getGender());
+
+        float expectedSalary = 1000;
         assertEquals(expectedSalary, response.getSalary());
+
+        Long expectedManagerId = 10L;
+        assertEquals(expectedManagerId, response.getManagerId());
+
+        List<String> expectedExpertises = List.of("spring boot");
+        assertEquals(expectedExpertises.getFirst(), response.getExpertises().getFirst());
+
+        assertEquals(MALE, response.getGender());
         assertEquals(EXISTENT_DEPARTMENT1_ID, response.getDepartmentId());
         assertEquals(EXISTENT_TEAM1_ID, response.getTeamId());
-        assertEquals(expectedManagerId, response.getManagerId());
-        assertEquals(expectedExpertises.getFirst(), response.getExpertises().getFirst());
     }
 
     @Test
@@ -673,8 +682,8 @@ public class EmployeeControllerTest {
                 .andExpect(result -> {
                     String json = result.getResponse().getContentAsString();
                     ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                    assertEquals("Cannot remove manager (employee has subordinates) has no manager"
-                            , error.getErrorMessage());
+                    assertEquals("Cannot remove manager (employee has subordinates) has no manager",
+                            error.getErrorMessage());
                 });
     }
 
@@ -718,8 +727,8 @@ public class EmployeeControllerTest {
                 .andExpect(result -> {
                     String json = result.getResponse().getContentAsString();
                     ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                    assertEquals("Salary cannot be Negative after deduction"
-                            , error.getErrorMessage());
+                    assertEquals("Salary cannot be Negative after deduction",
+                            error.getErrorMessage());
                 });
     }
 

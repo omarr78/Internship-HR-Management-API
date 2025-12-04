@@ -41,13 +41,13 @@ public class EmployeeService {
         Department department = departmentRepository.findById(request.getDepartmentId())
                 .orElseThrow(() -> new BusinessException(DEPARTMENT_NOT_FOUND,
                         "Department not found with id: " + request.getDepartmentId()));
-        Team team = teamRepository.findById(request.getTeamId()).
-                orElseThrow(() -> new BusinessException(TEAM_NOT_FOUND,
+        Team team = teamRepository.findById(request.getTeamId())
+                .orElseThrow(() -> new BusinessException(TEAM_NOT_FOUND,
                         "Team not found with id: " + request.getTeamId()));
         Employee manager = null;
         if (request.getManagerId() != null) {
-            manager = employeeRepository.findById(request.getManagerId()).
-                    orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+            manager = employeeRepository.findById(request.getManagerId())
+                    .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                             "Manager not found with id: " + request.getManagerId()));
         }
         List<Expertise> expertises = new ArrayList<>();
@@ -64,8 +64,8 @@ public class EmployeeService {
     @Transactional
     public EmployeeResponse modifyEmployee(UpdateEmployeeRequest request, Long id) {
         // check employee with id exists
-        Employee employee = employeeRepository.findById(id).
-                orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
         if (request.getName() != null) {
             employee.setName(request.getName());
@@ -90,17 +90,19 @@ public class EmployeeService {
             employee.setDepartment(department);
         }
         if (request.getTeamId() != null) {
-            Team team = teamRepository.findById(request.getTeamId()).
-                    orElseThrow(() -> new BusinessException(TEAM_NOT_FOUND,
+            Team team = teamRepository.findById(request.getTeamId())
+                    .orElseThrow(() -> new BusinessException(TEAM_NOT_FOUND,
                             "Team not found with id: " + request.getTeamId()));
             employee.setTeam(team);
         }
         if (request.getManagerId() != null) {
             Optional<Long> managerId = request.getManagerId();
             if (managerId.isPresent()) {
-                if (managerId.get().equals(id)) throw new BusinessException(SELF_MANAGEMENT);
-                Employee manager = employeeRepository.findById(managerId.get()).
-                        orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+                if (managerId.get().equals(id)) {
+                    throw new BusinessException(SELF_MANAGEMENT);
+                }
+                Employee manager = employeeRepository.findById(managerId.get())
+                        .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                                 "Manager not found with id: " + request.getManagerId()));
                 employee.setManager(manager);
             } else {
@@ -130,8 +132,8 @@ public class EmployeeService {
 
     @Transactional
     public EmployeeResponse getEmployee(Long id) {
-        Employee employee = employeeRepository.findById(id).
-                orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
         return employeeMapper.toResponse(employee);
     }
@@ -139,20 +141,22 @@ public class EmployeeService {
     @Transactional
     public void deleteEmployee(Long id) {
         // check employee with id exists
-        Employee employee = employeeRepository.findById(id).
-                orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
         Employee manager = employee.getManager();
         if (manager == null) // if the employee has no manager then it can't be deleted
+        {
             throw new BusinessException(INVALID_EMPLOYEE_REMOVAL);
+        }
         employeeRepository.reassignManager(employee.getId(), manager.getId());
         employeeRepository.delete(employee);
     }
 
     public SalaryDto getEmployeeSalaryInfo(Long id) {
         // check employee with id exists
-        Employee employee = employeeRepository.findById(id).
-                orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
         float netSalary = employee.getSalary() * TAX_REMINDER - INSURANCE_AMOUNT;
         // prevent negative salaries
@@ -164,8 +168,8 @@ public class EmployeeService {
 
     public List<EmployeeResponse> getEmployeesUnderManagerRecursively(Long managerId) {
         // check employee with id exists
-        employeeRepository.findById(managerId).
-                orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+        employeeRepository.findById(managerId)
+                .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + managerId));
 
         List<EmployeeDtoInterface> employeesUnderManager = employeeRepository.getAllEmployeesUnderManager(managerId);
