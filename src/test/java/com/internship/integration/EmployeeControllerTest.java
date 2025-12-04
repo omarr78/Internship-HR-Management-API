@@ -791,4 +791,52 @@ public class EmployeeControllerTest {
                     assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
                 });
     }
+
+    @Test
+    @DataSet("dataset/get-employees-under-manager.xml")
+    public void testGetDirectEmployeesUnderManager_shouldReturnHisSubordinates() throws Exception {
+        /*
+                1
+                A
+              /   \
+             2     5
+             B     E
+            / \    |
+           3   4   6
+           C   D   F
+        */
+        // we will test employee A for example
+        MvcResult result = mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE1_ID + "/subordinates"))
+                .andExpect(status().isOk())
+                .andReturn();
+        List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
+        List<String> actualEmployeeNames = response.stream().map(EmployeeResponse::getName).toList();
+        List<String> expectedEmployeeNames = List.of("B", "E");
+        assertEquals(expectedEmployeeNames.size(), actualEmployeeNames.size());
+        assertTrue(expectedEmployeeNames.containsAll(actualEmployeeNames));
+        assertTrue(actualEmployeeNames.containsAll(expectedEmployeeNames));
+    }
+
+    @Test
+    @DataSet("dataset/get-employees-under-manager.xml")
+    public void testGetDirectEmployeesUnderManagerWithNoSubordinates_shouldReturnEmptyList() throws Exception {
+        /*
+                1
+                A
+              /   \
+             2     5
+             B     E
+            / \    |
+           3   4   6
+           C   D   F
+        */
+        // we will test employee A for example
+        MvcResult result = mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE1_ID + "/subordinates"))
+                .andExpect(status().isOk())
+                .andReturn();
+        List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
+        assertTrue(response.isEmpty());
+    }
 }
