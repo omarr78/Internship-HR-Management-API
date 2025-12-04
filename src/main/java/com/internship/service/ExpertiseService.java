@@ -22,7 +22,9 @@ public class ExpertiseService {
     public void createNotFoundExpertise(List<String> expertiseNames) {
         for (String expertiseName : expertiseNames) {
             Optional<Expertise> optional = expertiseRepository.findExpertiseByName(expertiseName);
-            if (optional.isPresent()) continue;
+            if (optional.isPresent()) {
+                continue;
+            }
             Expertise exp = Expertise.builder().name(expertiseName).build();
             expertiseRepository.save(exp);
         }
