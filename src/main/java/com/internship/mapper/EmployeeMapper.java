@@ -1,6 +1,7 @@
 package com.internship.mapper;
 
 import com.internship.dto.CreateEmployeeRequest;
+import com.internship.dto.EmployeeDtoInterface;
 import com.internship.dto.EmployeeResponse;
 import com.internship.entity.Department;
 import com.internship.entity.Employee;
@@ -9,8 +10,6 @@ import com.internship.entity.Team;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
-
 
 @Component
 public class EmployeeMapper {
@@ -45,6 +44,21 @@ public class EmployeeMapper {
                 .teamId(employee.getTeam().getId())
                 .managerId(employee.getManager() != null ? employee.getManager().getId() : null)
                 .expertises(expertises)
+                .build();
+    }
+
+    public EmployeeResponse formInterfaceToResponse(EmployeeDtoInterface dto) {
+        return EmployeeResponse.builder()
+                .id(dto.getId())
+                .name(dto.getName())
+                .dateOfBirth(dto.getDateOfBirth())
+                .graduationDate(dto.getGraduationDate())
+                .gender(dto.getGender())
+                .salary(dto.getSalary())
+                .departmentId(dto.getDepartmentId())
+                .teamId(dto.getTeamId())
+                .managerId(dto.getManagerId())
+                .expertises(dto.getExpertises())
                 .build();
     }
 }
