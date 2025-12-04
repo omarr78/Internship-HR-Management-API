@@ -177,9 +177,11 @@ public class EmployeeService {
     }
 
     public List<EmployeeResponse> getDirectSubordinates(Long managerId) {
-        Employee manager = employeeRepository.findById(managerId).get();
+        // check employee with id exists
+        Employee manager = employeeRepository.findById(managerId)
+                .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+                        "Employee not found with id: " + managerId));
+
         return manager.getSubordinates().stream().map(employeeMapper::toResponse).toList();
-//        List<Employee> directSubordinates = employeeRepository.findByManagerId(managerId);
-//        return directSubordinates.stream().map(employeeMapper::toResponse).toList();
     }
 }
