@@ -832,7 +832,7 @@ public class EmployeeControllerTest {
            C   D   F
         */
         // we will test employee A for example
-        MvcResult result = mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE1_ID + "/subordinates"))
+        MvcResult result = mockMvc.perform(get("/api/employees/" + EXISTENT_SUBORDINATES1_ID + "/subordinates"))
                 .andExpect(status().isOk())
                 .andReturn();
         List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),

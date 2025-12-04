@@ -175,4 +175,11 @@ public class EmployeeService {
         List<EmployeeDtoInterface> employeesUnderManager = employeeRepository.getAllEmployeesUnderManager(managerId);
         return employeesUnderManager.stream().map(employeeMapper::formInterfaceToResponse).toList();
     }
+
+    public List<EmployeeResponse> getDirectSubordinates(Long managerId) {
+        Employee manager = employeeRepository.findById(managerId).get();
+        return manager.getSubordinates().stream().map(employeeMapper::toResponse).toList();
+//        List<Employee> directSubordinates = employeeRepository.findByManagerId(managerId);
+//        return directSubordinates.stream().map(employeeMapper::toResponse).toList();
+    }
 }
