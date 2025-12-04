@@ -736,8 +736,7 @@ public class EmployeeControllerTest {
            3   4   6
            C   D   F
         */
-        MvcResult result = mockMvc.perform(get("/api/employees")
-                        .param("recursiveManagerId", String.valueOf(EXISTENT_EMPLOYEE1_ID)))
+        MvcResult result = mockMvc.perform(get("/api/employees" + EXISTENT_EMPLOYEE1_ID + "/hierarchy"))
                 .andExpect(status().isOk())
                 .andReturn();
         List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
@@ -764,8 +763,7 @@ public class EmployeeControllerTest {
         */
 
         // we will test employee C for example
-        MvcResult result = mockMvc.perform(get("/api/employees")
-                        .param("recursiveManagerId", String.valueOf(EXISTENT_SUBORDINATES1_ID)))
+        MvcResult result = mockMvc.perform(get("/api/employees" + EXISTENT_SUBORDINATES1_ID + "/hierarchy"))
                 .andExpect(status().isOk())
                 .andReturn();
         List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
@@ -775,26 +773,13 @@ public class EmployeeControllerTest {
 
     @Test
     @DataSet("dataset/get-employees-under-manager.xml")
-    public void testGetEmployeesUnderNotFoundEmployee_shouldSuccessAndReturnEmptyList() throws Exception {
-        MvcResult result = mockMvc.perform(get("/api/employees")
-                        .param("recursiveManagerId", String.valueOf(NON_EXISTENT_ID)))
-                .andExpect(status().isOk())
-                .andReturn();
-        List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
-        assertTrue(response.isEmpty());
-    }
-
-    @Test
-    @DataSet("dataset/get-employees-under-manager.xml")
-    public void testGetEmployeesUnderManagerWithMissedParameter_shouldFailAndReturnEmployeeBadRequest() throws Exception {
-        mockMvc.perform(get("/api/employees"))
-//                    missed recursiveManagerId parameter
-                .andExpect(status().isBadRequest())
+    public void testGetEmployeesUnderNotFoundEmployee_shouldFailAndReturnNotFound() throws Exception {
+        mockMvc.perform(get("/api/employees" + NON_EXISTENT_ID + "/hierarchy"))
+                .andExpect(status().isNotFound())
                 .andExpect(result -> {
                     String json = result.getResponse().getContentAsString();
                     ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                    assertEquals("recursiveManagerId parameter is missing", error.getErrorMessage());
+                    assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
                 });
     }
 }
