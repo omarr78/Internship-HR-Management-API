@@ -14,7 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import static com.internship.exception.ApiError.*;
 
@@ -160,26 +162,13 @@ public class EmployeeService {
         return SalaryDto.builder().salary(netSalary).build();
     }
 
-    public List<EmployeeResponse> getAllEmployeesUnderManager(Long managerId) {
+    public List<EmployeeResponse> getEmployeesUnderManagerRecursively(Long managerId) {
+        // check employee with id exists
+        employeeRepository.findById(managerId).
+                orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+                        "Employee not found with id: " + managerId));
+
         List<EmployeeDtoInterface> employeesUnderManager = employeeRepository.getAllEmployeesUnderManager(managerId);
         return employeesUnderManager.stream().map(employeeMapper::formInterfaceToResponse).toList();
-    }
-
-    private List<Employee> getEmployeesByBfs(Employee employee) {
-        List<Employee> employees = new ArrayList<>();
-        Set<Long> visitedEmployeeIds = new HashSet<>();
-        Queue<Employee> queue = new LinkedList<>();
-        queue.add(employee);
-        visitedEmployeeIds.add(employee.getId());
-        while (!queue.isEmpty()) {
-            Employee manager = queue.poll();
-            for (Employee sub : manager.getSubordinates()) {
-                if (visitedEmployeeIds.contains(sub.getId())) throw new BusinessException(HIERARCHY_CYCLE_DETECTED);
-                visitedEmployeeIds.add(sub.getId());
-                queue.add(sub);
-                employees.add(sub);
-            }
-        }
-        return employees;
     }
 }

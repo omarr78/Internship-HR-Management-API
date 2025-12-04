@@ -50,9 +50,9 @@ public class EmployeeController {
         return ResponseEntity.status(HttpStatus.OK).body(salaryResponse);
     }
 
-    @GetMapping
-    public ResponseEntity<List<EmployeeResponse>> getEmployeesUnderManager(@RequestParam final Long recursiveManagerId) {
-        List<EmployeeResponse> employeeResponses = service.getAllEmployeesUnderManager(recursiveManagerId);
+    @GetMapping("/{managerId}/hierarchy")
+    public ResponseEntity<List<EmployeeResponse>> getAllSubordinatesHierarchy(@PathVariable final Long managerId) {
+        List<EmployeeResponse> employeeResponses = service.getEmployeesUnderManagerRecursively(managerId);
         return ResponseEntity.status(HttpStatus.OK).body(employeeResponses);
     }
 }
