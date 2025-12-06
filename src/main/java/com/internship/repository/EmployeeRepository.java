@@ -2,6 +2,7 @@ package com.internship.repository;
 
 import com.internship.dto.EmployeeDtoInterface;
 import com.internship.entity.Employee;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -85,4 +86,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             nativeQuery = true
     )
     List<EmployeeDtoInterface> getAllEmployeesUnderManager(@Param("managerId") Long managerId);
+
+    @EntityGraph(attributePaths = {"department", "team", "expertises"})
+    List<Employee> findByManagerId(Long managerId);
 }

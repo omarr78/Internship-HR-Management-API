@@ -55,4 +55,10 @@ public class EmployeeController {
         List<EmployeeResponse> employeeResponses = service.getEmployeesUnderManagerRecursively(managerId);
         return ResponseEntity.status(HttpStatus.OK).body(employeeResponses);
     }
+
+    @GetMapping("/{managerId}/subordinates")
+    public ResponseEntity<List<EmployeeResponse>> getDirectSubordinates(@PathVariable final Long managerId) {
+        List<EmployeeResponse> employeeResponses = service.getDirectSubordinates(managerId);
+        return ResponseEntity.status(HttpStatus.OK).body(employeeResponses);
+    }
 }

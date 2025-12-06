@@ -175,4 +175,13 @@ public class EmployeeService {
         List<EmployeeDtoInterface> employeesUnderManager = employeeRepository.getAllEmployeesUnderManager(managerId);
         return employeesUnderManager.stream().map(employeeMapper::formInterfaceToResponse).toList();
     }
+
+    public List<EmployeeResponse> getDirectSubordinates(Long managerId) {
+        // check employee with id exists
+        employeeRepository.findById(managerId)
+                .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+                        "Employee not found with id: " + managerId));
+
+        return employeeRepository.findByManagerId(managerId).stream().map(employeeMapper::toResponse).toList();
+    }
 }
