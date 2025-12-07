@@ -1,4 +1,4 @@
-name: Gradle Build
+name: Build & Test & Deploy Spring Boot App
 
 on:
   push:
@@ -10,7 +10,8 @@ on:
       - closed
 
 jobs:
-  build:
+  build-deploy:
+    name: Build, Test, Deploy Spring Boot App
     runs-on: ubuntu-latest
 
     steps:
@@ -56,3 +57,6 @@ jobs:
           path: |
             **/build/reports/tests/test
             **/build/reports/tests/integrationTest
+
+      - name: Build the application
+        run: ./gradlew clean build --info
