@@ -63,7 +63,7 @@ jobs:
 
       - name: Set date-time variable
         id: datetime
-        run: echo "DT=$(date +'%Y-%m-%d_%I-%M-%S_%p')" >> $GITHUB_ENV
+        run: echo "DT=$(TZ='Africa/Cairo' date +'%Y-%m-%d_%I-%M-%S_%p')" >> $GITHUB_ENV
 
       - name: Build Docker image
         uses: docker/build-push-action@v4
