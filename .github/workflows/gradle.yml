@@ -60,3 +60,29 @@ jobs:
 
       - name: Build the application
         run: ./gradlew clean build --info
+
+      - name: Set date-time variable
+        id: datetime
+        run: echo "DT=$(date +'%Y-%m-%d_%I-%M-%S_%p')" >> $GITHUB_ENV
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          dockerfile: Dockerfile
+          push: false
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/Internship-HR-Management-API:${{ env.DT }}
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Push Docker image to Docker Hub
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          dockerfile: Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/Internship-HR-Management-API:${{ env.DT }}
