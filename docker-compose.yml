@@ -1,6 +1,19 @@
 version: '3.7'
 
 services:
+  db:
+    image: mysql:latest
+    container_name: mysql_db
+    ports:
+      - "${DB_PORT}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}   # Password for MYSQL_USER
+    volumes:
+      - db_data:/var/lib/mysql   # persists database data
+  
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -22,3 +35,5 @@ services:
     restart: unless-stopped
     volumes:
       - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+volumes:
+  db_data:
