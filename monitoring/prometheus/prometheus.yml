@@ -6,3 +6,8 @@ scrape_configs:
       - targets: [ 'host.docker.internal:8080' ]
         labels:
           application: 'My Spring Boot Application'
+
+  - job_name: 'MySQLExporter'
+    scrape_interval: 3s
+    static_configs:
+      - targets: [ 'mysql-exporter:9104' ]

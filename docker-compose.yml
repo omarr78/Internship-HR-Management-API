@@ -1,7 +1,7 @@
 version: '3.7'
 
 services:
-  db:
+  mysql:
     image: mysql:latest
     container_name: mysql_db
     ports:
@@ -13,7 +13,19 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}   # Password for MYSQL_USER
     volumes:
       - db_data:/var/lib/mysql   # persists database data
-  
+
+  mysql-exporter:
+    image: prom/mysqld-exporter
+    depends_on:
+      - mysql
+    command:
+      - --config.my-cnf=/cfg/.my.cnf
+      - --mysqld.address=mysql:3306
+    volumes:
+      - "./.my.cnf:/cfg/.my.cnf"
+    ports:
+      - 9104:9104
+
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -35,5 +47,6 @@ services:
     restart: unless-stopped
     volumes:
       - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+
 volumes:
   db_data:
