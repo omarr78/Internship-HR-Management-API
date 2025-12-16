@@ -1,6 +1,6 @@
 # Internship HR Management API
 
-[![Build Status](https://github.com/omarr78/Internship-HR-Management-API/actions/workflows/gradle.yml/badge.svg)](https://github.com/<OWNER>/<REPO>/actions/workflows/gradle.yml)
+[![Build Status](https://github.com/omarr78/Internship-HR-Management-API/actions/workflows/gradle.yml)](https://github.com/omarr78/Internship-HR-Management-API/actions/workflows/gradle.yml))
 [![Docker Image](https://img.shields.io/badge/docker-ghcr.io-blue)](https://ghcr.io)
 
 A Spring Boot REST API for managing employees, teams, departments and reporting structure. This repository uses Gradle,
