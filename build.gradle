@@ -44,6 +44,7 @@ dependencies {
     testImplementation("com.github.database-rider:rider-spring:1.41.0")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
 }
 
 tasks.named('test') {
