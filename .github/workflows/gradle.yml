@@ -140,7 +140,6 @@ jobs:
             conventional-changelog-conventionalcommits
 
       - name: Run semantic release
-        # Use npx to run the locally installed semantic-release so the commit-analyzer can load the parser package
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
