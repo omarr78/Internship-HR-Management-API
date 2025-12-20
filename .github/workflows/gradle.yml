@@ -85,7 +85,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          dockerfile: Dockerfile
+          file: Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/internship-hr-management-api:${{ env.DT }}
 
@@ -157,7 +157,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          dockerfile: Dockerfile
+          file: Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/internship-hr-management-api:${{ env.VERSION }}
