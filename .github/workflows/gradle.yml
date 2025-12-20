@@ -128,21 +128,22 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install semantic-release
+      - name: Install semantic-release and plugins locally
         run: |
-          npm install -g semantic-release \
+          # Install locally in the workspace so import-from-esm can resolve dependencies
+          npm install --no-audit --no-fund semantic-release \
             @semantic-release/github \
             @semantic-release/commit-analyzer \
             @semantic-release/release-notes-generator \
             @semantic-release/changelog \
-            @semantic-release/git
+            @semantic-release/git \
+            conventional-changelog-conventionalcommits
 
       - name: Run semantic release
-        # semantic-release will use the GITHUB_TOKEN provided by Actions.
-        # Ensure permissions above are set to allow pushes/tags/releases.
+        # Use npx to run the locally installed semantic-release so the commit-analyzer can load the parser package
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: semantic-release
+        run: npx semantic-release
 
       - name: Get released version
         run: |
