@@ -1,0 +1,14 @@
+<configuration>
+    <springProperty name="LOGSTASH_HOST" source="LOGSTASH_HOST" defaultValue="localhost"/>
+    <springProperty name="LOGSTASH_PORT" source="LOGSTASH_PORT" defaultValue="9999"/>
+
+    <appender name="LOGSTASH"
+              class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>${LOGSTASH_HOST}:${LOGSTASH_PORT}</destination>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="LOGSTASH"/>
+    </root>
+</configuration>

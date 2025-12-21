@@ -1,5 +1,3 @@
-version: '3.7'
-
 services:
   mysql:
     image: mysql:latest
@@ -47,6 +45,57 @@ services:
     restart: unless-stopped
     volumes:
       - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xmx256m -Xms256m
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      # mount the host elasticsearch.yml file into the container config path (file->file)
+      - ./myfolder/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:9200/ || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.10.1
+    container_name: logstash
+    command: -f /etc/logstash/conf.d/
+    volumes:
+      # map the host logstash.conf file to a file inside the conf.d directory
+      - ./myfolder/logstash.conf:/etc/logstash/conf.d/logstash.conf
+    ports:
+      - "9999:9999"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.10.1
+    container_name: kibana
+    volumes:
+      # map the host kibana.yml file to the kibana config file (file->file)
+      - ./myfolder/kibana.yml:/usr/share/kibana/config/kibana.yml
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
 
 volumes:
   db_data:
