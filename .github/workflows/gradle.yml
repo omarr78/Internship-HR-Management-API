@@ -71,6 +71,12 @@ jobs:
       - name: Build the application
         run: ./gradlew clean build --info
 
+      - name: Run hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          failure-threshold: error
+
       - name: Set date-time variable
         id: datetime
         run: echo "DT=$(TZ='Africa/Cairo' date +'%Y-%m-%d_%I-%M-%S_%p')" >> $GITHUB_ENV
