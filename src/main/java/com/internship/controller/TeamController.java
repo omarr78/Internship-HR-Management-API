@@ -1,9 +1,7 @@
 package com.internship.controller;
 
 import com.internship.dto.EmployeeResponse;
-import com.internship.entity.Employee;
-import com.internship.mapper.EmployeeMapper;
-import com.internship.repository.EmployeeRepository;
+import com.internship.service.TeamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,13 +16,11 @@ import java.util.List;
 @RequestMapping("/api/teams")
 @RequiredArgsConstructor
 public class TeamController {
-    private final EmployeeRepository employeeRepository;
-    private final EmployeeMapper employeeMapper;
+    private final TeamService service;
 
     @GetMapping("{id}/members")
     public ResponseEntity<List<EmployeeResponse>> getEmployeesUnderTeam(@PathVariable final Long id) {
-        List<Employee> employeeResponses = employeeRepository.findByTeamId(id);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(employeeResponses.stream().map(employeeMapper::toResponse).toList());
+                .body(service.getMembers(id));
     }
 }
