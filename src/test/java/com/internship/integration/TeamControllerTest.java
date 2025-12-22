@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.database.rider.core.api.dataset.DataSet;
 import com.github.database.rider.spring.api.DBRider;
 import com.internship.dto.EmployeeResponse;
+import com.internship.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @DBRider
 public class TeamControllerTest {
+    private static final Long NON_EXISTENT_ID = -1L;
     private static final Long EXISTENT_TEAM1_ID = 1L;
     private static final Long EXISTENT_EMPTY_TEAM_ID = 3L;
 
@@ -75,5 +77,24 @@ public class TeamControllerTest {
                 objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
 
         assertTrue(employeeResponses.isEmpty());
+    }
+
+    @Test
+    @DataSet("dataset/get-employees-under-team.xml")
+    public void testGetEmployeesUnderNotFoundTeam_shouldFailAndReturnNotFound() throws Exception {
+        /*
+            -- From data set
+            1- team A -> Omar, Ahmed, Mostafa
+            2- team B -> Ali, Mohamed
+            3- team C ->
+        */
+        // we will get all employees under not found team
+        mockMvc.perform(get("/api/teams/" + NON_EXISTENT_ID + "/members"))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Team not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
+                });
     }
 }
