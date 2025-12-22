@@ -24,6 +24,7 @@ public class TeamController {
     @GetMapping("{id}/members")
     public ResponseEntity<List<EmployeeResponse>> getEmployeesUnderTeam(@PathVariable final Long id) {
         List<Employee> employeeResponses = employeeRepository.findByTeamId(id);
-        return ResponseEntity.status(HttpStatus.OK).body(employeeResponses.stream().map(employeeMapper::toResponse).toList());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(employeeResponses.stream().map(employeeMapper::toResponse).toList());
     }
 }
