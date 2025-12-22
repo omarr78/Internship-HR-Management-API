@@ -25,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DBRider
 public class TeamControllerTest {
     private static final Long EXISTENT_TEAM1_ID = 1L;
+    private static final Long EXISTENT_EMPTY_TEAM_ID = 3L;
 
     @Autowired
     private MockMvc mockMvc;
@@ -54,5 +55,25 @@ public class TeamControllerTest {
         assertEquals(expectedEmployeeNames.size(), actualEmployeeNames.size());
         assertTrue(expectedEmployeeNames.containsAll(actualEmployeeNames));
         assertTrue(actualEmployeeNames.containsAll(expectedEmployeeNames));
+    }
+
+    @Test
+    @DataSet("dataset/get-employees-under-team.xml")
+    public void testGetEmployeesUnderTeam_shouldSuccessAndReturnEmptyList() throws Exception {
+        /*
+            -- From data set
+            1- team A -> Omar, Ahmed, Mostafa
+            2- team B -> Ali, Mohamed
+            3- team C ->
+        */
+        // we will get all employees under team C
+        MvcResult result = mockMvc.perform(get("/api/teams/" + EXISTENT_EMPTY_TEAM_ID + "/members"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        List<EmployeeResponse> employeeResponses = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
+
+        assertTrue(employeeResponses.isEmpty());
     }
 }
