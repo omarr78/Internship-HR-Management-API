@@ -89,4 +89,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
     @EntityGraph(attributePaths = {"department", "team", "expertises"})
     List<Employee> findByManagerId(Long managerId);
+
+    @EntityGraph(attributePaths = {"department", "team", "expertises"})
+    List<Employee> findByTeamId(Long teamId);
 }
