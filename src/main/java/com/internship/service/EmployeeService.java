@@ -68,7 +68,7 @@ public class EmployeeService {
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
         if (request.getName() != null) {
-            employee.setName(request.getName());
+            employee.setFirstName(request.getName());
         }
         if (request.getDateOfBirth() != null) {
             employee.setDateOfBirth(request.getDateOfBirth());
@@ -110,7 +110,7 @@ public class EmployeeService {
             }
         }
         if (request.getSalary() != null) {
-            employee.setSalary(request.getSalary());
+            employee.setGrossSalary(request.getSalary());
         }
         if (request.getExpertises() != null) {
             // remove Empty
@@ -158,7 +158,7 @@ public class EmployeeService {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
-        float netSalary = employee.getSalary() * TAX_REMINDER - INSURANCE_AMOUNT;
+        float netSalary = employee.getGrossSalary() * TAX_REMINDER - INSURANCE_AMOUNT;
         // prevent negative salaries
         if (netSalary < 0) {
             throw new BusinessException(NEGATIVE_SALARY);

@@ -17,11 +17,11 @@ public class EmployeeMapper {
                                Department department, Team team,
                                Employee manager, List<Expertise> expertises) {
         return Employee.builder()
-                .name(request.getName())
+                .firstName(request.getName())
                 .dateOfBirth(request.getDateOfBirth())
                 .graduationDate(request.getGraduationDate())
                 .gender(request.getGender())
-                .salary(request.getSalary())
+                .grossSalary(request.getSalary())
                 .department(department)
                 .team(team)
                 .manager(manager)
@@ -35,11 +35,11 @@ public class EmployeeMapper {
 
         return EmployeeResponse.builder()
                 .id(employee.getId())
-                .name(employee.getName())
+                .name(employee.getFirstName())
                 .dateOfBirth(employee.getDateOfBirth())
                 .graduationDate(employee.getGraduationDate())
                 .gender(employee.getGender())
-                .salary(employee.getSalary())
+                .salary(employee.getGrossSalary())
                 .departmentId(employee.getDepartment().getId())
                 .teamId(employee.getTeam().getId())
                 .managerId(employee.getManager() != null ? employee.getManager().getId() : null)
