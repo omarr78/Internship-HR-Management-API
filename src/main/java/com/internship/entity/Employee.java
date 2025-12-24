@@ -38,8 +38,8 @@ public class Employee {
     @Column(name = "PAST_EXPERIENCE_YEAR", nullable = false)
     private Integer pastExperienceYear;
 
-    @Column(name = "JOINED_YEAR", nullable = false)
-    private LocalDate joinedYear;
+    @Column(name = "JOINED_DATE", nullable = false)
+    private LocalDate joinedDate;
 
     @Column(name = "DATE_OF_BIRTH", nullable = false)
     private LocalDate dateOfBirth;
