@@ -67,8 +67,8 @@ public class EmployeeService {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
-        if (request.getName() != null) {
-            employee.setFirstName(request.getName());
+        if (request.getFirstName() != null) {
+            employee.setFirstName(request.getFirstName());
         }
         if (request.getDateOfBirth() != null) {
             employee.setDateOfBirth(request.getDateOfBirth());
@@ -109,8 +109,8 @@ public class EmployeeService {
                 employee.setManager(null);
             }
         }
-        if (request.getSalary() != null) {
-            employee.setGrossSalary(request.getSalary());
+        if (request.getGrossSalary() != null) {
+            employee.setGrossSalary(request.getGrossSalary());
         }
         if (request.getExpertises() != null) {
             // remove Empty
@@ -163,7 +163,7 @@ public class EmployeeService {
         if (netSalary < 0) {
             throw new BusinessException(NEGATIVE_SALARY);
         }
-        return SalaryDto.builder().salary(netSalary).build();
+        return SalaryDto.builder().netSalary(netSalary).build();
     }
 
     public List<EmployeeResponse> getEmployeesUnderManagerRecursively(Long managerId) {
