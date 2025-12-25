@@ -9,10 +9,15 @@ import com.internship.entity.Expertise;
 import com.internship.entity.Team;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Component
 public class EmployeeMapper {
+    private static final int MIN_YEARS_FOR_EXTRA_LEAVE = 10;
+    private static final int STANDARD_LEAVE_DAYS = 21;
+    private static final int EXTENDED_LEAVE_DAYS = 30;
+
     public Employee toEmployee(CreateEmployeeRequest request,
                                Department department, Team team,
                                Employee manager, List<Expertise> expertises) {
@@ -45,10 +50,14 @@ public class EmployeeMapper {
                 .nationalId(employee.getNationalId())
                 .degree(employee.getDegree())
                 .joinedDate(employee.getJoinedDate())
+                .yearsOfExperience(
+                        calculateYearsOfExperience(employee.getPastExperienceYear(), employee.getJoinedDate())
+                )
                 .dateOfBirth(employee.getDateOfBirth())
                 .graduationDate(employee.getGraduationDate())
                 .gender(employee.getGender())
                 .grossSalary(employee.getGrossSalary())
+                .leaveDays(getTheNumberOfLeaveDays(employee.getJoinedDate()))
                 .departmentId(employee.getDepartment().getId())
                 .teamId(employee.getTeam().getId())
                 .managerId(employee.getManager() != null ? employee.getManager().getId() : null)
@@ -64,14 +73,31 @@ public class EmployeeMapper {
                 .nationalId(dto.getNationalId())
                 .degree(dto.getDegree())
                 .joinedDate(dto.getJoinedDate())
+                .yearsOfExperience(
+                        calculateYearsOfExperience(dto.getPastExperienceYear(), dto.getJoinedDate())
+                )
                 .dateOfBirth(dto.getDateOfBirth())
                 .graduationDate(dto.getGraduationDate())
                 .gender(dto.getGender())
                 .grossSalary(dto.getGrossSalary())
+                .leaveDays(getTheNumberOfLeaveDays(dto.getJoinedDate()))
                 .departmentId(dto.getDepartmentId())
                 .teamId(dto.getTeamId())
                 .managerId(dto.getManagerId())
                 .expertises(dto.getExpertises())
                 .build();
+    }
+
+    private int calculateYearsOfExperience(int pastExperience, LocalDate joinedDate) {
+        int currentYear = LocalDate.now().getYear();
+        int joinedYear = joinedDate.getYear();
+        return pastExperience + (currentYear - joinedYear);
+    }
+
+    private int getTheNumberOfLeaveDays(LocalDate joinedDate) {
+        int currentYear = LocalDate.now().getYear();
+        int joinedYear = joinedDate.getYear();
+        return currentYear - joinedYear >= MIN_YEARS_FOR_EXTRA_LEAVE ?
+                EXTENDED_LEAVE_DAYS : STANDARD_LEAVE_DAYS;
     }
 }
