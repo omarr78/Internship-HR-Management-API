@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import static com.internship.enums.Degree.FRESH;
 import static com.internship.enums.Gender.FEMALE;
 import static com.internship.enums.Gender.MALE;
 import static org.junit.jupiter.api.Assertions.*;
@@ -524,27 +525,40 @@ public class EmployeeControllerTest {
         /*
             will update this employee
 
-            <employees id='1' name='Ahmed' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
-               salary='1000' department_id='1' team_id='1' manager_id='10'/>
+            <employees id='1' first_name='Ahmed' last_name='Ali' national_id='NID-AHM-003' degree='INTERMEDIATE'
+             past_experience_year='2' joined_date='2024-02-01' date_of_birth='2003-10-05' graduation_date='2025-06-05'
+             gender='MALE' salary='1000' department_id='1' team_id='1' manager_id='10'/>
 
             to
 
-            <employees id='1' name='mai' date_of_birth='2003-01-01' graduation_date='2025-01-01' gender='FEMALE'
-               salary='1500' department_id='2' team_id='2' manager_id='11'/>
+            <employees id='1' first_name='Mai' last_name='Mohamed' national_id='NID-MAI-004' degree='FRESH'
+             past_experience_year='0' joined_date='2025-01-01' date_of_birth='2003-01-01' graduation_date='2025-01-01'
+             gender='FEMALE' salary='1500' department_id='2' team_id='2' manager_id='11'/>
         */
-        String updatedName = "mai"; // valid name, the length of character >= 3
+
+        String updatedFirstName = "Mai"; // valid name, the length of character >= 3
+        String updatedLastName = "Mohamed"; // valid name, the length of character >= 3
+        String updatedNationalId = "NID-MAI-004";
+        Degree updatedDegree = FRESH;
+        int updatedPastExperience = 0;
+        LocalDate updatedJoinedDate = LocalDate.of(2025, 1, 1);
         // valid dates, the difference between years >= 20
         LocalDate updatedBirthDate = LocalDate.of(2003, 1, 1); // valid date, the date in the past
         LocalDate updatedGraduationDate = LocalDate.of(2025, 1, 1);
         Gender updatedGender = FEMALE;
         // valid salary >= 0
-        float updatedSalary = 1500;
+        float updatedGrossSalary = 1500;
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
-                .firstName(updatedName)
+                .firstName(updatedFirstName)
+                .lastName(updatedLastName)
+                .nationalId(updatedNationalId)
+                .degree(updatedDegree)
+                .pastExperienceYear(updatedPastExperience)
+                .joinedDate(updatedJoinedDate)
                 .dateOfBirth(updatedBirthDate)
                 .graduationDate(updatedGraduationDate)
                 .gender(updatedGender)
-                .grossSalary(updatedSalary)
+                .grossSalary(updatedGrossSalary)
                 .departmentId(EXISTENT_DEPARTMENT2_ID)
                 .teamId(EXISTENT_TEAM2_ID)
                 .managerId(Optional.of(EXISTENT_MANAGER2_ID))
@@ -557,14 +571,20 @@ public class EmployeeControllerTest {
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
         assertNotNull(response);
-        assertEquals(request.getFirstName(), response.getFirstName());
-        assertEquals(request.getDateOfBirth(), response.getDateOfBirth());
-        assertEquals(request.getGraduationDate(), response.getGraduationDate());
-        assertEquals(request.getGender(), response.getGender());
-        assertEquals(request.getGrossSalary(), response.getGrossSalary());
-        assertEquals(request.getDepartmentId(), response.getDepartmentId());
-        assertEquals(request.getTeamId(), response.getTeamId());
-        assertEquals(request.getManagerId().get(), response.getManagerId());
+        assertNotNull(response.getId());
+
+        assertEquals(updatedFirstName, response.getFirstName());
+        assertEquals(updatedLastName, response.getLastName());
+        assertEquals(updatedNationalId, response.getNationalId());
+        assertEquals(updatedDegree, response.getDegree());
+        assertEquals(updatedJoinedDate, response.getJoinedDate());
+        assertEquals(updatedBirthDate, response.getDateOfBirth());
+        assertEquals(updatedGraduationDate, response.getGraduationDate());
+        assertEquals(updatedGender, response.getGender());
+        assertEquals(updatedGrossSalary, response.getGrossSalary());
+        assertEquals(EXISTENT_DEPARTMENT2_ID, response.getDepartmentId());
+        assertEquals(EXISTENT_TEAM2_ID, response.getTeamId());
+        assertEquals(EXISTENT_MANAGER2_ID, response.getManagerId());
     }
 
     @Test
