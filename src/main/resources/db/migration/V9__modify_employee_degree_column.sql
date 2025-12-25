@@ -1,0 +1,2 @@
+ALTER TABLE employees
+    MODIFY degree VARCHAR(50) NOT NULL;
