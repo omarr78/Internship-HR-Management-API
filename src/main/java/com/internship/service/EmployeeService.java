@@ -70,6 +70,21 @@ public class EmployeeService {
         if (request.getFirstName() != null) {
             employee.setFirstName(request.getFirstName());
         }
+        if (request.getLastName() != null) {
+            employee.setLastName(request.getLastName());
+        }
+        if (request.getNationalId() != null) {
+            employee.setNationalId(request.getNationalId());
+        }
+        if (request.getDegree() != null) {
+            employee.setDegree(request.getDegree());
+        }
+        if (request.getPastExperienceYear() != null) {
+            employee.setPastExperienceYear(request.getPastExperienceYear());
+        }
+        if (request.getJoinedDate() != null) {
+            employee.setJoinedDate(request.getJoinedDate());
+        }
         if (request.getDateOfBirth() != null) {
             employee.setDateOfBirth(request.getDateOfBirth());
         }
