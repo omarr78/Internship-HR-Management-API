@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.internship.enums.Degree.FRESH;
+import static com.internship.enums.Degree.INTERMEDIATE;
 import static com.internship.enums.Gender.FEMALE;
 import static com.internship.enums.Gender.MALE;
 import static org.junit.jupiter.api.Assertions.*;
@@ -592,8 +593,9 @@ public class EmployeeControllerTest {
     public void testGetEmployeeInfo_shouldSuccessAndReturnEmployeeInfo() throws Exception {
         // from dataset/update_employees.xml
         /*
-        <employees id='1' name='Ahmed' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
-               salary='1000' department_id='1' team_id='1' manager_id='10'/>
+        <employees id='1' first_name='Ahmed' last_name='Ali' national_id='NID-AHM-003' degree='INTERMEDIATE'
+         past_experience_year='2' joined_date='2024-02-01' date_of_birth='2003-10-05' graduation_date='2025-06-05'
+         gender='MALE' salary='1000' department_id='1' team_id='1' manager_id='10'/>
         <employee_expertise employee_id='1' expertise_id='1'/>  the employee has one expertise
         */
         // get employee with id = 1
@@ -609,6 +611,21 @@ public class EmployeeControllerTest {
         String expectedName = "Ahmed";
         assertEquals(expectedName, response.getFirstName());
 
+        String expectedLastName = "Ali";
+        assertEquals(expectedLastName, response.getLastName());
+
+        String expectedNationalId = "NID-AHM-003";
+        assertEquals(expectedNationalId, response.getNationalId());
+
+        assertEquals(INTERMEDIATE, response.getDegree());
+
+        int pastExperience = 2;
+        LocalDate expectedJoinedYear = LocalDate.of(2024, 2, 1);
+        assertEquals(expectedJoinedYear, response.getJoinedDate());
+        int expectedYearOfExperience = pastExperience + (LocalDate.now().getYear() - expectedJoinedYear.getYear());
+
+        assertEquals(expectedYearOfExperience, response.getYearsOfExperience());
+
         LocalDate expectedBirthDate = LocalDate.of(2003, 10, 5);
         assertEquals(expectedBirthDate, response.getDateOfBirth());
 
@@ -617,6 +634,11 @@ public class EmployeeControllerTest {
 
         float expectedSalary = 1000;
         assertEquals(expectedSalary, response.getGrossSalary());
+
+        int leaveDays = LocalDate.now().getYear() - expectedJoinedYear.getYear() >= MIN_YEARS_FOR_EXTRA_LEAVE ?
+                EXTENDED_LEAVE_DAYS : STANDARD_LEAVE_DAYS;
+
+        assertEquals(leaveDays, response.getLeaveDays());
 
         Long expectedManagerId = 10L;
         assertEquals(expectedManagerId, response.getManagerId());
