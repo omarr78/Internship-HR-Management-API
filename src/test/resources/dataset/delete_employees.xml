@@ -19,16 +19,32 @@
 
     <!-- insert some employees -->
 
-    <employees id='1' name='Omar' date_of_birth='2001-10-05' graduation_date='2023-06-05' gender='MALE'
-               salary='1000000' department_id='1' team_id='1'/>
+    <employees
+            id="1" first_name="Omar" last_name="Nabil" national_id="NID-1001"
+            degree="ARCHITECT" past_experience_year="5" joined_date="2023-07-01"
+            date_of_birth="2001-10-05" graduation_date="2023-06-05" gender="MALE"
+            gross_salary="1000000" department_id="1" team_id="1"
+    />
 
-    <employees id='2' name='Ahmed' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
-               salary='1000' department_id='1' team_id='1' manager_id='1'/>
+    <employees
+            id="2" first_name="Ahmed" last_name="Ali" national_id="NID-1002"
+            degree="SENIOR" past_experience_year="1" joined_date="2024-01-15"
+            date_of_birth="2003-10-05" graduation_date="2025-06-05" gender="MALE"
+            gross_salary="1000" department_id="1" team_id="1" manager_id="1"
+    />
 
-    <employees id='3' name='Mohamed' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
-               salary='100' department_id='1' team_id='1' manager_id='2'/>
+    <employees
+            id="3" first_name="Mohamed" last_name="Said" national_id="NID-1003"
+            degree="FRESH" past_experience_year="0" joined_date="2024-06-01"
+            date_of_birth="2003-10-05" graduation_date="2025-06-05" gender="MALE"
+            gross_salary="100" department_id="1" team_id="1" manager_id="2"
+    />
 
-    <employees id='4' name='Mahmoud' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
-               salary='100' department_id='1' team_id='1' manager_id='2'/>
+    <employees
+            id="4" first_name="Mahmoud" last_name="Youssef" national_id="NID-1004"
+            degree="FRESH" past_experience_year="0" joined_date="2024-06-01"
+            date_of_birth="2003-10-05" graduation_date="2025-06-05" gender="MALE"
+            gross_salary="100" department_id="1" team_id="1" manager_id="2"
+    />
 
 </dataset>

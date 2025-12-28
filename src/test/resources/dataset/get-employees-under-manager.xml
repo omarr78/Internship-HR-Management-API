@@ -19,21 +19,40 @@
 
     <!-- insert some employees -->
 
-    <employees id='1' name='A' date_of_birth='2001-10-05' graduation_date='2023-06-05' gender='MALE'
-               salary='1000' department_id='1' team_id='1'/>
-
-    <employees id='2' name='B' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
-               salary='1000' department_id='1' team_id='1' manager_id='1'/>
-
-    <employees id='3' name='C' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
-               salary='1000' department_id='1' team_id='1' manager_id='2'/>
-
-    <employees id='4' name='D' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
-               salary='1000' department_id='1' team_id='1' manager_id='2'/>
-
-    <employees id='5' name='E' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
-               salary='1000' department_id='1' team_id='1' manager_id='1'/>
-
-    <employees id='6' name='F' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
-               salary='1000' department_id='1' team_id='1' manager_id='5'/>
+    <employees
+            id="1" first_name="A" last_name="Z" national_id="NID-1"
+            degree="SENIOR" past_experience_year="3" joined_date="2023-07-01"
+            date_of_birth="2001-10-05" graduation_date="2023-06-05" gender="MALE"
+            gross_salary="1000" department_id="1" team_id="1"
+    />
+    <employees
+            id="2" first_name="B" last_name="Z" national_id="NID-2"
+            degree="INTERMEDIATE" past_experience_year="2" joined_date="2024-01-01"
+            date_of_birth="2003-10-05" graduation_date="2025-06-05" gender="MALE"
+            gross_salary="1000" department_id="1" team_id="1" manager_id="1"
+    />
+    <employees
+            id="3" first_name="C" last_name="Z" national_id="NID-3"
+            degree="FRESH" past_experience_year="0" joined_date="2024-06-01"
+            date_of_birth="2003-10-05" graduation_date="2025-06-05" gender="MALE"
+            gross_salary="1000" department_id="1" team_id="1" manager_id="2"
+    />
+    <employees
+            id="4" first_name="D" last_name="Z" national_id="NID-4"
+            degree="FRESH" past_experience_year="0" joined_date="2024-06-01"
+            date_of_birth="2003-10-05" graduation_date="2025-06-05" gender="MALE"
+            gross_salary="1000" department_id="1" team_id="1" manager_id="2"
+    />
+    <employees
+            id="5" first_name="E" last_name="Z" national_id="NID-5"
+            degree="INTERMEDIATE" past_experience_year="1" joined_date="2024-02-01"
+            date_of_birth="2003-10-05" graduation_date="2025-06-05" gender="MALE"
+            gross_salary="1000" department_id="1" team_id="1" manager_id="1"
+    />
+    <employees
+            id="6" first_name="F" last_name="Z" national_id="NID-6"
+            degree="FRESH" past_experience_year="0" joined_date="2024-07-01"
+            date_of_birth="2003-10-05" graduation_date="2025-06-05" gender="MALE"
+            gross_salary="1000" department_id="1" team_id="1" manager_id="5"
+    />
 </dataset>

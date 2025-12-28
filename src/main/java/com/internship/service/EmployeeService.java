@@ -67,8 +67,23 @@ public class EmployeeService {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
-        if (request.getName() != null) {
-            employee.setName(request.getName());
+        if (request.getFirstName() != null) {
+            employee.setFirstName(request.getFirstName());
+        }
+        if (request.getLastName() != null) {
+            employee.setLastName(request.getLastName());
+        }
+        if (request.getNationalId() != null) {
+            employee.setNationalId(request.getNationalId());
+        }
+        if (request.getDegree() != null) {
+            employee.setDegree(request.getDegree());
+        }
+        if (request.getPastExperienceYear() != null) {
+            employee.setPastExperienceYear(request.getPastExperienceYear());
+        }
+        if (request.getJoinedDate() != null) {
+            employee.setJoinedDate(request.getJoinedDate());
         }
         if (request.getDateOfBirth() != null) {
             employee.setDateOfBirth(request.getDateOfBirth());
@@ -109,8 +124,8 @@ public class EmployeeService {
                 employee.setManager(null);
             }
         }
-        if (request.getSalary() != null) {
-            employee.setSalary(request.getSalary());
+        if (request.getGrossSalary() != null) {
+            employee.setGrossSalary(request.getGrossSalary());
         }
         if (request.getExpertises() != null) {
             // remove Empty
@@ -158,12 +173,14 @@ public class EmployeeService {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
-        float netSalary = employee.getSalary() * TAX_REMINDER - INSURANCE_AMOUNT;
+        float netSalary = employee.getGrossSalary() * TAX_REMINDER - INSURANCE_AMOUNT;
         // prevent negative salaries
         if (netSalary < 0) {
             throw new BusinessException(NEGATIVE_SALARY);
         }
-        return SalaryDto.builder().salary(netSalary).build();
+        return SalaryDto.builder()
+                .grossSalary(employee.getGrossSalary())
+                .netSalary(netSalary).build();
     }
 
     public List<EmployeeResponse> getEmployeesUnderManagerRecursively(Long managerId) {

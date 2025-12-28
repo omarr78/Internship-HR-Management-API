@@ -1,5 +1,6 @@
 package com.internship.dto;
 
+import com.internship.enums.Degree;
 import com.internship.enums.Gender;
 
 import java.time.LocalDate;
@@ -8,7 +9,17 @@ import java.util.List;
 public interface EmployeeDtoInterface {
     Long getId();
 
-    String getName();
+    String getFirstName();
+
+    String getLastName();
+
+    String getNationalId();
+
+    Degree getDegree();
+
+    Integer getPastExperienceYear();
+
+    LocalDate getJoinedDate();
 
     LocalDate getDateOfBirth();
 
@@ -16,7 +27,7 @@ public interface EmployeeDtoInterface {
 
     Gender getGender();
 
-    float getSalary();
+    float getGrossSalary();
 
     Long getDepartmentId();
 

@@ -11,19 +11,68 @@
     <expertises id='1' name='spring boot'/>
 
     <!-- insert some employee (manager) -->
-    <employees id='10' name='Omar' date_of_birth='2001-10-05' graduation_date='2023-06-05' gender='MALE'
-               salary='1000000' department_id='1' team_id='1'/>
+    <employees
+            id='10'
+            first_name='Omar'
+            last_name='Nabil'
+            national_id='NID-OMAR-001'
+            degree='ARCHITECT'
+            past_experience_year='20'
+            joined_date='2015-03-01'
+            date_of_birth='1980-10-05'
+            graduation_date='2002-06-05'
+            gender='MALE'
+            gross_salary='100000'
+            department_id='1'
+            team_id='1'/>
 
-    <employees id='11' name='Mohamed' date_of_birth='1999-10-05' graduation_date='2021-06-05' gender='MALE'
-               salary='1000000' department_id='1' team_id='1'/>
+    <employees
+            id='11'
+            first_name='Mohamed'
+            last_name='Hassan'
+            national_id='NID-MOH-002'
+            degree='SENIOR'
+            past_experience_year='15'
+            joined_date='2017-01-15'
+            date_of_birth='1985-09-10'
+            graduation_date='2007-06-20'
+            gender='MALE'
+            gross_salary='90000'
+            department_id='1'
+            team_id='1'/>
 
     <!-- insert employee -->
-    <employees id='1' name='Ahmed' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
-               salary='1000' department_id='1' team_id='1' manager_id='10'/>
+    <employees
+            id='1'
+            first_name='Ahmed'
+            last_name='Ali'
+            national_id='NID-AHM-003'
+            degree='INTERMEDIATE'
+            past_experience_year='2'
+            joined_date='2024-02-01'
+            date_of_birth='2003-10-05'
+            graduation_date='2025-06-05'
+            gender='MALE'
+            gross_salary='1000'
+            department_id='1'
+            team_id='1'
+            manager_id='10'/>
 
-    <!-- insert employee with expertise -->
-    <employees id='2' name='mostafa' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
-               salary='100' department_id='1' team_id='1' manager_id='10'/>
+    <employees
+            id='2'
+            first_name='Mostafa'
+            last_name='Sayed'
+            national_id='NID-MOS-004'
+            degree='FRESH'
+            past_experience_year='0'
+            joined_date='2024-03-10'
+            date_of_birth='2003-08-12'
+            graduation_date='2025-06-05'
+            gender='MALE'
+            gross_salary='100'
+            department_id='1'
+            team_id='1'
+            manager_id='10'/>
 
     <!-- Link employee with expertise  -->
     <employee_expertise employee_id='2' expertise_id='1'/>

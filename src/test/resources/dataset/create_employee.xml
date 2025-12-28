@@ -4,8 +4,20 @@
     <departments id='1' name='department1'/>
     <teams id='1' name='team1'/>
     <!--    insert manager-->
-    <employees id='10' name='omar' date_of_birth='1999-10-05' graduation_date='2022-06-05' gender='MALE'
-               salary='1000000' department_id='1' team_id='1'/>
+    <employees
+            id='10'
+            first_name='Omar'
+            last_name='Nabil'
+            national_id='NID123456'
+            degree='ARCHITECT'
+            past_experience_year='40'
+            joined_date='2023-01-10'
+            date_of_birth='1970-10-05'
+            graduation_date='2022-06-05'
+            gender='MALE'
+            gross_salary='1000000'
+            department_id='1'
+            team_id='1'/>
     <!--    insert some Expertises-->
     <expertises id='1' name='Java'/>
     <expertises id='2' name='Spring boot'/>
