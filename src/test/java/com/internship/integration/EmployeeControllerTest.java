@@ -760,7 +760,8 @@ public class EmployeeControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
         SalaryDto response = objectMapper.readValue(result.getResponse().getContentAsString(), SalaryDto.class);
-        assertEquals(netSalary, response.getGrossSalary(), DELTA);
+        assertEquals(ahmedSalary, response.getGrossSalary());
+        assertEquals(netSalary, response.getNetSalary(), DELTA);
     }
 
     @Test
