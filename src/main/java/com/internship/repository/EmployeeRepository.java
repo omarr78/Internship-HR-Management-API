@@ -20,22 +20,32 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             value = """
                     WITH RECURSIVE employee_hierarchy (
                         id,
-                        name,
+                        first_name,
+                        last_name,
+                        national_id,
+                        degree,
+                        past_experience_year,
+                        joined_date,
                         date_of_birth,
                         graduation_date,
                         gender,
-                        salary,
+                        gross_salary,
                         department_id,
                         team_id,
                         manager_id
                     ) AS (
                         SELECT
                             id,
-                            name,
+                            first_name,
+                            last_name,
+                            national_id,
+                            degree,
+                            past_experience_year,
+                            joined_date,
                             date_of_birth,
                             graduation_date,
                             gender,
-                            salary,
+                            gross_salary,
                             department_id,
                             team_id,
                             manager_id
@@ -46,11 +56,16 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                     
                         SELECT
                             b.id,
-                            b.name,
+                            b.first_name,
+                            b.last_name,
+                            b.national_id,
+                            b.degree,
+                            b.past_experience_year,
+                            b.joined_date,
                             b.date_of_birth,
                             b.graduation_date,
                             b.gender,
-                            b.salary,
+                            b.gross_salary,
                             b.department_id,
                             b.team_id,
                             b.manager_id
@@ -59,11 +74,16 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                     )
                     SELECT
                         eh.id AS id,
-                        eh.name AS name,
+                        eh.first_name AS firstName,
+                        eh.last_name AS lastName,
+                        eh.national_id AS nationalId,
+                        eh.degree AS degree,
+                        eh.past_experience_year AS pastExperienceYear,
+                        eh.joined_date AS joinedDate,
                         eh.date_of_birth AS dateOfBirth,
                         eh.graduation_date AS graduationDate,
                         eh.gender AS gender,
-                        eh.salary AS salary,
+                        eh.gross_salary AS grossSalary,
                         eh.department_id AS departmentId,
                         eh.team_id AS teamId,
                         eh.manager_id AS managerId,
@@ -74,11 +94,16 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                     WHERE eh.id != :managerId
                     GROUP BY
                         eh.id,
-                        eh.name,
+                        eh.first_name,
+                        eh.last_name,
+                        eh.national_id,
+                        eh.degree,
+                        eh.past_experience_year,
+                        eh.joined_date,
                         eh.date_of_birth,
                         eh.graduation_date,
                         eh.gender,
-                        eh.salary,
+                        eh.gross_salary,
                         eh.department_id,
                         eh.team_id,
                         eh.manager_id;
