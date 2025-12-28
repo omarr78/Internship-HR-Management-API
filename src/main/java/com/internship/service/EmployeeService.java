@@ -178,7 +178,9 @@ public class EmployeeService {
         if (netSalary < 0) {
             throw new BusinessException(NEGATIVE_SALARY);
         }
-        return SalaryDto.builder().netSalary(netSalary).build();
+        return SalaryDto.builder()
+                .grossSalary(employee.getGrossSalary())
+                .netSalary(netSalary).build();
     }
 
     public List<EmployeeResponse> getEmployeesUnderManagerRecursively(Long managerId) {
