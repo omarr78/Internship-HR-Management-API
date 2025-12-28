@@ -168,16 +168,6 @@ public class EmployeeControllerTest {
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
 
-        // years of experience = past experience + (current year - joined year)
-        int yearOfExperience =
-                request.getPastExperienceYear() + (LocalDate.now().getYear() - request.getJoinedDate().getYear());
-
-        // to calculate the number of leave days
-        // if the (current year - joined year >= 10 years) so it the days will be 30 day
-        // if less than 10 years will be 21 day
-        int leaveDays = LocalDate.now().getYear() - request.getJoinedDate().getYear() >= MIN_YEARS_FOR_EXTRA_LEAVE ?
-                EXTENDED_LEAVE_DAYS : STANDARD_LEAVE_DAYS;
-
         assertNotNull(response);
         assertNotNull(response.getId());
 
@@ -185,15 +175,27 @@ public class EmployeeControllerTest {
         assertEquals(request.getLastName(), response.getLastName());
         assertEquals(request.getNationalId(), response.getNationalId());
         assertEquals(request.getDegree(), response.getDegree());
-        assertEquals(yearOfExperience, response.getYearsOfExperience());
         assertEquals(request.getJoinedDate(), response.getJoinedDate());
         assertEquals(request.getDateOfBirth(), response.getDateOfBirth());
         assertEquals(request.getGraduationDate(), response.getGraduationDate());
         assertEquals(request.getGender(), response.getGender());
         assertEquals(request.getGrossSalary(), response.getGrossSalary());
-        assertEquals(leaveDays, response.getLeaveDays());
         assertEquals(request.getDepartmentId(), response.getDepartmentId());
         assertEquals(request.getTeamId(), response.getTeamId());
+
+        // years of experience = past experience + (current year - joined year)
+        int yearOfExperience =
+                request.getPastExperienceYear() + (LocalDate.now().getYear() - request.getJoinedDate().getYear());
+
+        assertEquals(yearOfExperience, response.getYearsOfExperience());
+
+        // to calculate the number of leave days
+        // if the (current year - joined year >= 10 years) so it the days will be 30 day
+        // if less than 10 years will be 21 day
+        int leaveDays = LocalDate.now().getYear() - request.getJoinedDate().getYear() >= MIN_YEARS_FOR_EXTRA_LEAVE
+                ? EXTENDED_LEAVE_DAYS : STANDARD_LEAVE_DAYS;
+
+        assertEquals(leaveDays, response.getLeaveDays());
     }
 
     @Test
@@ -635,8 +637,8 @@ public class EmployeeControllerTest {
         float expectedSalary = 1000;
         assertEquals(expectedSalary, response.getGrossSalary());
 
-        int leaveDays = LocalDate.now().getYear() - expectedJoinedYear.getYear() >= MIN_YEARS_FOR_EXTRA_LEAVE ?
-                EXTENDED_LEAVE_DAYS : STANDARD_LEAVE_DAYS;
+        int leaveDays = LocalDate.now().getYear() - expectedJoinedYear.getYear() >= MIN_YEARS_FOR_EXTRA_LEAVE
+                ? EXTENDED_LEAVE_DAYS : STANDARD_LEAVE_DAYS;
 
         assertEquals(leaveDays, response.getLeaveDays());
 

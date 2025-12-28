@@ -97,7 +97,7 @@ public class EmployeeMapper {
     private int getTheNumberOfLeaveDays(LocalDate joinedDate) {
         int currentYear = LocalDate.now().getYear();
         int joinedYear = joinedDate.getYear();
-        return currentYear - joinedYear >= MIN_YEARS_FOR_EXTRA_LEAVE ?
-                EXTENDED_LEAVE_DAYS : STANDARD_LEAVE_DAYS;
+        return currentYear - joinedYear >= MIN_YEARS_FOR_EXTRA_LEAVE
+                ? EXTENDED_LEAVE_DAYS : STANDARD_LEAVE_DAYS;
     }
 }
