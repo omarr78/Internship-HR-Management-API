@@ -39,11 +39,11 @@ public class TeamControllerTest {
     public void testGetEmployeesUnderTeam_shouldSuccessAndReturnEmployeesUnderTeam() throws Exception {
         /*
             -- From data set
-            1- team A -> Omar, Ahmed, Mostafa
-            2- team B -> Ali, Mohamed
-            3- team C ->
+            1- team 1 -> Omar, Ahmed, Mostafa
+            2- team 2 -> Ali, Mohamed
+            3- team 3 ->
         */
-        // we will get all employees under team A
+        // we will get all employees under team 1
         MvcResult result = mockMvc.perform(get("/api/teams/" + EXISTENT_TEAM1_ID + "/members"))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -64,11 +64,11 @@ public class TeamControllerTest {
     public void testGetEmployeesUnderTeam_shouldSuccessAndReturnEmptyList() throws Exception {
         /*
             -- From data set
-            1- team A -> Omar, Ahmed, Mostafa
-            2- team B -> Ali, Mohamed
-            3- team C ->
+            1- team 1 -> Omar, Ahmed, Mostafa
+            2- team 2 -> Ali, Mohamed
+            3- team 3 ->
         */
-        // we will get all employees under team C
+        // we will get all employees under team 3
         MvcResult result = mockMvc.perform(get("/api/teams/" + EXISTENT_EMPTY_TEAM_ID + "/members"))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -84,9 +84,9 @@ public class TeamControllerTest {
     public void testGetEmployeesUnderNotFoundTeam_shouldFailAndReturnNotFound() throws Exception {
         /*
             -- From data set
-            1- team A -> Omar, Ahmed, Mostafa
-            2- team B -> Ali, Mohamed
-            3- team C ->
+            1- team 1 -> Omar, Ahmed, Mostafa
+            2- team 2 -> Ali, Mohamed
+            3- team 3 ->
         */
         // we will get all employees under not found team
         mockMvc.perform(get("/api/teams/" + NON_EXISTENT_ID + "/members"))
