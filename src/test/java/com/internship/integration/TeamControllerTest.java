@@ -44,7 +44,7 @@ public class TeamControllerTest {
             3- team 3 ->
         */
         // we will get all employees under team 1
-        MvcResult result = mockMvc.perform(get("/api/teams/" + EXISTENT_TEAM1_ID + "/members"))
+        MvcResult result = mockMvc.perform(get("/api/team/" + EXISTENT_TEAM1_ID + "/members"))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -69,7 +69,7 @@ public class TeamControllerTest {
             3- team 3 ->
         */
         // we will get all employees under team 3
-        MvcResult result = mockMvc.perform(get("/api/teams/" + EXISTENT_EMPTY_TEAM_ID + "/members"))
+        MvcResult result = mockMvc.perform(get("/api/team/" + EXISTENT_EMPTY_TEAM_ID + "/members"))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -89,7 +89,7 @@ public class TeamControllerTest {
             3- team 3 ->
         */
         // we will get all employees under not found team
-        mockMvc.perform(get("/api/teams/" + NON_EXISTENT_ID + "/members"))
+        mockMvc.perform(get("/api/team/" + NON_EXISTENT_ID + "/members"))
                 .andExpect(status().isNotFound())
                 .andExpect(result -> {
                     String json = result.getResponse().getContentAsString();
