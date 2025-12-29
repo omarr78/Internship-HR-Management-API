@@ -27,8 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.internship.enums.Gender.FEMALE;
 import static com.internship.enums.Gender.MALE;
@@ -750,11 +749,11 @@ public class EmployeeControllerTest {
                 .andReturn();
         List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
                 objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
-        List<String> actualEmployeeNames = response.stream().map(EmployeeResponse::getName).toList();
-        List<String> expectedEmployeeNames = List.of("B", "E", "C", "D", "F");
-        assertEquals(expectedEmployeeNames.size(), actualEmployeeNames.size());
-        assertTrue(expectedEmployeeNames.containsAll(actualEmployeeNames));
-        assertTrue(actualEmployeeNames.containsAll(expectedEmployeeNames));
+        List<String> actualEmployeeNames = new ArrayList<>(response.stream().map(EmployeeResponse::getName).toList());
+        List<String> expectedEmployeeNames = new ArrayList<>(Arrays.asList("B", "E", "C", "D", "F"));
+        Collections.sort(actualEmployeeNames);
+        Collections.sort(expectedEmployeeNames);
+        assertEquals(expectedEmployeeNames, actualEmployeeNames);
     }
 
     @Test
