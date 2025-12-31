@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -67,76 +68,48 @@ public class EmployeeService {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
-        if (request.getFirstName() != null) {
-            employee.setFirstName(request.getFirstName());
-        }
-        if (request.getLastName() != null) {
-            employee.setLastName(request.getLastName());
-        }
-        if (request.getNationalId() != null) {
-            employee.setNationalId(request.getNationalId());
-        }
-        if (request.getDegree() != null) {
-            employee.setDegree(request.getDegree());
-        }
-        if (request.getPastExperienceYear() != null) {
-            employee.setPastExperienceYear(request.getPastExperienceYear());
-        }
-        if (request.getJoinedDate() != null) {
-            employee.setJoinedDate(request.getJoinedDate());
-        }
-        if (request.getDateOfBirth() != null) {
-            employee.setDateOfBirth(request.getDateOfBirth());
-        }
-        if (request.getGraduationDate() != null) {
-            employee.setGraduationDate(request.getGraduationDate());
-        }
         // the graduation date must be after the date of birth on at least MAX_DIFFERENCE_YEARS
-        if (employee.getGraduationDate().getYear() - employee.getDateOfBirth().getYear() < MAX_DIFFERENCE_YEARS) {
-            throw new BusinessException(INVALID_EMPLOYEE_DATES_EXCEPTION);
-        }
-        if (request.getGender() != null) {
-            employee.setGender(request.getGender());
-        }
+        validateGraduationAndBirthOfDate(request.getDateOfBirth(), request.getGraduationDate(), employee);
+
+        Department department = employee.getDepartment();
         if (request.getDepartmentId() != null) {
-            Department department = departmentRepository.findById(request.getDepartmentId())
+            department = departmentRepository.findById(request.getDepartmentId())
                     .orElseThrow(() -> new BusinessException(DEPARTMENT_NOT_FOUND,
                             "Department not found with id: " + request.getDepartmentId()));
-            employee.setDepartment(department);
         }
+
+        Team team = employee.getTeam();
         if (request.getTeamId() != null) {
-            Team team = teamRepository.findById(request.getTeamId())
+            team = teamRepository.findById(request.getTeamId())
                     .orElseThrow(() -> new BusinessException(TEAM_NOT_FOUND,
                             "Team not found with id: " + request.getTeamId()));
-            employee.setTeam(team);
         }
+
+        Employee manager = employee.getManager();
         if (request.getManagerId() != null) {
             Optional<Long> managerId = request.getManagerId();
             if (managerId.isPresent()) {
                 if (managerId.get().equals(id)) {
                     throw new BusinessException(SELF_MANAGEMENT);
                 }
-                Employee manager = employeeRepository.findById(managerId.get())
+                manager = employeeRepository.findById(managerId.get())
                         .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                                 "Manager not found with id: " + request.getManagerId()));
-                employee.setManager(manager);
             } else {
-                employee.setManager(null);
+                manager = null;
             }
         }
-        if (request.getGrossSalary() != null) {
-            employee.setGrossSalary(request.getGrossSalary());
-        }
+
+        List<Expertise> expertises = employee.getExpertises();
         if (request.getExpertises() != null) {
             // remove Empty
             List<String> expertiseNames = removeEmptyNames(request.getExpertises());
             // create expertise if it is not found in database
             expertiseService.createNotFoundExpertise(expertiseNames);
             // get all expertise
-            List<Expertise> expertises = expertiseService.getExpertises(expertiseNames);
-            // set employee Expertise
-            employee.setExpertises(expertises);
+            expertises = expertiseService.getExpertises(expertiseNames);
         }
+        employeeMapper.updateEmployee(employee, request, department, team, manager, expertises);
         employeeRepository.save(employee);
         return employeeMapper.toResponse(employee);
     }
@@ -200,5 +173,18 @@ public class EmployeeService {
                         "Employee not found with id: " + managerId));
 
         return employeeRepository.findByManagerId(managerId).stream().map(employeeMapper::toResponse).toList();
+    }
+
+    private void validateGraduationAndBirthOfDate(LocalDate dateOfBirth, LocalDate graduationDate, Employee employee) {
+        if (dateOfBirth == null) {
+            dateOfBirth = employee.getDateOfBirth();
+        }
+        if (graduationDate == null) {
+            graduationDate = employee.getGraduationDate();
+        }
+        if (dateOfBirth != null && graduationDate != null
+                && graduationDate.getYear() - dateOfBirth.getYear() < MAX_DIFFERENCE_YEARS) {
+            throw new BusinessException(INVALID_EMPLOYEE_DATES_EXCEPTION);
+        }
     }
 }
