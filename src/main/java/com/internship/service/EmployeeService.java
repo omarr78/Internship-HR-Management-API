@@ -24,6 +24,9 @@ import static com.internship.exception.ApiError.*;
 @Service
 @RequiredArgsConstructor
 public class EmployeeService {
+    private static final int MIN_YEARS_FOR_EXTRA_LEAVE = 10;
+    private static final int STANDARD_LEAVE_DAYS = 21;
+    private static final int EXTENDED_LEAVE_DAYS = 30;
     private static final float TAX_REMINDER = 0.85f;
     private static final int INSURANCE_AMOUNT = 500;
     private static final int MAX_DIFFERENCE_YEARS = 20;
@@ -32,6 +35,19 @@ public class EmployeeService {
     private final EmployeeMapper employeeMapper;
     private final TeamRepository teamRepository;
     private final ExpertiseService expertiseService;
+
+    public static int calculateYearsOfExperience(int pastExperience, LocalDate joinedDate) {
+        int currentYear = LocalDate.now().getYear();
+        int joinedYear = joinedDate.getYear();
+        return pastExperience + (currentYear - joinedYear);
+    }
+
+    public static int getTheNumberOfLeaveDays(LocalDate joinedDate) {
+        int currentYear = LocalDate.now().getYear();
+        int joinedYear = joinedDate.getYear();
+        return currentYear - joinedYear >= MIN_YEARS_FOR_EXTRA_LEAVE
+                ? EXTENDED_LEAVE_DAYS : STANDARD_LEAVE_DAYS;
+    }
 
     @Transactional
     public EmployeeResponse addEmployee(CreateEmployeeRequest request) {

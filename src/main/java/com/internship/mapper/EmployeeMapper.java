@@ -10,15 +10,13 @@ import com.internship.entity.Expertise;
 import com.internship.entity.Team;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.util.List;
+
+import static com.internship.service.EmployeeService.calculateYearsOfExperience;
+import static com.internship.service.EmployeeService.getTheNumberOfLeaveDays;
 
 @Component
 public class EmployeeMapper {
-    private static final int MIN_YEARS_FOR_EXTRA_LEAVE = 10;
-    private static final int STANDARD_LEAVE_DAYS = 21;
-    private static final int EXTENDED_LEAVE_DAYS = 30;
-
     public Employee toEmployee(CreateEmployeeRequest request,
                                Department department, Team team,
                                Employee manager, List<Expertise> expertises) {
@@ -126,18 +124,5 @@ public class EmployeeMapper {
         employee.setTeam(team);
         employee.setManager(manager);
         employee.setExpertises(expertises);
-    }
-
-    private int calculateYearsOfExperience(int pastExperience, LocalDate joinedDate) {
-        int currentYear = LocalDate.now().getYear();
-        int joinedYear = joinedDate.getYear();
-        return pastExperience + (currentYear - joinedYear);
-    }
-
-    private int getTheNumberOfLeaveDays(LocalDate joinedDate) {
-        int currentYear = LocalDate.now().getYear();
-        int joinedYear = joinedDate.getYear();
-        return currentYear - joinedYear >= MIN_YEARS_FOR_EXTRA_LEAVE
-                ? EXTENDED_LEAVE_DAYS : STANDARD_LEAVE_DAYS;
     }
 }
