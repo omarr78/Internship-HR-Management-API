@@ -16,15 +16,20 @@ import com.internship.repository.EmployeeRepository;
 import com.internship.repository.ExpertiseRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +38,7 @@ import static com.internship.enums.Degree.INTERMEDIATE;
 import static com.internship.enums.Gender.FEMALE;
 import static com.internship.enums.Gender.MALE;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -41,9 +47,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @DBRider
 public class EmployeeControllerTest {
-    private static final int MIN_YEARS_FOR_EXTRA_LEAVE = 10;
-    private static final int STANDARD_LEAVE_DAYS = 21;
-    private static final int EXTENDED_LEAVE_DAYS = 30;
     private static final float DELTA = 0.0003f;
     private static final float TAX_REMINDER = 0.85f;
     private static final int INSURANCE_AMOUNT = 500;
@@ -70,6 +73,8 @@ public class EmployeeControllerTest {
     private EmployeeRepository employeeRepository;
     @Autowired
     private ExpertiseRepository expertiseRepository;
+    @MockitoBean
+    private Clock clock;
 
     private CreateEmployeeRequest buildCreateEmployeeRequest() {
         return CreateEmployeeRequest.builder()
@@ -84,6 +89,13 @@ public class EmployeeControllerTest {
                 .gender(MALE)
                 .grossSalary(5000)
                 .build();
+    }
+
+    @BeforeEach
+    void setUpClock() {
+        // suppose the current date is 2025-01-01
+        when(clock.instant()).thenReturn(Instant.parse("2025-01-01T19:19:00Z"));
+        when(clock.getZone()).thenReturn(ZoneId.of("UTC"));
     }
 
     @Test
@@ -183,19 +195,15 @@ public class EmployeeControllerTest {
         assertEquals(request.getDepartmentId(), response.getDepartmentId());
         assertEquals(request.getTeamId(), response.getTeamId());
 
-        // years of experience = past experience + (current year - joined year)
-        int yearOfExperience =
-                request.getPastExperienceYear() + (LocalDate.now().getYear() - request.getJoinedDate().getYear());
-
-        assertEquals(yearOfExperience, response.getYearsOfExperience());
+        // joined year = 2022, past experience = 3
+        // then years of experience = 3 + (2025 - 2022) = 6
+        int expectedYearOfExperience = 6;
+        assertEquals(expectedYearOfExperience, response.getYearsOfExperience());
 
         // to calculate the number of leave days
-        // if the (current year - joined year >= 10 years) so it the days will be 30 day
-        // if less than 10 years will be 21 day
-        int leaveDays = LocalDate.now().getYear() - request.getJoinedDate().getYear() >= MIN_YEARS_FOR_EXTRA_LEAVE
-                ? EXTENDED_LEAVE_DAYS : STANDARD_LEAVE_DAYS;
-
-        assertEquals(leaveDays, response.getLeaveDays());
+        // 2025 - 2022 = 3 < 10 so it will be 21 day
+        int expectedLeaveDays = 21;
+        assertEquals(expectedLeaveDays, response.getLeaveDays());
     }
 
     @Test
@@ -621,11 +629,12 @@ public class EmployeeControllerTest {
 
         assertEquals(INTERMEDIATE, response.getDegree());
 
-        int pastExperience = 2;
         LocalDate expectedJoinedYear = LocalDate.of(2024, 2, 1);
         assertEquals(expectedJoinedYear, response.getJoinedDate());
-        int expectedYearOfExperience = pastExperience + (LocalDate.now().getYear() - expectedJoinedYear.getYear());
 
+        // years of experience = past experience + (current date - joined date)
+        // then years of experience = 2 + (2025 - 2024) = 3
+        int expectedYearOfExperience = 3;
         assertEquals(expectedYearOfExperience, response.getYearsOfExperience());
 
         LocalDate expectedBirthDate = LocalDate.of(2003, 10, 5);
@@ -637,10 +646,11 @@ public class EmployeeControllerTest {
         float expectedSalary = 1000;
         assertEquals(expectedSalary, response.getGrossSalary());
 
-        int leaveDays = LocalDate.now().getYear() - expectedJoinedYear.getYear() >= MIN_YEARS_FOR_EXTRA_LEAVE
-                ? EXTENDED_LEAVE_DAYS : STANDARD_LEAVE_DAYS;
-
-        assertEquals(leaveDays, response.getLeaveDays());
+        // to calculate the number of leave days
+        // current date - joined date
+        // 2025 - 2024 = 1 < 10 so it will be 21 day
+        int expectedLeaveDays = 21;
+        assertEquals(expectedLeaveDays, response.getLeaveDays());
 
         Long expectedManagerId = 10L;
         assertEquals(expectedManagerId, response.getManagerId());
