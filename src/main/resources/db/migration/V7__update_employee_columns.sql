@@ -7,49 +7,24 @@ ALTER TABLE employees
 
 -- Add new columns
 ALTER TABLE employees
-    ADD COLUMN last_name VARCHAR(255);
+    ADD COLUMN last_name VARCHAR(255) DEFAULT 'NOT_SET';
 ALTER TABLE employees
     ADD COLUMN national_id VARCHAR(30);
 ALTER TABLE employees
-    ADD COLUMN degree ENUM ('FRESH','INTERMEDIATE','SENIOR','ARCHITECT');
+    ADD COLUMN degree VARCHAR(50) NOT NULL DEFAULT 'NOT_SET';
 ALTER TABLE employees
-    ADD COLUMN past_experience_year INT;
+    ADD COLUMN past_experience_year INT NOT NULL DEFAULT 0;
 ALTER TABLE employees
-    ADD COLUMN joined_year DATE;
+    ADD COLUMN joined_date DATE NOT NULL DEFAULT (CURDATE());
 
--- Backfill existing rows
-UPDATE employees
-SET degree = 'FRESH'
-WHERE degree IS NULL;
-UPDATE employees
-SET past_experience_year = 0
-WHERE past_experience_year IS NULL;
-UPDATE employees
-SET joined_year = CURRENT_DATE
-WHERE joined_year IS NULL;
-
+-- Assign default value for national id since it is unique
 UPDATE employees
 SET national_id = CONCAT('TEMP-', id)
 WHERE national_id IS NULL;
 
 -- Enforce NOT NULL constraints
 ALTER TABLE employees
-    MODIFY degree ENUM ('FRESH','INTERMEDIATE','SENIOR','ARCHITECT') NOT NULL;
-
-ALTER TABLE employees
-    MODIFY past_experience_year INT NOT NULL;
-
-ALTER TABLE employees
-    MODIFY joined_year DATE NOT NULL;
-
-ALTER TABLE employees
     MODIFY national_id VARCHAR(30) NOT NULL;
-
-ALTER TABLE employees
-    MODIFY first_name VARCHAR(255) NOT NULL;
-
-ALTER TABLE employees
-    MODIFY gross_salary FLOAT NOT NULL;
 
 -- Add unique constraint
 ALTER TABLE employees
