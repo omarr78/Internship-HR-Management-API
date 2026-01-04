@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -52,10 +53,9 @@ public class EmployeeService {
 
     @Transactional
     public EmployeeResponse addEmployee(CreateEmployeeRequest request) {
-        // the graduation date must be after the date of birth on at least 20 years
-        if (request.getGraduationDate().getYear() - request.getDateOfBirth().getYear() < 20) {
-            throw new BusinessException(INVALID_EMPLOYEE_DATES_EXCEPTION);
-        }
+        // the graduation date must be after the date of birth on at least MAX_DIFFERENCE_YEARS
+        validateGraduationAndBirthOfDate(request.getDateOfBirth(), request.getGraduationDate());
+
         Department department = departmentRepository.findById(request.getDepartmentId())
                 .orElseThrow(() -> new BusinessException(DEPARTMENT_NOT_FOUND,
                         "Department not found with id: " + request.getDepartmentId()));
@@ -85,8 +85,19 @@ public class EmployeeService {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
+
+        LocalDate dateOfBirth =
+                request.getDateOfBirth() != null
+                        ? request.getDateOfBirth()
+                        : employee.getDateOfBirth();
+
+        LocalDate graduationDate =
+                request.getGraduationDate() != null
+                        ? request.getGraduationDate()
+                        : employee.getGraduationDate();
+
         // the graduation date must be after the date of birth on at least MAX_DIFFERENCE_YEARS
-        validateGraduationAndBirthOfDate(request.getDateOfBirth(), request.getGraduationDate(), employee);
+        validateGraduationAndBirthOfDate(dateOfBirth, graduationDate);
 
         Department department = employee.getDepartment();
         if (request.getDepartmentId() != null) {
@@ -192,15 +203,9 @@ public class EmployeeService {
         return employeeRepository.findByManagerId(managerId).stream().map(employeeMapper::toResponse).toList();
     }
 
-    private void validateGraduationAndBirthOfDate(LocalDate dateOfBirth, LocalDate graduationDate, Employee employee) {
-        if (dateOfBirth == null) {
-            dateOfBirth = employee.getDateOfBirth();
-        }
-        if (graduationDate == null) {
-            graduationDate = employee.getGraduationDate();
-        }
-        if (dateOfBirth != null && graduationDate != null
-                && graduationDate.getYear() - dateOfBirth.getYear() < MAX_DIFFERENCE_YEARS) {
+    private void validateGraduationAndBirthOfDate(LocalDate dateOfBirth, LocalDate graduationDate) {
+        int years = Period.between(dateOfBirth, graduationDate).getYears();
+        if (years < MAX_DIFFERENCE_YEARS) {
             throw new BusinessException(INVALID_EMPLOYEE_DATES_EXCEPTION);
         }
     }
