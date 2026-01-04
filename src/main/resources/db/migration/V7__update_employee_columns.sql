@@ -15,7 +15,7 @@ ALTER TABLE employees
 ALTER TABLE employees
     ADD COLUMN past_experience_year INT NOT NULL DEFAULT 0;
 ALTER TABLE employees
-    ADD COLUMN joined_date DATE NOT NULL DEFAULT "9999-12-31";
+    ADD COLUMN joined_date DATE NOT NULL DEFAULT '9999-12-31';
 
 -- Assign default value for national id since it is unique
 UPDATE employees
