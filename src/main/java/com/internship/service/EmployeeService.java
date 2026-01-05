@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Clock;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
@@ -38,14 +37,14 @@ public class EmployeeService {
     private final TeamRepository teamRepository;
     private final ExpertiseService expertiseService;
 
-    public static int calculateYearsOfExperience(int pastExperience, LocalDate joinedDate, Clock clock) {
-        int currentYear = LocalDate.now(clock).getYear();
+    public static int calculateYearsOfExperience(int pastExperience, LocalDate joinedDate) {
+        int currentYear = LocalDate.now().getYear();
         int joinedYear = joinedDate.getYear();
         return pastExperience + (currentYear - joinedYear);
     }
 
-    public static int getTheNumberOfLeaveDays(LocalDate joinedDate, Clock clock) {
-        int currentYear = LocalDate.now(clock).getYear();
+    public static int getTheNumberOfLeaveDays(LocalDate joinedDate) {
+        int currentYear = LocalDate.now().getYear();
         int joinedYear = joinedDate.getYear();
         return currentYear - joinedYear >= MIN_YEARS_FOR_EXTRA_LEAVE
                 ? EXTENDED_LEAVE_DAYS : STANDARD_LEAVE_DAYS;

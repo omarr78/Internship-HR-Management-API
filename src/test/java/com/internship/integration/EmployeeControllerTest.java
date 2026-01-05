@@ -16,20 +16,17 @@ import com.internship.repository.EmployeeRepository;
 import com.internship.repository.ExpertiseRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.time.Clock;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,7 +35,6 @@ import static com.internship.enums.Degree.INTERMEDIATE;
 import static com.internship.enums.Gender.FEMALE;
 import static com.internship.enums.Gender.MALE;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -65,6 +61,7 @@ public class EmployeeControllerTest {
     private static final Long EXISTENT_SUBORDINATES2_ID = 4L;
     private static final Long EXISTENT_EXPERTISE1_ID = 1L;
     private static final Long EXISTENT_EXPERTISE2_ID = 2L;
+    private static final LocalDate FIXED_DATE = LocalDate.of(2025, 1, 1);
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -73,8 +70,6 @@ public class EmployeeControllerTest {
     private EmployeeRepository employeeRepository;
     @Autowired
     private ExpertiseRepository expertiseRepository;
-    @MockitoBean
-    private Clock clock;
 
     private CreateEmployeeRequest buildCreateEmployeeRequest() {
         return CreateEmployeeRequest.builder()
@@ -89,13 +84,6 @@ public class EmployeeControllerTest {
                 .gender(MALE)
                 .grossSalary(5000)
                 .build();
-    }
-
-    @BeforeEach
-    void setUpClock() {
-        // suppose the current date is 2025-01-01
-        when(clock.instant()).thenReturn(Instant.parse("2025-01-01T19:19:00Z"));
-        when(clock.getZone()).thenReturn(ZoneId.of("UTC"));
     }
 
     @Test
@@ -172,38 +160,43 @@ public class EmployeeControllerTest {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
-        MvcResult result = mockMvc.perform(post("/api/employees")
-                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andReturn();
-        EmployeeResponse response = objectMapper
-                .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
 
-        assertNotNull(response);
-        assertNotNull(response.getId());
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(FIXED_DATE);
 
-        assertEquals(request.getFirstName(), response.getFirstName());
-        assertEquals(request.getLastName(), response.getLastName());
-        assertEquals(request.getNationalId(), response.getNationalId());
-        assertEquals(request.getDegree(), response.getDegree());
-        assertEquals(request.getJoinedDate(), response.getJoinedDate());
-        assertEquals(request.getDateOfBirth(), response.getDateOfBirth());
-        assertEquals(request.getGraduationDate(), response.getGraduationDate());
-        assertEquals(request.getGender(), response.getGender());
-        assertEquals(request.getGrossSalary(), response.getGrossSalary());
-        assertEquals(request.getDepartmentId(), response.getDepartmentId());
-        assertEquals(request.getTeamId(), response.getTeamId());
+            MvcResult result = mockMvc.perform(post("/api/employees")
+                            .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andReturn();
+            EmployeeResponse response = objectMapper
+                    .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
 
-        // joined year = 2022, past experience = 3
-        // then years of experience = 3 + (2025 - 2022) = 6
-        int expectedYearOfExperience = 6;
-        assertEquals(expectedYearOfExperience, response.getYearsOfExperience());
+            assertNotNull(response);
+            assertNotNull(response.getId());
 
-        // to calculate the number of leave days
-        // 2025 - 2022 = 3 < 10 so it will be 21 day
-        int expectedLeaveDays = 21;
-        assertEquals(expectedLeaveDays, response.getLeaveDays());
+            assertEquals(request.getFirstName(), response.getFirstName());
+            assertEquals(request.getLastName(), response.getLastName());
+            assertEquals(request.getNationalId(), response.getNationalId());
+            assertEquals(request.getDegree(), response.getDegree());
+            assertEquals(request.getJoinedDate(), response.getJoinedDate());
+            assertEquals(request.getDateOfBirth(), response.getDateOfBirth());
+            assertEquals(request.getGraduationDate(), response.getGraduationDate());
+            assertEquals(request.getGender(), response.getGender());
+            assertEquals(request.getGrossSalary(), response.getGrossSalary());
+            assertEquals(request.getDepartmentId(), response.getDepartmentId());
+            assertEquals(request.getTeamId(), response.getTeamId());
+
+            // joined year = 2022, past experience = 3
+            // then years of experience = 3 + (2025 - 2022) = 6
+            int expectedYearOfExperience = 6;
+            assertEquals(expectedYearOfExperience, response.getYearsOfExperience());
+
+            // to calculate the number of leave days
+            // 2025 - 2022 = 3 < 10 so it will be 21 day
+            int expectedLeaveDays = 21;
+            assertEquals(expectedLeaveDays, response.getLeaveDays());
+        }
     }
 
     @Test
@@ -609,58 +602,61 @@ public class EmployeeControllerTest {
         <employee_expertise employee_id='1' expertise_id='1'/>  the employee has one expertise
         */
         // get employee with id = 1
-        MvcResult result = mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE1_ID))
-                .andExpect(status().isOk())
-                .andReturn();
-        EmployeeResponse response = objectMapper
-                .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(FIXED_DATE);
+            MvcResult result = mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE1_ID))
+                    .andExpect(status().isOk())
+                    .andReturn();
+            EmployeeResponse response = objectMapper
+                    .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
 
-        // Ahmed's data
-        assertNotNull(response);
+            // Ahmed's data
+            assertNotNull(response);
 
-        String expectedName = "Ahmed";
-        assertEquals(expectedName, response.getFirstName());
+            String expectedName = "Ahmed";
+            assertEquals(expectedName, response.getFirstName());
 
-        String expectedLastName = "Ali";
-        assertEquals(expectedLastName, response.getLastName());
+            String expectedLastName = "Ali";
+            assertEquals(expectedLastName, response.getLastName());
 
-        String expectedNationalId = "NID-AHM-003";
-        assertEquals(expectedNationalId, response.getNationalId());
+            String expectedNationalId = "NID-AHM-003";
+            assertEquals(expectedNationalId, response.getNationalId());
 
-        assertEquals(INTERMEDIATE, response.getDegree());
+            assertEquals(INTERMEDIATE, response.getDegree());
 
-        LocalDate expectedJoinedYear = LocalDate.of(2024, 2, 1);
-        assertEquals(expectedJoinedYear, response.getJoinedDate());
+            LocalDate expectedJoinedYear = LocalDate.of(2024, 2, 1);
+            assertEquals(expectedJoinedYear, response.getJoinedDate());
 
-        // years of experience = past experience + (current date - joined date)
-        // then years of experience = 2 + (2025 - 2024) = 3
-        int expectedYearOfExperience = 3;
-        assertEquals(expectedYearOfExperience, response.getYearsOfExperience());
+            // years of experience = past experience + (current date - joined date)
+            // then years of experience = 2 + (2025 - 2024) = 3
+            int expectedYearOfExperience = 3;
+            assertEquals(expectedYearOfExperience, response.getYearsOfExperience());
 
-        LocalDate expectedBirthDate = LocalDate.of(2003, 10, 5);
-        assertEquals(expectedBirthDate, response.getDateOfBirth());
+            LocalDate expectedBirthDate = LocalDate.of(2003, 10, 5);
+            assertEquals(expectedBirthDate, response.getDateOfBirth());
 
-        LocalDate expectedGraduationDate = LocalDate.of(2025, 6, 5);
-        assertEquals(expectedGraduationDate, response.getGraduationDate());
+            LocalDate expectedGraduationDate = LocalDate.of(2025, 6, 5);
+            assertEquals(expectedGraduationDate, response.getGraduationDate());
 
-        float expectedSalary = 1000;
-        assertEquals(expectedSalary, response.getGrossSalary());
+            float expectedSalary = 1000;
+            assertEquals(expectedSalary, response.getGrossSalary());
 
-        // to calculate the number of leave days
-        // current date - joined date
-        // 2025 - 2024 = 1 < 10 so it will be 21 day
-        int expectedLeaveDays = 21;
-        assertEquals(expectedLeaveDays, response.getLeaveDays());
+            // to calculate the number of leave days
+            // current date - joined date
+            // 2025 - 2024 = 1 < 10 so it will be 21 day
+            int expectedLeaveDays = 21;
+            assertEquals(expectedLeaveDays, response.getLeaveDays());
 
-        Long expectedManagerId = 10L;
-        assertEquals(expectedManagerId, response.getManagerId());
+            Long expectedManagerId = 10L;
+            assertEquals(expectedManagerId, response.getManagerId());
 
-        List<String> expectedExpertises = List.of("spring boot");
-        assertEquals(expectedExpertises.getFirst(), response.getExpertises().getFirst());
+            List<String> expectedExpertises = List.of("spring boot");
+            assertEquals(expectedExpertises.getFirst(), response.getExpertises().getFirst());
 
-        assertEquals(MALE, response.getGender());
-        assertEquals(EXISTENT_DEPARTMENT1_ID, response.getDepartmentId());
-        assertEquals(EXISTENT_TEAM1_ID, response.getTeamId());
+            assertEquals(MALE, response.getGender());
+            assertEquals(EXISTENT_DEPARTMENT1_ID, response.getDepartmentId());
+            assertEquals(EXISTENT_TEAM1_ID, response.getTeamId());
+        }
     }
 
     @Test

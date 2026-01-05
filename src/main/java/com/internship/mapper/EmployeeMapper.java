@@ -10,7 +10,6 @@ import com.internship.entity.Expertise;
 import com.internship.entity.Team;
 import org.springframework.stereotype.Component;
 
-import java.time.Clock;
 import java.util.List;
 
 import static com.internship.service.EmployeeService.calculateYearsOfExperience;
@@ -18,11 +17,6 @@ import static com.internship.service.EmployeeService.getTheNumberOfLeaveDays;
 
 @Component
 public class EmployeeMapper {
-    private final Clock clock;
-
-    public EmployeeMapper(Clock clock) {
-        this.clock = clock;
-    }
 
     public Employee toEmployee(CreateEmployeeRequest request,
                                Department department, Team team,
@@ -57,13 +51,13 @@ public class EmployeeMapper {
                 .degree(employee.getDegree())
                 .joinedDate(employee.getJoinedDate())
                 .yearsOfExperience(
-                        calculateYearsOfExperience(employee.getPastExperienceYear(), employee.getJoinedDate(), clock)
+                        calculateYearsOfExperience(employee.getPastExperienceYear(), employee.getJoinedDate())
                 )
                 .dateOfBirth(employee.getDateOfBirth())
                 .graduationDate(employee.getGraduationDate())
                 .gender(employee.getGender())
                 .grossSalary(employee.getGrossSalary())
-                .leaveDays(getTheNumberOfLeaveDays(employee.getJoinedDate(), clock))
+                .leaveDays(getTheNumberOfLeaveDays(employee.getJoinedDate()))
                 .departmentId(employee.getDepartment().getId())
                 .teamId(employee.getTeam().getId())
                 .managerId(employee.getManager() != null ? employee.getManager().getId() : null)
@@ -80,13 +74,13 @@ public class EmployeeMapper {
                 .degree(dto.getDegree())
                 .joinedDate(dto.getJoinedDate())
                 .yearsOfExperience(
-                        calculateYearsOfExperience(dto.getPastExperienceYear(), dto.getJoinedDate(), clock)
+                        calculateYearsOfExperience(dto.getPastExperienceYear(), dto.getJoinedDate())
                 )
                 .dateOfBirth(dto.getDateOfBirth())
                 .graduationDate(dto.getGraduationDate())
                 .gender(dto.getGender())
                 .grossSalary(dto.getGrossSalary())
-                .leaveDays(getTheNumberOfLeaveDays(dto.getJoinedDate(), clock))
+                .leaveDays(getTheNumberOfLeaveDays(dto.getJoinedDate()))
                 .departmentId(dto.getDepartmentId())
                 .teamId(dto.getTeamId())
                 .managerId(dto.getManagerId())
