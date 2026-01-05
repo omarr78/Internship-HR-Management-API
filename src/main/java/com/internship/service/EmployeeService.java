@@ -137,7 +137,8 @@ public class EmployeeService {
             // get all expertise
             expertises = expertiseService.getExpertises(expertiseNames);
         }
-        Employee updatedEmployee = employeeMapper.updateEmployee(employee, request, department, team, manager, expertises);
+        Employee updatedEmployee =
+                employeeMapper.updateEmployee(employee, request, department, team, manager, expertises);
         Employee savedEmployee = employeeRepository.save(updatedEmployee);
         return employeeMapper.toResponse(savedEmployee);
     }

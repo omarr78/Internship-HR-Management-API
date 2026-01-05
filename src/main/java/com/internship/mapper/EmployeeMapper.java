@@ -103,11 +103,12 @@ public class EmployeeMapper {
                 .lastName(request.getLastName() != null ? request.getLastName() : employee.getLastName())
                 .nationalId(request.getNationalId() != null ? request.getNationalId() : employee.getNationalId())
                 .degree(request.getDegree() != null ? request.getDegree() : employee.getDegree())
-                .pastExperienceYear(request.getPastExperienceYear() != null ?
-                        request.getPastExperienceYear() : employee.getPastExperienceYear())
+                .pastExperienceYear(request.getPastExperienceYear() != null
+                        ? request.getPastExperienceYear() : employee.getPastExperienceYear())
                 .joinedDate(request.getJoinedDate() != null ? request.getJoinedDate() : employee.getJoinedDate())
                 .dateOfBirth(request.getDateOfBirth() != null ? request.getDateOfBirth() : employee.getDateOfBirth())
-                .graduationDate(request.getGraduationDate() != null ? request.getGraduationDate() : employee.getGraduationDate())
+                .graduationDate(request.getGraduationDate() != null
+                        ? request.getGraduationDate() : employee.getGraduationDate())
                 .gender(request.getGender() != null ? request.getGender() : employee.getGender())
                 .grossSalary(request.getGrossSalary() != null ? request.getGrossSalary() : employee.getGrossSalary())
                 .department(department)
