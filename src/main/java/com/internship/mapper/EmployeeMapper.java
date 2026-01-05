@@ -94,42 +94,26 @@ public class EmployeeMapper {
                 .build();
     }
 
-    public void updateEmployee(Employee employee, UpdateEmployeeRequest request,
-                               Department department, Team team,
-                               Employee manager, List<Expertise> expertises) {
-        if (request.getFirstName() != null) {
-            employee.setFirstName(request.getFirstName());
-        }
-        if (request.getLastName() != null) {
-            employee.setLastName(request.getLastName());
-        }
-        if (request.getNationalId() != null) {
-            employee.setNationalId(request.getNationalId());
-        }
-        if (request.getDegree() != null) {
-            employee.setDegree(request.getDegree());
-        }
-        if (request.getPastExperienceYear() != null) {
-            employee.setPastExperienceYear(request.getPastExperienceYear());
-        }
-        if (request.getJoinedDate() != null) {
-            employee.setJoinedDate(request.getJoinedDate());
-        }
-        if (request.getDateOfBirth() != null) {
-            employee.setDateOfBirth(request.getDateOfBirth());
-        }
-        if (request.getGraduationDate() != null) {
-            employee.setGraduationDate(request.getGraduationDate());
-        }
-        if (request.getGender() != null) {
-            employee.setGender(request.getGender());
-        }
-        if (request.getGrossSalary() != null) {
-            employee.setGrossSalary(request.getGrossSalary());
-        }
-        employee.setDepartment(department);
-        employee.setTeam(team);
-        employee.setManager(manager);
-        employee.setExpertises(expertises);
+    public Employee updateEmployee(Employee employee, UpdateEmployeeRequest request,
+                                   Department department, Team team,
+                                   Employee manager, List<Expertise> expertises) {
+        return Employee.builder()
+                .id(employee.getId())
+                .firstName(request.getFirstName() != null ? request.getFirstName() : employee.getFirstName())
+                .lastName(request.getLastName() != null ? request.getLastName() : employee.getLastName())
+                .nationalId(request.getNationalId() != null ? request.getNationalId() : employee.getNationalId())
+                .degree(request.getDegree() != null ? request.getDegree() : employee.getDegree())
+                .pastExperienceYear(request.getPastExperienceYear() != null ?
+                        request.getPastExperienceYear() : employee.getPastExperienceYear())
+                .joinedDate(request.getJoinedDate() != null ? request.getJoinedDate() : employee.getJoinedDate())
+                .dateOfBirth(request.getDateOfBirth() != null ? request.getDateOfBirth() : employee.getDateOfBirth())
+                .graduationDate(request.getGraduationDate() != null ? request.getGraduationDate() : employee.getGraduationDate())
+                .gender(request.getGender() != null ? request.getGender() : employee.getGender())
+                .grossSalary(request.getGrossSalary() != null ? request.getGrossSalary() : employee.getGrossSalary())
+                .department(department)
+                .team(team)
+                .manager(manager)
+                .expertises(expertises)
+                .build();
     }
 }

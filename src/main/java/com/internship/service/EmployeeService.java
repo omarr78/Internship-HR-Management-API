@@ -137,9 +137,9 @@ public class EmployeeService {
             // get all expertise
             expertises = expertiseService.getExpertises(expertiseNames);
         }
-        employeeMapper.updateEmployee(employee, request, department, team, manager, expertises);
-        employeeRepository.save(employee);
-        return employeeMapper.toResponse(employee);
+        Employee updatedEmployee = employeeMapper.updateEmployee(employee, request, department, team, manager, expertises);
+        Employee savedEmployee = employeeRepository.save(updatedEmployee);
+        return employeeMapper.toResponse(savedEmployee);
     }
 
     private List<String> removeEmptyNames(List<String> expertiseNames) {
