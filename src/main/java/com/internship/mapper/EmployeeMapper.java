@@ -3,7 +3,6 @@ package com.internship.mapper;
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.EmployeeDtoInterface;
 import com.internship.dto.EmployeeResponse;
-import com.internship.dto.UpdateEmployeeRequest;
 import com.internship.entity.Department;
 import com.internship.entity.Employee;
 import com.internship.entity.Expertise;
@@ -78,27 +77,4 @@ public class EmployeeMapper {
                 .build();
     }
 
-    public Employee updateEmployee(Employee employee, UpdateEmployeeRequest request,
-                                   Department department, Team team,
-                                   Employee manager, List<Expertise> expertises) {
-        return Employee.builder()
-                .id(employee.getId())
-                .firstName(request.getFirstName() != null ? request.getFirstName() : employee.getFirstName())
-                .lastName(request.getLastName() != null ? request.getLastName() : employee.getLastName())
-                .nationalId(request.getNationalId() != null ? request.getNationalId() : employee.getNationalId())
-                .degree(request.getDegree() != null ? request.getDegree() : employee.getDegree())
-                .pastExperienceYear(request.getPastExperienceYear() != null
-                        ? request.getPastExperienceYear() : employee.getPastExperienceYear())
-                .joinedDate(request.getJoinedDate() != null ? request.getJoinedDate() : employee.getJoinedDate())
-                .dateOfBirth(request.getDateOfBirth() != null ? request.getDateOfBirth() : employee.getDateOfBirth())
-                .graduationDate(request.getGraduationDate() != null
-                        ? request.getGraduationDate() : employee.getGraduationDate())
-                .gender(request.getGender() != null ? request.getGender() : employee.getGender())
-                .grossSalary(request.getGrossSalary() != null ? request.getGrossSalary() : employee.getGrossSalary())
-                .department(department)
-                .team(team)
-                .manager(manager)
-                .expertises(expertises)
-                .build();
-    }
 }

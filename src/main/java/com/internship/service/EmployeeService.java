@@ -102,7 +102,7 @@ public class EmployeeService {
             expertises = expertiseService.getExpertises(expertiseNames);
         }
         Employee updatedEmployee =
-                employeeMapper.updateEmployee(employee, request, department, team, manager, expertises);
+                buildUpdatedEmployeeFromOldEmployee(employee, request, department, team, manager, expertises);
         Employee savedEmployee = employeeRepository.saveAndFlush(updatedEmployee);
         return employeeMapper.toResponse(savedEmployee);
     }
@@ -166,5 +166,29 @@ public class EmployeeService {
                         "Employee not found with id: " + managerId));
 
         return employeeRepository.findByManagerId(managerId).stream().map(employeeMapper::toResponse).toList();
+    }
+
+    public Employee buildUpdatedEmployeeFromOldEmployee(Employee employee, UpdateEmployeeRequest request,
+                                                        Department department, Team team,
+                                                        Employee manager, List<Expertise> expertises) {
+        return Employee.builder()
+                .id(employee.getId())
+                .firstName(request.getFirstName() != null ? request.getFirstName() : employee.getFirstName())
+                .lastName(request.getLastName() != null ? request.getLastName() : employee.getLastName())
+                .nationalId(request.getNationalId() != null ? request.getNationalId() : employee.getNationalId())
+                .degree(request.getDegree() != null ? request.getDegree() : employee.getDegree())
+                .pastExperienceYear(request.getPastExperienceYear() != null
+                        ? request.getPastExperienceYear() : employee.getPastExperienceYear())
+                .joinedDate(request.getJoinedDate() != null ? request.getJoinedDate() : employee.getJoinedDate())
+                .dateOfBirth(request.getDateOfBirth() != null ? request.getDateOfBirth() : employee.getDateOfBirth())
+                .graduationDate(request.getGraduationDate() != null
+                        ? request.getGraduationDate() : employee.getGraduationDate())
+                .gender(request.getGender() != null ? request.getGender() : employee.getGender())
+                .grossSalary(request.getGrossSalary() != null ? request.getGrossSalary() : employee.getGrossSalary())
+                .department(department)
+                .team(team)
+                .manager(manager)
+                .expertises(expertises)
+                .build();
     }
 }
