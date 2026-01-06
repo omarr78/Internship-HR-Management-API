@@ -4,11 +4,15 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.internship.enums.Degree;
 import com.internship.enums.Gender;
+import com.internship.exception.BusinessException;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
+
+import static com.internship.exception.ApiError.INVALID_EMPLOYEE_DATES_EXCEPTION;
 
 @Getter
 @Setter
@@ -21,6 +25,7 @@ public class Employee {
     private static final int MIN_YEARS_FOR_EXTRA_LEAVE = 10;
     private static final int STANDARD_LEAVE_DAYS = 21;
     private static final int EXTENDED_LEAVE_DAYS = 30;
+    private static final int MAX_DIFFERENCE_YEARS = 20;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -96,6 +101,17 @@ public class Employee {
         int joinedYear = joinedDate.getYear();
         return currentYear - joinedYear >= MIN_YEARS_FOR_EXTRA_LEAVE
                 ? EXTENDED_LEAVE_DAYS : STANDARD_LEAVE_DAYS;
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void validateGraduationAndBirthDate() {
+        if (dateOfBirth != null && graduationDate != null) {
+            int years = Period.between(dateOfBirth, graduationDate).getYears();
+            if (years < MAX_DIFFERENCE_YEARS) {
+                throw new BusinessException(INVALID_EMPLOYEE_DATES_EXCEPTION);
+            }
+        }
     }
 }
 
