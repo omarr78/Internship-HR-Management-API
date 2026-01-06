@@ -12,12 +12,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static com.internship.service.EmployeeService.calculateYearsOfExperience;
-import static com.internship.service.EmployeeService.getTheNumberOfLeaveDays;
-
 @Component
 public class EmployeeMapper {
-
     public Employee toEmployee(CreateEmployeeRequest request,
                                Department department, Team team,
                                Employee manager, List<Expertise> expertises) {
@@ -50,14 +46,12 @@ public class EmployeeMapper {
                 .nationalId(employee.getNationalId())
                 .degree(employee.getDegree())
                 .joinedDate(employee.getJoinedDate())
-                .yearsOfExperience(
-                        calculateYearsOfExperience(employee.getPastExperienceYear(), employee.getJoinedDate())
-                )
+                .yearsOfExperience(employee.getYearsOfExperience())
                 .dateOfBirth(employee.getDateOfBirth())
                 .graduationDate(employee.getGraduationDate())
                 .gender(employee.getGender())
                 .grossSalary(employee.getGrossSalary())
-                .leaveDays(getTheNumberOfLeaveDays(employee.getJoinedDate()))
+                .leaveDays(employee.getLeaveDays())
                 .departmentId(employee.getDepartment().getId())
                 .teamId(employee.getTeam().getId())
                 .managerId(employee.getManager() != null ? employee.getManager().getId() : null)
@@ -73,14 +67,10 @@ public class EmployeeMapper {
                 .nationalId(dto.getNationalId())
                 .degree(dto.getDegree())
                 .joinedDate(dto.getJoinedDate())
-                .yearsOfExperience(
-                        calculateYearsOfExperience(dto.getPastExperienceYear(), dto.getJoinedDate())
-                )
                 .dateOfBirth(dto.getDateOfBirth())
                 .graduationDate(dto.getGraduationDate())
                 .gender(dto.getGender())
                 .grossSalary(dto.getGrossSalary())
-                .leaveDays(getTheNumberOfLeaveDays(dto.getJoinedDate()))
                 .departmentId(dto.getDepartmentId())
                 .teamId(dto.getTeamId())
                 .managerId(dto.getManagerId())

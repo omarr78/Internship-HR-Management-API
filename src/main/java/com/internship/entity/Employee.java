@@ -18,6 +18,10 @@ import java.util.List;
 @Entity
 @Table(name = "EMPLOYEES")
 public class Employee {
+    private static final int MIN_YEARS_FOR_EXTRA_LEAVE = 10;
+    private static final int STANDARD_LEAVE_DAYS = 21;
+    private static final int EXTENDED_LEAVE_DAYS = 30;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -80,5 +84,18 @@ public class Employee {
             inverseJoinColumns = @JoinColumn(name = "EXPERTISE_ID")
     )
     private List<Expertise> expertises;
+
+    public int getYearsOfExperience() {
+        int currentYear = LocalDate.now().getYear();
+        int joinedYear = joinedDate.getYear();
+        return pastExperienceYear + (currentYear - joinedYear);
+    }
+
+    public int getLeaveDays() {
+        int currentYear = LocalDate.now().getYear();
+        int joinedYear = joinedDate.getYear();
+        return currentYear - joinedYear >= MIN_YEARS_FOR_EXTRA_LEAVE
+                ? EXTENDED_LEAVE_DAYS : STANDARD_LEAVE_DAYS;
+    }
 }
 
