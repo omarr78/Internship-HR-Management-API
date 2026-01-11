@@ -34,7 +34,7 @@ public class EmployeeMapper {
                 .build();
     }
 
-    public EmployeeResponse toResponse(Employee employee) {
+    public EmployeeResponse toResponse(Employee employee, int yearsOfExperience, int leaveDays) {
         List<String> expertises = employee.getExpertises()
                 .stream().map(Expertise::getName).toList();
 
@@ -45,12 +45,12 @@ public class EmployeeMapper {
                 .nationalId(employee.getNationalId())
                 .degree(employee.getDegree())
                 .joinedDate(employee.getJoinedDate())
-                .yearsOfExperience(employee.getYearsOfExperience())
+                .yearsOfExperience(yearsOfExperience)
                 .dateOfBirth(employee.getDateOfBirth())
                 .graduationDate(employee.getGraduationDate())
                 .gender(employee.getGender())
                 .grossSalary(employee.getGrossSalary())
-                .leaveDays(employee.getLeaveDays())
+                .leaveDays(leaveDays)
                 .departmentId(employee.getDepartment().getId())
                 .teamId(employee.getTeam().getId())
                 .managerId(employee.getManager() != null ? employee.getManager().getId() : null)
@@ -58,7 +58,7 @@ public class EmployeeMapper {
                 .build();
     }
 
-    public EmployeeResponse formInterfaceToResponse(EmployeeDtoInterface dto) {
+    public EmployeeResponse fromInterfaceToResponse(EmployeeDtoInterface dto, int yearsOfExperience, int leaveDays) {
         return EmployeeResponse.builder()
                 .id(dto.getId())
                 .firstName(dto.getFirstName())
@@ -66,10 +66,12 @@ public class EmployeeMapper {
                 .nationalId(dto.getNationalId())
                 .degree(dto.getDegree())
                 .joinedDate(dto.getJoinedDate())
+                .yearsOfExperience(yearsOfExperience)
                 .dateOfBirth(dto.getDateOfBirth())
                 .graduationDate(dto.getGraduationDate())
                 .gender(dto.getGender())
                 .grossSalary(dto.getGrossSalary())
+                .leaveDays(leaveDays)
                 .departmentId(dto.getDepartmentId())
                 .teamId(dto.getTeamId())
                 .managerId(dto.getManagerId())

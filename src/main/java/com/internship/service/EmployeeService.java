@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +24,9 @@ import static com.internship.exception.ApiError.*;
 @Service
 @RequiredArgsConstructor
 public class EmployeeService {
+    private static final int MIN_YEARS_FOR_EXTRA_LEAVE = 10;
+    private static final int STANDARD_LEAVE_DAYS = 21;
+    private static final int EXTENDED_LEAVE_DAYS = 30;
     private static final float TAX_REMINDER = 0.85f;
     private static final int INSURANCE_AMOUNT = 500;
     private final EmployeeRepository employeeRepository;
@@ -53,7 +57,9 @@ public class EmployeeService {
         }
         Employee employee = employeeMapper.toEmployee(request, department, team, manager, expertises);
         Employee savedEmployee = employeeRepository.save(employee);
-        return employeeMapper.toResponse(savedEmployee);
+        return employeeMapper.toResponse(savedEmployee,
+                calculateYearsOfExperience(employee.getPastExperienceYear(), employee.getJoinedDate()),
+                getTheNumberOfLeaveDays(employee.getJoinedDate()));
     }
 
     @Transactional
@@ -104,7 +110,9 @@ public class EmployeeService {
         Employee updatedEmployee =
                 buildUpdatedEmployeeFromOldEmployee(employee, request, department, team, manager, expertises);
         Employee savedEmployee = employeeRepository.saveAndFlush(updatedEmployee);
-        return employeeMapper.toResponse(savedEmployee);
+        return employeeMapper.toResponse(savedEmployee,
+                calculateYearsOfExperience(employee.getPastExperienceYear(), employee.getJoinedDate()),
+                getTheNumberOfLeaveDays(employee.getJoinedDate()));
     }
 
     private List<String> removeEmptyNames(List<String> expertiseNames) {
@@ -116,7 +124,9 @@ public class EmployeeService {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
-        return employeeMapper.toResponse(employee);
+        return employeeMapper.toResponse(employee,
+                calculateYearsOfExperience(employee.getPastExperienceYear(), employee.getJoinedDate()),
+                getTheNumberOfLeaveDays(employee.getJoinedDate()));
     }
 
     @Transactional
@@ -156,7 +166,11 @@ public class EmployeeService {
                         "Employee not found with id: " + managerId));
 
         List<EmployeeDtoInterface> employeesUnderManager = employeeRepository.getAllEmployeesUnderManager(managerId);
-        return employeesUnderManager.stream().map(employeeMapper::formInterfaceToResponse).toList();
+        return employeesUnderManager.stream()
+                .map(employee ->
+                        employeeMapper.fromInterfaceToResponse(employee,
+                                calculateYearsOfExperience(employee.getPastExperienceYear(), employee.getJoinedDate()),
+                                getTheNumberOfLeaveDays(employee.getJoinedDate()))).toList();
     }
 
     public List<EmployeeResponse> getDirectSubordinates(Long managerId) {
@@ -165,7 +179,10 @@ public class EmployeeService {
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + managerId));
 
-        return employeeRepository.findByManagerId(managerId).stream().map(employeeMapper::toResponse).toList();
+        return employeeRepository.findByManagerId(managerId).stream().map(employee ->
+                employeeMapper.toResponse(employee,
+                        calculateYearsOfExperience(employee.getPastExperienceYear(), employee.getJoinedDate()),
+                        getTheNumberOfLeaveDays(employee.getJoinedDate()))).toList();
     }
 
     public Employee buildUpdatedEmployeeFromOldEmployee(Employee employee, UpdateEmployeeRequest request,
@@ -190,5 +207,18 @@ public class EmployeeService {
                 .manager(manager)
                 .expertises(expertises)
                 .build();
+    }
+
+    public int calculateYearsOfExperience(int pastExperience, LocalDate joinedDate) {
+        int currentYear = LocalDate.now().getYear();
+        int joinedYear = joinedDate.getYear();
+        return pastExperience + (currentYear - joinedYear);
+    }
+
+    public int getTheNumberOfLeaveDays(LocalDate joinedDate) {
+        int currentYear = LocalDate.now().getYear();
+        int joinedYear = joinedDate.getYear();
+        return currentYear - joinedYear >= MIN_YEARS_FOR_EXTRA_LEAVE
+                ? EXTENDED_LEAVE_DAYS : STANDARD_LEAVE_DAYS;
     }
 }
