@@ -14,7 +14,6 @@ on:
   pull_request:
     types:
       - opened
-      - closed
 
 jobs:
   build-deploy:
