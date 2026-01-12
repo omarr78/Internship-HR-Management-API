@@ -10,6 +10,7 @@ import com.internship.mapper.EmployeeMapper;
 import com.internship.repository.DepartmentRepository;
 import com.internship.repository.EmployeeRepository;
 import com.internship.repository.TeamRepository;
+import com.internship.validation.aspect.ValidateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,7 @@ public class EmployeeService {
     private final ExpertiseService expertiseService;
 
     @Transactional
+    @ValidateRequest
     public EmployeeResponse addEmployee(CreateEmployeeRequest request) {
         Department department = departmentRepository.findById(request.getDepartmentId())
                 .orElseThrow(() -> new BusinessException(DEPARTMENT_NOT_FOUND,
@@ -63,6 +65,7 @@ public class EmployeeService {
     }
 
     @Transactional
+    @ValidateRequest
     public EmployeeResponse modifyEmployee(UpdateEmployeeRequest request, Long id) {
         // check employee with id exists
         Employee employee = employeeRepository.findById(id)
