@@ -4,15 +4,11 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.internship.enums.Degree;
 import com.internship.enums.Gender;
-import com.internship.exception.BusinessException;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.Period;
 import java.util.List;
-
-import static com.internship.exception.ApiError.INVALID_EMPLOYEE_DATES_EXCEPTION;
 
 @Getter
 @Setter
@@ -22,8 +18,6 @@ import static com.internship.exception.ApiError.INVALID_EMPLOYEE_DATES_EXCEPTION
 @Entity
 @Table(name = "EMPLOYEES")
 public class Employee {
-    private static final int MAX_DIFFERENCE_YEARS = 20;
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -86,16 +80,5 @@ public class Employee {
             inverseJoinColumns = @JoinColumn(name = "EXPERTISE_ID")
     )
     private List<Expertise> expertises;
-
-    @PrePersist
-    @PreUpdate
-    private void validateGraduationAndBirthDate() {
-        if (dateOfBirth != null && graduationDate != null) {
-            int years = Period.between(dateOfBirth, graduationDate).getYears();
-            if (years < MAX_DIFFERENCE_YEARS) {
-                throw new BusinessException(INVALID_EMPLOYEE_DATES_EXCEPTION);
-            }
-        }
-    }
 }
 
