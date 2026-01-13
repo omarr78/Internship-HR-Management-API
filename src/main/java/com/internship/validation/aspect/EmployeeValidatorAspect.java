@@ -33,7 +33,7 @@ public class EmployeeValidatorAspect {
         }
     }
 
-    @Before("execution(* com.internship.service.EmployeeService.addEmployee(..))")
+    @Before("@annotation(com.internship.validation.aspect.ValidateCreateRequest)")
     public void validateCreate(JoinPoint joinPoint) {
         for (Object arg : joinPoint.getArgs()) {
             if (arg instanceof CreateEmployeeRequest request) {
@@ -42,7 +42,7 @@ public class EmployeeValidatorAspect {
         }
     }
 
-    @Before("execution(* com.internship.service.EmployeeService.modifyEmployee(..))")
+    @Before("@annotation(com.internship.validation.aspect.ValidateUpdateRequest)")
     public void validateBeforeSave(JoinPoint joinPoint) {
         UpdateEmployeeRequest updateRequest = null;
         Long employeeId = null;
