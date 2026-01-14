@@ -1,3 +1,26 @@
+# [1.0.0](https://github.com/omarr78/Internship-HR-Management-API/compare/v0.1.1...v1.0.0) (2026-01-14)
+
+
+* feat(employee)!: update employee domain, validation, and persistence model ([24d4e09](https://github.com/omarr78/Internship-HR-Management-API/commit/24d4e096fb0d39be2a1059860d317ba79bb7219b))
+
+
+### Bug Fixes
+
+* **employee:** make the degree column varchar instead of enum to be compatable with h2 database ([9fc9e05](https://github.com/omarr78/Internship-HR-Management-API/commit/9fc9e05b1d4f026bae457979ef19f12cf29ef90b))
+* **migration-file:** fix the default date ([bcecd32](https://github.com/omarr78/Internship-HR-Management-API/commit/bcecd3211c0dd028c885059031fe62ec10465517))
+
+
+### Features
+
+* **employee:** add update and add new fields in entity and create a new migration file & refactor mapper and service ([1a453bc](https://github.com/omarr78/Internship-HR-Management-API/commit/1a453bc509f471d601ff5a2579eb682c3dae85ff))
+* **validation:** add annotation to mark methods for validation interception ([48a4a1a](https://github.com/omarr78/Internship-HR-Management-API/commit/48a4a1a959f775fa7902698565210727e89608c2))
+* **validation:** add method validation aspect using AOP ([2976082](https://github.com/omarr78/Internship-HR-Management-API/commit/2976082436f88dd9cabb208bec12252d0bf34e91))
+
+
+### BREAKING CHANGES
+
+* employee DTOs, entity fields, validation rules, and database schema were modified
+
 ## [0.1.1](https://github.com/omarr78/Internship-HR-Management-API/compare/v0.1.0...v0.1.1) (2025-12-31)
 
 
