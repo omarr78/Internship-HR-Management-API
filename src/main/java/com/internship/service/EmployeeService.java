@@ -10,10 +10,13 @@ import com.internship.mapper.EmployeeMapper;
 import com.internship.repository.DepartmentRepository;
 import com.internship.repository.EmployeeRepository;
 import com.internship.repository.TeamRepository;
+import com.internship.validation.aspect.ValidateCreateRequest;
+import com.internship.validation.aspect.ValidateUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -23,9 +26,11 @@ import static com.internship.exception.ApiError.*;
 @Service
 @RequiredArgsConstructor
 public class EmployeeService {
+    private static final int MIN_YEARS_FOR_EXTRA_LEAVE = 10;
+    private static final int STANDARD_LEAVE_DAYS = 21;
+    private static final int EXTENDED_LEAVE_DAYS = 30;
     private static final float TAX_REMINDER = 0.85f;
     private static final int INSURANCE_AMOUNT = 500;
-    private static final int MAX_DIFFERENCE_YEARS = 20;
     private final EmployeeRepository employeeRepository;
     private final DepartmentRepository departmentRepository;
     private final EmployeeMapper employeeMapper;
@@ -33,11 +38,8 @@ public class EmployeeService {
     private final ExpertiseService expertiseService;
 
     @Transactional
+    @ValidateCreateRequest
     public EmployeeResponse addEmployee(CreateEmployeeRequest request) {
-        // the graduation date must be after the date of birth on at least 20 years
-        if (request.getGraduationDate().getYear() - request.getDateOfBirth().getYear() < 20) {
-            throw new BusinessException(INVALID_EMPLOYEE_DATES_EXCEPTION);
-        }
         Department department = departmentRepository.findById(request.getDepartmentId())
                 .orElseThrow(() -> new BusinessException(DEPARTMENT_NOT_FOUND,
                         "Department not found with id: " + request.getDepartmentId()));
@@ -58,72 +60,63 @@ public class EmployeeService {
         }
         Employee employee = employeeMapper.toEmployee(request, department, team, manager, expertises);
         Employee savedEmployee = employeeRepository.save(employee);
-        return employeeMapper.toResponse(savedEmployee);
+        return employeeMapper.toResponse(savedEmployee,
+                calculateYearsOfExperience(employee.getPastExperienceYear(), employee.getJoinedDate()),
+                getTheNumberOfLeaveDays(employee.getJoinedDate()));
     }
 
     @Transactional
+    @ValidateUpdateRequest
     public EmployeeResponse modifyEmployee(UpdateEmployeeRequest request, Long id) {
         // check employee with id exists
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
-        if (request.getName() != null) {
-            employee.setName(request.getName());
-        }
-        if (request.getDateOfBirth() != null) {
-            employee.setDateOfBirth(request.getDateOfBirth());
-        }
-        if (request.getGraduationDate() != null) {
-            employee.setGraduationDate(request.getGraduationDate());
-        }
-        // the graduation date must be after the date of birth on at least MAX_DIFFERENCE_YEARS
-        if (employee.getGraduationDate().getYear() - employee.getDateOfBirth().getYear() < MAX_DIFFERENCE_YEARS) {
-            throw new BusinessException(INVALID_EMPLOYEE_DATES_EXCEPTION);
-        }
-        if (request.getGender() != null) {
-            employee.setGender(request.getGender());
-        }
+
+        Department department = employee.getDepartment();
         if (request.getDepartmentId() != null) {
-            Department department = departmentRepository.findById(request.getDepartmentId())
+            department = departmentRepository.findById(request.getDepartmentId())
                     .orElseThrow(() -> new BusinessException(DEPARTMENT_NOT_FOUND,
                             "Department not found with id: " + request.getDepartmentId()));
-            employee.setDepartment(department);
         }
+
+        Team team = employee.getTeam();
         if (request.getTeamId() != null) {
-            Team team = teamRepository.findById(request.getTeamId())
+            team = teamRepository.findById(request.getTeamId())
                     .orElseThrow(() -> new BusinessException(TEAM_NOT_FOUND,
                             "Team not found with id: " + request.getTeamId()));
-            employee.setTeam(team);
         }
+
+        Employee manager = employee.getManager();
         if (request.getManagerId() != null) {
             Optional<Long> managerId = request.getManagerId();
             if (managerId.isPresent()) {
                 if (managerId.get().equals(id)) {
                     throw new BusinessException(SELF_MANAGEMENT);
                 }
-                Employee manager = employeeRepository.findById(managerId.get())
+                manager = employeeRepository.findById(managerId.get())
                         .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                                 "Manager not found with id: " + request.getManagerId()));
-                employee.setManager(manager);
             } else {
-                employee.setManager(null);
+                manager = null;
             }
         }
-        if (request.getSalary() != null) {
-            employee.setSalary(request.getSalary());
-        }
+
+        List<Expertise> expertises = employee.getExpertises();
         if (request.getExpertises() != null) {
             // remove Empty
             List<String> expertiseNames = removeEmptyNames(request.getExpertises());
             // create expertise if it is not found in database
             expertiseService.createNotFoundExpertise(expertiseNames);
             // get all expertise
-            List<Expertise> expertises = expertiseService.getExpertises(expertiseNames);
-            // set employee Expertise
-            employee.setExpertises(expertises);
+            expertises = expertiseService.getExpertises(expertiseNames);
         }
-        employeeRepository.save(employee);
-        return employeeMapper.toResponse(employee);
+        Employee updatedEmployee =
+                buildUpdatedEmployeeFromOldEmployee(employee, request, department, team, manager, expertises);
+        Employee savedEmployee = employeeRepository.saveAndFlush(updatedEmployee);
+        return employeeMapper.toResponse(savedEmployee,
+                calculateYearsOfExperience(employee.getPastExperienceYear(), employee.getJoinedDate()),
+                getTheNumberOfLeaveDays(employee.getJoinedDate()));
     }
 
     private List<String> removeEmptyNames(List<String> expertiseNames) {
@@ -135,7 +128,9 @@ public class EmployeeService {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
-        return employeeMapper.toResponse(employee);
+        return employeeMapper.toResponse(employee,
+                calculateYearsOfExperience(employee.getPastExperienceYear(), employee.getJoinedDate()),
+                getTheNumberOfLeaveDays(employee.getJoinedDate()));
     }
 
     @Transactional
@@ -158,12 +153,14 @@ public class EmployeeService {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
-        float netSalary = employee.getSalary() * TAX_REMINDER - INSURANCE_AMOUNT;
+        float netSalary = employee.getGrossSalary() * TAX_REMINDER - INSURANCE_AMOUNT;
         // prevent negative salaries
         if (netSalary < 0) {
             throw new BusinessException(NEGATIVE_SALARY);
         }
-        return SalaryDto.builder().salary(netSalary).build();
+        return SalaryDto.builder()
+                .grossSalary(employee.getGrossSalary())
+                .netSalary(netSalary).build();
     }
 
     public List<EmployeeResponse> getEmployeesUnderManagerRecursively(Long managerId) {
@@ -173,7 +170,11 @@ public class EmployeeService {
                         "Employee not found with id: " + managerId));
 
         List<EmployeeDtoInterface> employeesUnderManager = employeeRepository.getAllEmployeesUnderManager(managerId);
-        return employeesUnderManager.stream().map(employeeMapper::formInterfaceToResponse).toList();
+        return employeesUnderManager.stream()
+                .map(employee ->
+                        employeeMapper.fromInterfaceToResponse(employee,
+                                calculateYearsOfExperience(employee.getPastExperienceYear(), employee.getJoinedDate()),
+                                getTheNumberOfLeaveDays(employee.getJoinedDate()))).toList();
     }
 
     public List<EmployeeResponse> getDirectSubordinates(Long managerId) {
@@ -182,6 +183,46 @@ public class EmployeeService {
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + managerId));
 
-        return employeeRepository.findByManagerId(managerId).stream().map(employeeMapper::toResponse).toList();
+        return employeeRepository.findByManagerId(managerId).stream().map(employee ->
+                employeeMapper.toResponse(employee,
+                        calculateYearsOfExperience(employee.getPastExperienceYear(), employee.getJoinedDate()),
+                        getTheNumberOfLeaveDays(employee.getJoinedDate()))).toList();
+    }
+
+    public Employee buildUpdatedEmployeeFromOldEmployee(Employee employee, UpdateEmployeeRequest request,
+                                                        Department department, Team team,
+                                                        Employee manager, List<Expertise> expertises) {
+        return Employee.builder()
+                .id(employee.getId())
+                .firstName(request.getFirstName() != null ? request.getFirstName() : employee.getFirstName())
+                .lastName(request.getLastName() != null ? request.getLastName() : employee.getLastName())
+                .nationalId(request.getNationalId() != null ? request.getNationalId() : employee.getNationalId())
+                .degree(request.getDegree() != null ? request.getDegree() : employee.getDegree())
+                .pastExperienceYear(request.getPastExperienceYear() != null
+                        ? request.getPastExperienceYear() : employee.getPastExperienceYear())
+                .joinedDate(request.getJoinedDate() != null ? request.getJoinedDate() : employee.getJoinedDate())
+                .dateOfBirth(request.getDateOfBirth() != null ? request.getDateOfBirth() : employee.getDateOfBirth())
+                .graduationDate(request.getGraduationDate() != null
+                        ? request.getGraduationDate() : employee.getGraduationDate())
+                .gender(request.getGender() != null ? request.getGender() : employee.getGender())
+                .grossSalary(request.getGrossSalary() != null ? request.getGrossSalary() : employee.getGrossSalary())
+                .department(department)
+                .team(team)
+                .manager(manager)
+                .expertises(expertises)
+                .build();
+    }
+
+    public int calculateYearsOfExperience(int pastExperience, LocalDate joinedDate) {
+        int currentYear = LocalDate.now().getYear();
+        int joinedYear = joinedDate.getYear();
+        return pastExperience + (currentYear - joinedYear);
+    }
+
+    public int getTheNumberOfLeaveDays(LocalDate joinedDate) {
+        int currentYear = LocalDate.now().getYear();
+        int joinedYear = joinedDate.getYear();
+        return currentYear - joinedYear >= MIN_YEARS_FOR_EXTRA_LEAVE
+                ? EXTENDED_LEAVE_DAYS : STANDARD_LEAVE_DAYS;
     }
 }

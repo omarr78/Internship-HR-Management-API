@@ -52,7 +52,7 @@ public class TeamControllerTest {
                 objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
 
         List<String> expectedEmployeeNames = List.of("Omar", "Ahmed", "Mostafa");
-        List<String> actualEmployeeNames = employeeResponses.stream().map(EmployeeResponse::getName).toList();
+        List<String> actualEmployeeNames = employeeResponses.stream().map(EmployeeResponse::getFirstName).toList();
 
         assertEquals(expectedEmployeeNames.size(), actualEmployeeNames.size());
         assertTrue(expectedEmployeeNames.containsAll(actualEmployeeNames));

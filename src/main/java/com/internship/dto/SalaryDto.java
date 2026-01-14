@@ -8,5 +8,6 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class SalaryDto {
-    float salary;
+    float grossSalary;
+    float netSalary;
 }

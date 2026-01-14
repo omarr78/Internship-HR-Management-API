@@ -18,6 +18,7 @@ public class TeamService {
     private final TeamRepository teamRepository;
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
+    private final EmployeeService employeeService;
 
     public List<EmployeeResponse> getMembers(Long id) {
         teamRepository.findById(id)
@@ -25,6 +26,19 @@ public class TeamService {
                         "Team not found with id: " + id));
 
         return employeeRepository.findByTeamId(id)
-                .stream().map(employeeMapper::toResponse).toList();
+                .stream()
+                .map(employee ->
+                        employeeMapper.toResponse(
+                                employee,
+                                employeeService.calculateYearsOfExperience(
+                                        employee.getPastExperienceYear(),
+                                        employee.getJoinedDate()
+                                ),
+                                employeeService.getTheNumberOfLeaveDays(
+                                        employee.getJoinedDate()
+                                )
+                        )
+                )
+                .toList();
     }
 }

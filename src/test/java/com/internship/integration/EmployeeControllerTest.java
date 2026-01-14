@@ -9,26 +9,28 @@ import com.internship.dto.SalaryDto;
 import com.internship.dto.UpdateEmployeeRequest;
 import com.internship.entity.Employee;
 import com.internship.entity.Expertise;
+import com.internship.enums.Degree;
 import com.internship.enums.Gender;
 import com.internship.exception.ErrorCode;
-import com.internship.repository.DepartmentRepository;
 import com.internship.repository.EmployeeRepository;
 import com.internship.repository.ExpertiseRepository;
-import com.internship.repository.TeamRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDate;
 import java.util.*;
 
+import static com.internship.enums.Degree.FRESH;
+import static com.internship.enums.Degree.INTERMEDIATE;
 import static com.internship.enums.Gender.FEMALE;
 import static com.internship.enums.Gender.MALE;
 import static org.junit.jupiter.api.Assertions.*;
@@ -58,16 +60,11 @@ public class EmployeeControllerTest {
     private static final Long EXISTENT_SUBORDINATES2_ID = 4L;
     private static final Long EXISTENT_EXPERTISE1_ID = 1L;
     private static final Long EXISTENT_EXPERTISE2_ID = 2L;
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private static final LocalDate FIXED_DATE = LocalDate.of(2025, 1, 1);
     @Autowired
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
-    @Autowired
-    private DepartmentRepository departmentRepository;
-    @Autowired
-    private TeamRepository teamRepository;
     @Autowired
     private EmployeeRepository employeeRepository;
     @Autowired
@@ -75,11 +72,16 @@ public class EmployeeControllerTest {
 
     private CreateEmployeeRequest buildCreateEmployeeRequest() {
         return CreateEmployeeRequest.builder()
-                .name("ahmed")
+                .firstName("Ahmed")
+                .lastName("Ali")
+                .nationalId("28501020112345")
+                .degree(Degree.INTERMEDIATE)
+                .pastExperienceYear(3)
+                .joinedDate(LocalDate.of(2022, 12, 5))
                 .dateOfBirth(LocalDate.of(1999, 10, 5))
                 .graduationDate(LocalDate.of(2025, 6, 5))
                 .gender(MALE)
-                .salary(2000)
+                .grossSalary(5000)
                 .build();
     }
 
@@ -157,22 +159,43 @@ public class EmployeeControllerTest {
         CreateEmployeeRequest request = buildCreateEmployeeRequest();
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
-        MvcResult result = mockMvc.perform(post("/api/employees")
-                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andReturn();
-        EmployeeResponse response = objectMapper
-                .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-        assertNotNull(response);
-        assertNotNull(response.getId());
-        assertEquals(response.getName(), request.getName());
-        assertEquals(response.getDateOfBirth(), request.getDateOfBirth());
-        assertEquals(response.getGraduationDate(), request.getGraduationDate());
-        assertEquals(response.getGender(), request.getGender());
-        assertEquals(response.getSalary(), request.getSalary());
-        assertEquals(response.getDepartmentId(), request.getDepartmentId());
-        assertEquals(response.getTeamId(), request.getTeamId());
+
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(FIXED_DATE);
+
+            MvcResult result = mockMvc.perform(post("/api/employees")
+                            .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andReturn();
+            EmployeeResponse response = objectMapper
+                    .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
+
+            assertNotNull(response);
+            assertNotNull(response.getId());
+
+            assertEquals(request.getFirstName(), response.getFirstName());
+            assertEquals(request.getLastName(), response.getLastName());
+            assertEquals(request.getNationalId(), response.getNationalId());
+            assertEquals(request.getDegree(), response.getDegree());
+            assertEquals(request.getJoinedDate(), response.getJoinedDate());
+            assertEquals(request.getDateOfBirth(), response.getDateOfBirth());
+            assertEquals(request.getGraduationDate(), response.getGraduationDate());
+            assertEquals(request.getGender(), response.getGender());
+            assertEquals(request.getGrossSalary(), response.getGrossSalary());
+            assertEquals(request.getDepartmentId(), response.getDepartmentId());
+            assertEquals(request.getTeamId(), response.getTeamId());
+
+            // joined year = 2022, past experience = 3
+            // then years of experience = 3 + (2025 - 2022) = 6
+            int expectedYearOfExperience = 6;
+            assertEquals(expectedYearOfExperience, response.getYearsOfExperience());
+
+            // to calculate the number of leave days
+            // 2025 - 2022 = 3 < 10 so it will be 21 day
+            int expectedLeaveDays = 21;
+            assertEquals(expectedLeaveDays, response.getLeaveDays());
+        }
     }
 
     @Test
@@ -290,7 +313,7 @@ public class EmployeeControllerTest {
     @DataSet("dataset/update_employees.xml")
     public void testUpdateEmployeeNameWithAnEmptyName_shouldFail() throws Exception {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
-                .name(EMPTY_STRING).build(); // set name with empty
+                .firstName(EMPTY_STRING).build(); // set name with empty
         mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -306,7 +329,7 @@ public class EmployeeControllerTest {
     @DataSet("dataset/update_employees.xml")
     public void testUpdateEmployeeSalaryWithNegativeSalary_shouldFail() throws Exception {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
-                .salary(NEGATIVE_SALARY).build(); // set negative
+                .grossSalary(NEGATIVE_SALARY).build(); // set negative
         mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -343,7 +366,7 @@ public class EmployeeControllerTest {
     public void testUpdateEmployeeSetAllFieldsNull_shouldSucceedIgnoreChanges() throws Exception {
         // this applied for name, dateOfBirth, graduationDate, gender, departmentId, teamId
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
-                .name(null)
+                .firstName(null)
                 .dateOfBirth(null)
                 .graduationDate(null)
                 .gender(null)
@@ -359,7 +382,7 @@ public class EmployeeControllerTest {
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
         assertNotNull(response);
-        assertEquals(employee.getName(), response.getName());
+        assertEquals(employee.getFirstName(), response.getFirstName());
         assertEquals(employee.getDateOfBirth(), response.getDateOfBirth());
         assertEquals(employee.getGraduationDate(), response.getGraduationDate());
         assertEquals(employee.getGender(), response.getGender());
@@ -505,27 +528,40 @@ public class EmployeeControllerTest {
         /*
             will update this employee
 
-            <employees id='1' name='Ahmed' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
-               salary='1000' department_id='1' team_id='1' manager_id='10'/>
+            <employees id='1' first_name='Ahmed' last_name='Ali' national_id='NID-AHM-003' degree='INTERMEDIATE'
+             past_experience_year='2' joined_date='2024-02-01' date_of_birth='2003-10-05' graduation_date='2025-06-05'
+             gender='MALE' salary='1000' department_id='1' team_id='1' manager_id='10'/>
 
             to
 
-            <employees id='1' name='mai' date_of_birth='2003-01-01' graduation_date='2025-01-01' gender='FEMALE'
-               salary='1500' department_id='2' team_id='2' manager_id='11'/>
+            <employees id='1' first_name='Mai' last_name='Mohamed' national_id='NID-MAI-004' degree='FRESH'
+             past_experience_year='0' joined_date='2025-01-01' date_of_birth='2003-01-01' graduation_date='2025-01-01'
+             gender='FEMALE' salary='1500' department_id='2' team_id='2' manager_id='11'/>
         */
-        String updatedName = "mai"; // valid name, the length of character >= 3
+
+        String updatedFirstName = "Mai"; // valid name, the length of character >= 3
+        String updatedLastName = "Mohamed"; // valid name, the length of character >= 3
+        String updatedNationalId = "NID-MAI-004";
+        Degree updatedDegree = FRESH;
+        int updatedPastExperience = 0;
+        LocalDate updatedJoinedDate = LocalDate.of(2025, 1, 1);
         // valid dates, the difference between years >= 20
         LocalDate updatedBirthDate = LocalDate.of(2003, 1, 1); // valid date, the date in the past
         LocalDate updatedGraduationDate = LocalDate.of(2025, 1, 1);
         Gender updatedGender = FEMALE;
         // valid salary >= 0
-        float updatedSalary = 1500;
+        float updatedGrossSalary = 1500;
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
-                .name(updatedName)
+                .firstName(updatedFirstName)
+                .lastName(updatedLastName)
+                .nationalId(updatedNationalId)
+                .degree(updatedDegree)
+                .pastExperienceYear(updatedPastExperience)
+                .joinedDate(updatedJoinedDate)
                 .dateOfBirth(updatedBirthDate)
                 .graduationDate(updatedGraduationDate)
                 .gender(updatedGender)
-                .salary(updatedSalary)
+                .grossSalary(updatedGrossSalary)
                 .departmentId(EXISTENT_DEPARTMENT2_ID)
                 .teamId(EXISTENT_TEAM2_ID)
                 .managerId(Optional.of(EXISTENT_MANAGER2_ID))
@@ -538,14 +574,20 @@ public class EmployeeControllerTest {
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
         assertNotNull(response);
-        assertEquals(request.getName(), response.getName());
-        assertEquals(request.getDateOfBirth(), response.getDateOfBirth());
-        assertEquals(request.getGraduationDate(), response.getGraduationDate());
-        assertEquals(request.getGender(), response.getGender());
-        assertEquals(request.getSalary(), response.getSalary());
-        assertEquals(request.getDepartmentId(), response.getDepartmentId());
-        assertEquals(request.getTeamId(), response.getTeamId());
-        assertEquals(request.getManagerId().get(), response.getManagerId());
+        assertNotNull(response.getId());
+
+        assertEquals(updatedFirstName, response.getFirstName());
+        assertEquals(updatedLastName, response.getLastName());
+        assertEquals(updatedNationalId, response.getNationalId());
+        assertEquals(updatedDegree, response.getDegree());
+        assertEquals(updatedJoinedDate, response.getJoinedDate());
+        assertEquals(updatedBirthDate, response.getDateOfBirth());
+        assertEquals(updatedGraduationDate, response.getGraduationDate());
+        assertEquals(updatedGender, response.getGender());
+        assertEquals(updatedGrossSalary, response.getGrossSalary());
+        assertEquals(EXISTENT_DEPARTMENT2_ID, response.getDepartmentId());
+        assertEquals(EXISTENT_TEAM2_ID, response.getTeamId());
+        assertEquals(EXISTENT_MANAGER2_ID, response.getManagerId());
     }
 
     @Test
@@ -553,41 +595,67 @@ public class EmployeeControllerTest {
     public void testGetEmployeeInfo_shouldSuccessAndReturnEmployeeInfo() throws Exception {
         // from dataset/update_employees.xml
         /*
-        <employees id='1' name='Ahmed' date_of_birth='2003-10-05' graduation_date='2025-06-05' gender='MALE'
-               salary='1000' department_id='1' team_id='1' manager_id='10'/>
+        <employees id='1' first_name='Ahmed' last_name='Ali' national_id='NID-AHM-003' degree='INTERMEDIATE'
+         past_experience_year='2' joined_date='2024-02-01' date_of_birth='2003-10-05' graduation_date='2025-06-05'
+         gender='MALE' salary='1000' department_id='1' team_id='1' manager_id='10'/>
         <employee_expertise employee_id='1' expertise_id='1'/>  the employee has one expertise
         */
         // get employee with id = 1
-        MvcResult result = mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE1_ID))
-                .andExpect(status().isOk())
-                .andReturn();
-        EmployeeResponse response = objectMapper
-                .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(FIXED_DATE);
+            MvcResult result = mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE1_ID))
+                    .andExpect(status().isOk())
+                    .andReturn();
+            EmployeeResponse response = objectMapper
+                    .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
 
-        // Ahmed's data
-        assertNotNull(response);
+            // Ahmed's data
+            assertNotNull(response);
 
-        String expectedName = "Ahmed";
-        assertEquals(expectedName, response.getName());
+            String expectedName = "Ahmed";
+            assertEquals(expectedName, response.getFirstName());
 
-        LocalDate expectedBirthDate = LocalDate.of(2003, 10, 5);
-        assertEquals(expectedBirthDate, response.getDateOfBirth());
+            String expectedLastName = "Ali";
+            assertEquals(expectedLastName, response.getLastName());
 
-        LocalDate expectedGraduationDate = LocalDate.of(2025, 6, 5);
-        assertEquals(expectedGraduationDate, response.getGraduationDate());
+            String expectedNationalId = "NID-AHM-003";
+            assertEquals(expectedNationalId, response.getNationalId());
 
-        float expectedSalary = 1000;
-        assertEquals(expectedSalary, response.getSalary());
+            assertEquals(INTERMEDIATE, response.getDegree());
 
-        Long expectedManagerId = 10L;
-        assertEquals(expectedManagerId, response.getManagerId());
+            LocalDate expectedJoinedYear = LocalDate.of(2024, 2, 1);
+            assertEquals(expectedJoinedYear, response.getJoinedDate());
 
-        List<String> expectedExpertises = List.of("spring boot");
-        assertEquals(expectedExpertises.getFirst(), response.getExpertises().getFirst());
+            // years of experience = past experience + (current date - joined date)
+            // then years of experience = 2 + (2025 - 2024) = 3
+            int expectedYearOfExperience = 3;
+            assertEquals(expectedYearOfExperience, response.getYearsOfExperience());
 
-        assertEquals(MALE, response.getGender());
-        assertEquals(EXISTENT_DEPARTMENT1_ID, response.getDepartmentId());
-        assertEquals(EXISTENT_TEAM1_ID, response.getTeamId());
+            LocalDate expectedBirthDate = LocalDate.of(2003, 10, 5);
+            assertEquals(expectedBirthDate, response.getDateOfBirth());
+
+            LocalDate expectedGraduationDate = LocalDate.of(2025, 6, 5);
+            assertEquals(expectedGraduationDate, response.getGraduationDate());
+
+            float expectedSalary = 1000;
+            assertEquals(expectedSalary, response.getGrossSalary());
+
+            // to calculate the number of leave days
+            // current date - joined date
+            // 2025 - 2024 = 1 < 10 so it will be 21 day
+            int expectedLeaveDays = 21;
+            assertEquals(expectedLeaveDays, response.getLeaveDays());
+
+            Long expectedManagerId = 10L;
+            assertEquals(expectedManagerId, response.getManagerId());
+
+            List<String> expectedExpertises = List.of("spring boot");
+            assertEquals(expectedExpertises.getFirst(), response.getExpertises().getFirst());
+
+            assertEquals(MALE, response.getGender());
+            assertEquals(EXISTENT_DEPARTMENT1_ID, response.getDepartmentId());
+            assertEquals(EXISTENT_TEAM1_ID, response.getTeamId());
+        }
     }
 
     @Test
@@ -699,7 +767,8 @@ public class EmployeeControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
         SalaryDto response = objectMapper.readValue(result.getResponse().getContentAsString(), SalaryDto.class);
-        assertEquals(netSalary, response.getSalary(), DELTA);
+        assertEquals(ahmedSalary, response.getGrossSalary());
+        assertEquals(netSalary, response.getNetSalary(), DELTA);
     }
 
     @Test
@@ -749,11 +818,11 @@ public class EmployeeControllerTest {
                 .andReturn();
         List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
                 objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
-        List<String> actualEmployeeNames = new ArrayList<>(response.stream().map(EmployeeResponse::getName).toList());
-        List<String> expectedEmployeeNames = new ArrayList<>(Arrays.asList("B", "E", "C", "D", "F"));
-        Collections.sort(actualEmployeeNames);
-        Collections.sort(expectedEmployeeNames);
-        assertEquals(expectedEmployeeNames, actualEmployeeNames);
+        List<String> actualEmployeeNames = response.stream().map(EmployeeResponse::getFirstName).toList();
+        List<String> expectedEmployeeNames = List.of("B", "E", "C", "D", "F");
+        assertEquals(expectedEmployeeNames.size(), actualEmployeeNames.size());
+        assertTrue(expectedEmployeeNames.containsAll(actualEmployeeNames));
+        assertTrue(actualEmployeeNames.containsAll(expectedEmployeeNames));
     }
 
     @Test
@@ -810,7 +879,7 @@ public class EmployeeControllerTest {
                 .andReturn();
         List<EmployeeResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
                 objectMapper.getTypeFactory().constructCollectionType(List.class, EmployeeResponse.class));
-        List<String> actualEmployeeNames = response.stream().map(EmployeeResponse::getName).toList();
+        List<String> actualEmployeeNames = response.stream().map(EmployeeResponse::getFirstName).toList();
         List<String> expectedEmployeeNames = List.of("B", "E");
         assertEquals(expectedEmployeeNames.size(), actualEmployeeNames.size());
         assertTrue(expectedEmployeeNames.containsAll(actualEmployeeNames));

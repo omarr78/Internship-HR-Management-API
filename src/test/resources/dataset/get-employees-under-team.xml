@@ -1,19 +1,92 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataset>
-    <!--    insert department and team    -->
-    <departments id='1' name='department1'/>
-    <teams id='1' name='A'/>
-    <teams id='2' name='B'/>
-    <teams id='3' name='C'/>
-    <!--    insert some employees    -->
-    <employees id='1' name='Omar' date_of_birth='1999-10-05' graduation_date='2022-06-05' gender='MALE'
-               salary='1000000' department_id='1' team_id='1'/>
-    <employees id='2' name='Ahmed' date_of_birth='1999-10-05' graduation_date='2022-06-05' gender='MALE'
-               salary='1000' department_id='1' team_id='1'/>
-    <employees id='3' name='Mostafa' date_of_birth='1999-10-05' graduation_date='2022-06-05' gender='MALE'
-               salary='1000' department_id='1' team_id='1'/>
-    <employees id='4' name='Ali' date_of_birth='1999-10-05' graduation_date='2022-06-05' gender='MALE'
-               salary='1000' department_id='1' team_id='2'/>
-    <employees id='5' name='Mohamed' date_of_birth='1999-10-05' graduation_date='2022-06-05' gender='MALE'
-               salary='1000' department_id='1' team_id='2'/>
+    <!-- insert department and team -->
+    <departments id="1" name="department1"/>
+
+    <teams id="1" name="A"/>
+    <teams id="2" name="B"/>
+    <teams id="3" name="C"/>
+
+    <!-- insert employees -->
+
+    <employees
+            id="1"
+            first_name="Omar"
+            last_name="Hassan"
+            national_id="NID-OMAR-001"
+            degree="SENIOR"
+            past_experience_year="5"
+            joined_date="2023-01-01"
+            date_of_birth="1999-10-05"
+            graduation_date="2022-06-05"
+            gender="MALE"
+            gross_salary="1000000"
+            department_id="1"
+            team_id="1"
+    />
+
+    <employees
+            id="2"
+            first_name="Ahmed"
+            last_name="Ali"
+            national_id="NID-AHM-002"
+            degree="INTERMEDIATE"
+            past_experience_year="2"
+            joined_date="2024-02-01"
+            date_of_birth="1999-10-05"
+            graduation_date="2022-06-05"
+            gender="MALE"
+            gross_salary="1000"
+            department_id="1"
+            team_id="1"
+    />
+
+    <employees
+            id="3"
+            first_name="Mostafa"
+            last_name="Sayed"
+            national_id="NID-MOS-003"
+            degree="INTERMEDIATE"
+            past_experience_year="2"
+            joined_date="2024-02-01"
+            date_of_birth="1999-10-05"
+            graduation_date="2022-06-05"
+            gender="MALE"
+            gross_salary="1000"
+            department_id="1"
+            team_id="1"
+    />
+
+    <employees
+            id="4"
+            first_name="Ali"
+            last_name="Mahmoud"
+            national_id="NID-ALI-004"
+            degree="FRESH"
+            past_experience_year="0"
+            joined_date="2024-03-01"
+            date_of_birth="1999-10-05"
+            graduation_date="2022-06-05"
+            gender="MALE"
+            gross_salary="1000"
+            department_id="1"
+            team_id="2"
+    />
+
+    <employees
+            id="5"
+            first_name="Mohamed"
+            last_name="Adel"
+            national_id="NID-MOH-005"
+            degree="FRESH"
+            past_experience_year="0"
+            joined_date="2024-03-01"
+            date_of_birth="1999-10-05"
+            graduation_date="2022-06-05"
+            gender="MALE"
+            gross_salary="1000"
+            department_id="1"
+            team_id="2"
+    />
+
 </dataset>

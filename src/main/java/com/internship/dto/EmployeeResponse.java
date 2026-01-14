@@ -1,5 +1,6 @@
 package com.internship.dto;
 
+import com.internship.enums.Degree;
 import com.internship.enums.Gender;
 import lombok.*;
 
@@ -13,11 +14,17 @@ import java.util.List;
 @Builder
 public class EmployeeResponse {
     private Long id;
-    private String name;
+    private String firstName;
+    private String lastName;
+    private String nationalId;
+    private Degree degree;
+    private Integer yearsOfExperience;
+    private LocalDate joinedDate;
     private LocalDate dateOfBirth;
     private LocalDate graduationDate;
     private Gender gender;
-    private float salary;
+    private float grossSalary;
+    private Integer leaveDays;
     private Long departmentId;
     private Long teamId;
     private Long managerId;
