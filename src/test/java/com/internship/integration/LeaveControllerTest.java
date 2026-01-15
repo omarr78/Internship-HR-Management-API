@@ -98,12 +98,59 @@ public class LeaveControllerTest {
         // assertion on response
         Assertions.assertThat(response)
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
-                .containsAll(expectedLeaveResponse);
+                .isEqualTo(expectedLeaveResponse);
 
         // assertion on database
         Assertions.assertThat(leaves)
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
-                .containsAll(expectedLeaves);
+                .isEqualTo(expectedLeaves);
+    }
+
+    @Test
+    @DataSet("dataset/create_leave.xml")
+    public void testAddLeaveWithWeekends_shouldAddLeaveExcludingWeekends() throws Exception {
+        // employee with id 1 will record a leave for three days including Fri, Sat
+        // from (Thu) 15 jan 2026 to (Sat) 17 jan 2026
+        // this is result record just Thu leave
+        // this employee has just 3 leave days so no deduction
+        LocalDate from = LocalDate.of(2026, 1, 15);
+        LocalDate to = LocalDate.of(2026, 1, 17);
+
+        CreateLeaveRequest request = CreateLeaveRequest.builder()
+                .startDate(from)
+                .endDate(to)
+                .employeeId(EXISTENT_EMPLOYEE1_ID)
+                .build();
+
+        MvcResult result = mockMvc.perform(post("/api/leave")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        Employee employee1 = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
+        Leave thuLeave = buildLeave(from, employee1); // 15 jan 2026
+
+        CreateLeaveResponse thuLeaveResponse =
+                buildLeaveResponse(from, employee1.getId(), false); // 15 jan 2026
+
+        List<Leave> expectedLeaves = List.of(thuLeave);
+        List<CreateLeaveResponse> expectedLeaveResponse = List.of(thuLeaveResponse);
+
+        List<Leave> leaves = leaveRepository.findAll();
+
+        List<CreateLeaveResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, CreateLeaveResponse.class));
+
+        // assertion on response
+        Assertions.assertThat(response)
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
+                .isEqualTo(expectedLeaveResponse);
+
+        // assertion on database
+        Assertions.assertThat(leaves)
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
+                .isEqualTo(expectedLeaves);
     }
 
 }
