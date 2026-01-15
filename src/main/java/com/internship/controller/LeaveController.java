@@ -27,7 +27,9 @@ public class LeaveController {
     private final LeaveRepository leaveRepository;
 
     @PostMapping
-    public ResponseEntity<List<CreateLeaveResponse>> createEmployee(@RequestBody @Valid final CreateLeaveRequest request) {
+    public ResponseEntity<List<CreateLeaveResponse>> createEmployee(
+            @RequestBody @Valid final CreateLeaveRequest request
+    ) {
         Long id = request.getEmployeeId();
         Employee employee = employeeRepository.findById(id).get();
         List<Leave> leaves = new ArrayList<>();

@@ -16,5 +16,5 @@ public class CreateLeaveRequest {
     @NotNull(message = "end date is required")
     private LocalDate endDate;
     @NotNull(message = "end date is required")
-    private Long EmployeeId; // Temporarily since Spring Security is not implemented
+    private Long employeeId; // Temporarily since Spring Security is not implemented
 }

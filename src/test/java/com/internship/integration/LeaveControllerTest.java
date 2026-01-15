@@ -71,7 +71,7 @@ public class LeaveControllerTest {
         CreateLeaveRequest request = CreateLeaveRequest.builder()
                 .startDate(from)
                 .endDate(to)
-                .EmployeeId(EXISTENT_EMPLOYEE1_ID)
+                .employeeId(EXISTENT_EMPLOYEE1_ID)
                 .build();
 
         MvcResult result = mockMvc.perform(post("/api/leave")
