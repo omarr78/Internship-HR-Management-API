@@ -44,6 +44,21 @@ public class LeaveControllerTest {
     @Autowired
     private LeaveRepository leaveRepository;
 
+    private Leave buildLeave(LocalDate leaveDate, Employee employee) {
+        return Leave.builder()
+                .leaveDate(leaveDate)
+                .employee(employee)
+                .build();
+    }
+
+    private CreateLeaveResponse buildLeaveResponse(LocalDate leaveDate, Long employeeId, Boolean salaryDeducted) {
+        return CreateLeaveResponse.builder()
+                .leaveDate(leaveDate)
+                .salaryDeducted(salaryDeducted)
+                .employeeId(employeeId)
+                .build();
+    }
+
     @Test
     @DataSet("dataset/create_leave.xml")
     public void testAddLeave_shouldSuccessAndReturnLeaveDetails() throws Exception {
@@ -56,6 +71,7 @@ public class LeaveControllerTest {
         CreateLeaveRequest request = CreateLeaveRequest.builder()
                 .startDate(from)
                 .endDate(to)
+                .EmployeeId(EXISTENT_EMPLOYEE1_ID)
                 .build();
 
         MvcResult result = mockMvc.perform(post("/api/leave")
@@ -65,29 +81,26 @@ public class LeaveControllerTest {
                 .andReturn();
 
         Employee employee1 = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
+        Leave leave1 = buildLeave(from, employee1); // 14 jan 2026
+        Leave leave2 = buildLeave(to, employee1); // 15 jan 2026
 
-        Leave leave1 = Leave.builder()
-                .employee(employee1)
-                .leaveDate(from) // 14 jan 2026
-                .build();
-
-        Leave leave2 = Leave.builder()
-                .employee(employee1)
-                .leaveDate(to) // 15 jan 2026
-                .build();
+        CreateLeaveResponse leaveResponse1 = buildLeaveResponse(from, employee1.getId(), false);
+        CreateLeaveResponse leaveResponse2 = buildLeaveResponse(to, employee1.getId(), false);
 
         List<Leave> expectedLeaves = List.of(leave1, leave2);
+        List<CreateLeaveResponse> expectedLeaveResponse = List.of(leaveResponse1, leaveResponse2);
+
         List<Leave> leaves = leaveRepository.findAll();
 
-        CreateLeaveResponse response = objectMapper
-                .readValue(result.getResponse().getContentAsString(), CreateLeaveResponse.class);
+        List<CreateLeaveResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, CreateLeaveResponse.class));
 
-        // assertion against response
-        Assertions.assertThat(response.getLeaves())
+        // assertion on response
+        Assertions.assertThat(response)
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
-                .containsAll(expectedLeaves);
+                .containsAll(expectedLeaveResponse);
 
-        // assertion against database
+        // assertion on database
         Assertions.assertThat(leaves)
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
                 .containsAll(expectedLeaves);

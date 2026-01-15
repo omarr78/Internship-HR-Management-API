@@ -1,9 +1,8 @@
 package com.internship.dto;
 
-import com.internship.entity.Leave;
 import lombok.*;
 
-import java.util.List;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -11,5 +10,8 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class CreateLeaveResponse {
-    List<Leave> leaves;
+    private Long id;
+    private LocalDate leaveDate;
+    private boolean salaryDeducted;
+    private Long employeeId;
 }
