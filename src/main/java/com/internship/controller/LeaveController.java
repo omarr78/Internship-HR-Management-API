@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,26 +36,30 @@ public class LeaveController {
         List<Leave> leaves = new ArrayList<>();
         LocalDate currentDate = request.getStartDate();
         while (!currentDate.isAfter(request.getEndDate())) {
-            leaves.add(
-                    Leave.builder()
-                            .leaveDate(currentDate)
-                            .salaryDeducted(false)
-                            .employee(employee)
-                            .build()
-            );
+            if (currentDate.getDayOfWeek() != DayOfWeek.FRIDAY && currentDate.getDayOfWeek() != DayOfWeek.SATURDAY) {
+                leaves.add(
+                        Leave.builder()
+                                .leaveDate(currentDate)
+                                .salaryDeducted(false)
+                                .employee(employee)
+                                .build()
+                );
+            }
             currentDate = currentDate.plusDays(1);
         }
         leaveRepository.saveAll(leaves);
         List<CreateLeaveResponse> response = new ArrayList<>();
         for (Leave leave : leaves) {
-            response.add(
-                    CreateLeaveResponse.builder()
-                            .id(leave.getId())
-                            .employeeId(id)
-                            .leaveDate(leave.getLeaveDate())
-                            .salaryDeducted(false)
-                            .build()
-            );
+            if (leave.getLeaveDate().getDayOfWeek() != DayOfWeek.FRIDAY && leave.getLeaveDate().getDayOfWeek() != DayOfWeek.SATURDAY) {
+                response.add(
+                        CreateLeaveResponse.builder()
+                                .id(leave.getId())
+                                .employeeId(id)
+                                .leaveDate(leave.getLeaveDate())
+                                .salaryDeducted(false)
+                                .build()
+                );
+            }
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
