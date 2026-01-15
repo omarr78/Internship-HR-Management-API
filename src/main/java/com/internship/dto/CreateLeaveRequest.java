@@ -12,7 +12,9 @@ import java.time.LocalDate;
 @Builder
 public class CreateLeaveRequest {
     @NotNull(message = "start date is required")
-    LocalDate startDate;
+    private LocalDate startDate;
     @NotNull(message = "end date is required")
-    LocalDate endDate;
+    private LocalDate endDate;
+    @NotNull(message = "end date is required")
+    private Long EmployeeId; // Temporarily since Spring Security is not implemented
 }
