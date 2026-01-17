@@ -20,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +33,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @DBRider
 public class LeaveControllerTest {
-    private static final Long EXISTENT_EMPLOYEE1_ID = 1L;
+    private static final Long LONG_STANDING_EMPLOYEE_ID = 1L;
+    private static final Long RECENTLY_JOINED_EMPLOYEE_ID = 2L;
+    private static final int STANDARD_LEAVE_DAYS = 21;
+    private static final int EXTENDED_LEAVE_DAYS = 30;
 
     @Autowired
     private MockMvc mockMvc;
@@ -45,9 +49,10 @@ public class LeaveControllerTest {
     @Autowired
     private LeaveRepository leaveRepository;
 
-    private Leave buildLeave(LocalDate leaveDate, Employee employee) {
+    private Leave buildLeave(LocalDate leaveDate, Employee employee, Boolean salaryDeducted) {
         return Leave.builder()
                 .leaveDate(leaveDate)
+                .salaryDeducted(salaryDeducted)
                 .employee(employee)
                 .build();
     }
@@ -60,13 +65,18 @@ public class LeaveControllerTest {
                 .build();
     }
 
-    private List<Leave> addLeave(int leaveDays){
+    private List<Leave> addLeave(int leaveDays, Employee employee) {
         List<Leave> leaves = new ArrayList<>();
-        LocalDate startDate = LocalDate.of(1,1,2020);
-        for(int i = 0; i < leaveDays; i++){
-
-            leaves.add()
+        LocalDate currentDate = LocalDate.of(2020, 1, 1);
+        for (int i = 0; i < leaveDays; i++) {
+            if (currentDate.getDayOfWeek() == DayOfWeek.FRIDAY
+                    || currentDate.getDayOfWeek() == DayOfWeek.SATURDAY) {
+                currentDate = currentDate.plusDays(1);
+            }
+            leaves.add(buildLeave(currentDate, employee, false));
+            currentDate = currentDate.plusDays(1);
         }
+        return leaves;
     }
 
     @Test
@@ -81,7 +91,7 @@ public class LeaveControllerTest {
         CreateLeaveRequest request = CreateLeaveRequest.builder()
                 .startDate(from)
                 .endDate(to)
-                .employeeId(EXISTENT_EMPLOYEE1_ID)
+                .employeeId(LONG_STANDING_EMPLOYEE_ID)
                 .build();
 
         MvcResult result = mockMvc.perform(post("/api/leave")
@@ -90,9 +100,9 @@ public class LeaveControllerTest {
                 .andExpect(status().isCreated())
                 .andReturn();
 
-        Employee employee1 = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
-        Leave leave1 = buildLeave(from, employee1); // 1 jan 2020
-        Leave leave2 = buildLeave(to, employee1); // 2 jan 2020
+        Employee employee1 = employeeRepository.findById(LONG_STANDING_EMPLOYEE_ID).get();
+        Leave leave1 = buildLeave(from, employee1, false); // 1 jan 2020
+        Leave leave2 = buildLeave(to, employee1, false); // 2 jan 2020
 
         CreateLeaveResponse leaveResponse1 = buildLeaveResponse(from, employee1.getId(), false);
         CreateLeaveResponse leaveResponse2 = buildLeaveResponse(to, employee1.getId(), false);
@@ -129,7 +139,7 @@ public class LeaveControllerTest {
         CreateLeaveRequest request = CreateLeaveRequest.builder()
                 .startDate(from)
                 .endDate(to)
-                .employeeId(EXISTENT_EMPLOYEE1_ID)
+                .employeeId(LONG_STANDING_EMPLOYEE_ID)
                 .build();
 
         MvcResult result = mockMvc.perform(post("/api/leave")
@@ -138,8 +148,8 @@ public class LeaveControllerTest {
                 .andExpect(status().isCreated())
                 .andReturn();
 
-        Employee employee1 = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
-        Leave thuLeave = buildLeave(from, employee1); // 2 jan 2020
+        Employee employee1 = employeeRepository.findById(LONG_STANDING_EMPLOYEE_ID).get();
+        Leave thuLeave = buildLeave(from, employee1, false); // 2 jan 2020
 
         CreateLeaveResponse thuLeaveResponse =
                 buildLeaveResponse(from, employee1.getId(), false); // 2 jan 2020
@@ -161,6 +171,102 @@ public class LeaveControllerTest {
         Assertions.assertThat(leaves)
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
                 .isEqualTo(expectedLeaves);
+    }
+
+    @Test
+    @DataSet("dataset/create_leave.xml")
+    public void testAddLeaveWhenLeaveLimitExceededForRecentlyJoinedEmployee_ShouldAddDeductedLeave() throws Exception {
+        // employee(recently joined employee) with id 2  will record a leave
+        // from (Sun) 16 Feb 2020 to (Sun) 16 Feb 2020
+        Employee employee = employeeRepository.findById(RECENTLY_JOINED_EMPLOYEE_ID).get();
+        LocalDate from = LocalDate.of(2020, 2, 16);
+        LocalDate to = LocalDate.of(2020, 2, 16);
+        List<Leave> prevLeaves = addLeave(STANDARD_LEAVE_DAYS, employee);
+        leaveRepository.saveAll(prevLeaves);
+        // now employee has just 21 leave days so no deduction
+        // if employee adds another leave it will be deducted leave
+
+        CreateLeaveRequest request = CreateLeaveRequest.builder()
+                .startDate(from)
+                .endDate(to)
+                .employeeId(RECENTLY_JOINED_EMPLOYEE_ID)
+                .build();
+
+        MvcResult result = mockMvc.perform(post("/api/leave")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        Leave leave = buildLeave(from, employee, true); // 16 Feb 2020
+
+        CreateLeaveResponse leaveResponse = buildLeaveResponse(from, employee.getId(), true);
+
+        List<Leave> expectedLeaves = List.of(leave);
+        List<CreateLeaveResponse> expectedLeaveResponse = List.of(leaveResponse);
+
+        List<Leave> leaves = leaveRepository.findAll();
+
+        List<CreateLeaveResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, CreateLeaveResponse.class));
+
+        // assertion on response
+        Assertions.assertThat(response)
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
+                .isEqualTo(expectedLeaveResponse);
+
+        // assertion on database
+        Assertions.assertThat(leaves)
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
+                .containsAll(expectedLeaves);
+    }
+
+    @Test
+    @DataSet("dataset/create_leave.xml")
+    public void testAddLeaveWhenLeaveLimitExceededForLongStandingEmployee_ShouldAddDeductedLeave() throws Exception {
+        // employee(Long Standing Employee) with id 2  will record a leave
+        // from (Sun) 16 Feb 2020 to (Sun) 16 Feb 2020
+        Employee employee = employeeRepository.findById(LONG_STANDING_EMPLOYEE_ID).get();
+        LocalDate from = LocalDate.of(2020, 2, 16);
+        LocalDate to = LocalDate.of(2020, 2, 16);
+        List<Leave> prevLeaves = addLeave(EXTENDED_LEAVE_DAYS, employee);
+        leaveRepository.saveAll(prevLeaves);
+        // now employee has just 30 leave days so no deduction
+        // if employee adds another leave it will be deducted leave
+
+        CreateLeaveRequest request = CreateLeaveRequest.builder()
+                .startDate(from)
+                .endDate(to)
+                .employeeId(LONG_STANDING_EMPLOYEE_ID)
+                .build();
+
+        MvcResult result = mockMvc.perform(post("/api/leave")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        Leave leave = buildLeave(from, employee, true); // 16 Feb 2020
+
+        CreateLeaveResponse leaveResponse = buildLeaveResponse(from, employee.getId(), true);
+
+        List<Leave> expectedLeaves = List.of(leave);
+        List<CreateLeaveResponse> expectedLeaveResponse = List.of(leaveResponse);
+
+        List<Leave> leaves = leaveRepository.findAll();
+
+        List<CreateLeaveResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, CreateLeaveResponse.class));
+
+        // assertion on response
+        Assertions.assertThat(response)
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
+                .isEqualTo(expectedLeaveResponse);
+
+        // assertion on database
+        Assertions.assertThat(leaves)
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
+                .containsAll(expectedLeaves);
     }
 
 }
