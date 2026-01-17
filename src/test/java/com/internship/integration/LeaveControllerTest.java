@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -57,6 +58,15 @@ public class LeaveControllerTest {
                 .salaryDeducted(salaryDeducted)
                 .employeeId(employeeId)
                 .build();
+    }
+
+    private List<Leave> addLeave(int leaveDays){
+        List<Leave> leaves = new ArrayList<>();
+        LocalDate startDate = LocalDate.of(1,1,2020);
+        for(int i = 0; i < leaveDays; i++){
+
+            leaves.add()
+        }
     }
 
     @Test
