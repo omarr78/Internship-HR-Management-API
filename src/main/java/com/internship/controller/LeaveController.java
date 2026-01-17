@@ -39,7 +39,7 @@ public class LeaveController {
     }
 
     @PostMapping
-    public ResponseEntity<List<CreateLeaveResponse>> createEmployee(
+    public ResponseEntity<List<CreateLeaveResponse>> createLeave(
             @RequestBody @Valid final CreateLeaveRequest request
     ) {
         Long id = request.getEmployeeId();
