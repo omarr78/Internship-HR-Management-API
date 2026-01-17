@@ -6,6 +6,7 @@ import com.internship.entity.Employee;
 import com.internship.entity.Leave;
 import com.internship.repository.EmployeeRepository;
 import com.internship.repository.LeaveRepository;
+import com.internship.service.EmployeeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,13 @@ import java.util.List;
 public class LeaveController {
     private final EmployeeRepository employeeRepository;
     private final LeaveRepository leaveRepository;
+    private final EmployeeService employeeService;
+
+    public int getLeaveCountByYear(Long empId, int year) {
+        LocalDate startOfYear = LocalDate.of(year, 1, 1);
+        LocalDate endOfYear = LocalDate.of(year, 12, 31);
+        return leaveRepository.countByEmployeeIdAndLeaveDateBetween(empId, startOfYear, endOfYear);
+    }
 
     @PostMapping
     public ResponseEntity<List<CreateLeaveResponse>> createEmployee(
@@ -33,14 +41,17 @@ public class LeaveController {
     ) {
         Long id = request.getEmployeeId();
         Employee employee = employeeRepository.findById(id).get();
+        int leaveDays = getLeaveCountByYear(employee.getId(), request.getStartDate().getYear());
+        int maxNumberOfLeave = employeeService.getTheNumberOfLeaveDays(employee.getJoinedDate());
         List<Leave> leaves = new ArrayList<>();
         LocalDate currentDate = request.getStartDate();
         while (!currentDate.isAfter(request.getEndDate())) {
             if (currentDate.getDayOfWeek() != DayOfWeek.FRIDAY && currentDate.getDayOfWeek() != DayOfWeek.SATURDAY) {
+                leaveDays++;
                 leaves.add(
                         Leave.builder()
                                 .leaveDate(currentDate)
-                                .salaryDeducted(false)
+                                .salaryDeducted(leaveDays > maxNumberOfLeave)
                                 .employee(employee)
                                 .build()
                 );
@@ -56,7 +67,7 @@ public class LeaveController {
                                 .id(leave.getId())
                                 .employeeId(id)
                                 .leaveDate(leave.getLeaveDate())
-                                .salaryDeducted(false)
+                                .salaryDeducted(leave.isSalaryDeducted())
                                 .build()
                 );
             }
