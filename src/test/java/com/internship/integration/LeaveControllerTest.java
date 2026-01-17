@@ -294,4 +294,33 @@ public class LeaveControllerTest {
                     assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
                 });
     }
+
+    @Test
+    @DataSet("dataset/create_leave.xml")
+    public void testEmployeeAddsLeaveInTheSameDateTwice_shouldFailAndReturnIsConflict() throws Exception {
+        LocalDate from = LocalDate.of(2020, 1, 1);
+        LocalDate to = LocalDate.of(2020, 1, 1);
+
+        // there is a leave saved in database for LONG_STANDING_EMPLOYEE_ID employee in 1 Jan 2020
+        Employee employee = employeeRepository.findById(LONG_STANDING_EMPLOYEE_ID).get();
+        leaveRepository.save(buildLeave(from, employee, false));
+
+        // we're trying to post leave in the same date
+        CreateLeaveRequest request = CreateLeaveRequest.builder()
+                .startDate(from)
+                .endDate(to)
+                .employeeId(LONG_STANDING_EMPLOYEE_ID)
+                .build();
+
+        mockMvc.perform(post("/api/leave")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("This employee already has a leave recorded for the specified date",
+                            error.getErrorMessage());
+                });
+    }
 }
