@@ -63,10 +63,10 @@ public class LeaveControllerTest {
     @DataSet("dataset/create_leave.xml")
     public void testAddLeave_shouldSuccessAndReturnLeaveDetails() throws Exception {
         // employee with id 1 will record a leave for two days
-        // from (Wed) 14 jan 2026 to (Thu) 15 jan 2026
+        // from (Wed) 1 jan 2020 to (Thu) 2 jan 2020
         // this employee has just 2 leave days so no deduction
-        LocalDate from = LocalDate.of(2026, 1, 14);
-        LocalDate to = LocalDate.of(2026, 1, 15);
+        LocalDate from = LocalDate.of(2020, 1, 1);
+        LocalDate to = LocalDate.of(2020, 1, 2);
 
         CreateLeaveRequest request = CreateLeaveRequest.builder()
                 .startDate(from)
@@ -81,8 +81,8 @@ public class LeaveControllerTest {
                 .andReturn();
 
         Employee employee1 = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
-        Leave leave1 = buildLeave(from, employee1); // 14 jan 2026
-        Leave leave2 = buildLeave(to, employee1); // 15 jan 2026
+        Leave leave1 = buildLeave(from, employee1); // 1 jan 2020
+        Leave leave2 = buildLeave(to, employee1); // 2 jan 2020
 
         CreateLeaveResponse leaveResponse1 = buildLeaveResponse(from, employee1.getId(), false);
         CreateLeaveResponse leaveResponse2 = buildLeaveResponse(to, employee1.getId(), false);
@@ -110,11 +110,11 @@ public class LeaveControllerTest {
     @DataSet("dataset/create_leave.xml")
     public void testAddLeaveWithWeekends_shouldAddLeaveExcludingWeekends() throws Exception {
         // employee with id 1 will record a leave for three days including Fri, Sat
-        // from (Thu) 15 jan 2026 to (Sat) 17 jan 2026
+        // from (Thu) 2 jan 2020 to (Sat) 4 jan 2020
         // this is result record just Thu leave
         // this employee has just 3 leave days so no deduction
-        LocalDate from = LocalDate.of(2026, 1, 15);
-        LocalDate to = LocalDate.of(2026, 1, 17);
+        LocalDate from = LocalDate.of(2020, 1, 2);
+        LocalDate to = LocalDate.of(2020, 1, 4);
 
         CreateLeaveRequest request = CreateLeaveRequest.builder()
                 .startDate(from)
@@ -129,10 +129,10 @@ public class LeaveControllerTest {
                 .andReturn();
 
         Employee employee1 = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
-        Leave thuLeave = buildLeave(from, employee1); // 15 jan 2026
+        Leave thuLeave = buildLeave(from, employee1); // 2 jan 2020
 
         CreateLeaveResponse thuLeaveResponse =
-                buildLeaveResponse(from, employee1.getId(), false); // 15 jan 2026
+                buildLeaveResponse(from, employee1.getId(), false); // 2 jan 2020
 
         List<Leave> expectedLeaves = List.of(thuLeave);
         List<CreateLeaveResponse> expectedLeaveResponse = List.of(thuLeaveResponse);
