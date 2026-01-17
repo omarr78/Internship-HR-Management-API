@@ -7,6 +7,7 @@ import com.internship.dto.CreateLeaveRequest;
 import com.internship.dto.CreateLeaveResponse;
 import com.internship.entity.Employee;
 import com.internship.entity.Leave;
+import com.internship.exception.ErrorCode;
 import com.internship.repository.EmployeeRepository;
 import com.internship.repository.ExpertiseRepository;
 import com.internship.repository.LeaveRepository;
@@ -25,6 +26,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -33,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @DBRider
 public class LeaveControllerTest {
+    private static final Long NON_EXISTENT_ID = -1L;
     private static final Long LONG_STANDING_EMPLOYEE_ID = 1L;
     private static final Long RECENTLY_JOINED_EMPLOYEE_ID = 2L;
     private static final int STANDARD_LEAVE_DAYS = 21;
@@ -269,4 +272,26 @@ public class LeaveControllerTest {
                 .containsAll(expectedLeaves);
     }
 
+    @Test
+    @DataSet("dataset/create_leave.xml")
+    public void testAddLeaveWithNotFoundEmployee_shouldFailAndReturnEmployeeNotFound() throws Exception {
+        LocalDate from = LocalDate.of(2020, 1, 1);
+        LocalDate to = LocalDate.of(2020, 1, 2);
+
+        CreateLeaveRequest request = CreateLeaveRequest.builder()
+                .startDate(from)
+                .endDate(to)
+                .employeeId(NON_EXISTENT_ID)
+                .build();
+
+        mockMvc.perform(post("/api/leave")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> {
+                    String json = result.getResponse().getContentAsString();
+                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                    assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
+                });
+    }
 }

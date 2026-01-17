@@ -4,6 +4,7 @@ import com.internship.dto.CreateLeaveRequest;
 import com.internship.dto.CreateLeaveResponse;
 import com.internship.entity.Employee;
 import com.internship.entity.Leave;
+import com.internship.exception.BusinessException;
 import com.internship.repository.EmployeeRepository;
 import com.internship.repository.LeaveRepository;
 import com.internship.service.EmployeeService;
@@ -20,6 +21,8 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.internship.exception.ApiError.EMPLOYEE_NOT_FOUND;
 
 @RestController
 @RequestMapping("/api/leave")
@@ -40,7 +43,9 @@ public class LeaveController {
             @RequestBody @Valid final CreateLeaveRequest request
     ) {
         Long id = request.getEmployeeId();
-        Employee employee = employeeRepository.findById(id).get();
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+                        "Employee not found with id: " + id));
         int leaveDays = getLeaveCountByYear(employee.getId(), request.getStartDate().getYear());
         int maxNumberOfLeave = employeeService.getTheNumberOfLeaveDays(employee.getJoinedDate());
         List<Leave> leaves = new ArrayList<>();
@@ -61,7 +66,8 @@ public class LeaveController {
         leaveRepository.saveAll(leaves);
         List<CreateLeaveResponse> response = new ArrayList<>();
         for (Leave leave : leaves) {
-            if (leave.getLeaveDate().getDayOfWeek() != DayOfWeek.FRIDAY && leave.getLeaveDate().getDayOfWeek() != DayOfWeek.SATURDAY) {
+            if (leave.getLeaveDate().getDayOfWeek() != DayOfWeek.FRIDAY
+                    && leave.getLeaveDate().getDayOfWeek() != DayOfWeek.SATURDAY) {
                 response.add(
                         CreateLeaveResponse.builder()
                                 .id(leave.getId())
