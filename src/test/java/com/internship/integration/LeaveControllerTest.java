@@ -9,11 +9,12 @@ import com.internship.entity.Employee;
 import com.internship.entity.Leave;
 import com.internship.exception.ErrorCode;
 import com.internship.repository.EmployeeRepository;
-import com.internship.repository.ExpertiseRepository;
 import com.internship.repository.LeaveRepository;
 import jakarta.transaction.Transactional;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -47,8 +48,6 @@ public class LeaveControllerTest {
     private ObjectMapper objectMapper;
     @Autowired
     private EmployeeRepository employeeRepository;
-    @Autowired
-    private ExpertiseRepository expertiseRepository;
     @Autowired
     private LeaveRepository leaveRepository;
 
@@ -97,36 +96,40 @@ public class LeaveControllerTest {
                 .employeeId(LONG_STANDING_EMPLOYEE_ID)
                 .build();
 
-        MvcResult result = mockMvc.perform(post("/api/leave")
-                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andReturn();
+        final LocalDate TODAY = LocalDate.of(2020, 1, 1);
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(TODAY);
+            MvcResult result = mockMvc.perform(post("/api/leave")
+                            .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andReturn();
 
-        Employee employee1 = employeeRepository.findById(LONG_STANDING_EMPLOYEE_ID).get();
-        Leave leave1 = buildLeave(from, employee1, false); // 1 jan 2020
-        Leave leave2 = buildLeave(to, employee1, false); // 2 jan 2020
+            Employee employee1 = employeeRepository.findById(LONG_STANDING_EMPLOYEE_ID).get();
+            Leave leave1 = buildLeave(from, employee1, false); // 1 jan 2020
+            Leave leave2 = buildLeave(to, employee1, false); // 2 jan 2020
 
-        CreateLeaveResponse leaveResponse1 = buildLeaveResponse(from, employee1.getId(), false);
-        CreateLeaveResponse leaveResponse2 = buildLeaveResponse(to, employee1.getId(), false);
+            CreateLeaveResponse leaveResponse1 = buildLeaveResponse(from, employee1.getId(), false);
+            CreateLeaveResponse leaveResponse2 = buildLeaveResponse(to, employee1.getId(), false);
 
-        List<Leave> expectedLeaves = List.of(leave1, leave2);
-        List<CreateLeaveResponse> expectedLeaveResponse = List.of(leaveResponse1, leaveResponse2);
+            List<Leave> expectedLeaves = List.of(leave1, leave2);
+            List<CreateLeaveResponse> expectedLeaveResponse = List.of(leaveResponse1, leaveResponse2);
 
-        List<Leave> leaves = leaveRepository.findAll();
+            List<Leave> leaves = leaveRepository.findAll();
 
-        List<CreateLeaveResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, CreateLeaveResponse.class));
+            List<CreateLeaveResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, CreateLeaveResponse.class));
 
-        // assertion on response
-        Assertions.assertThat(response)
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
-                .isEqualTo(expectedLeaveResponse);
+            // assertion on response
+            Assertions.assertThat(response)
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
+                    .isEqualTo(expectedLeaveResponse);
 
-        // assertion on database
-        Assertions.assertThat(leaves)
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
-                .isEqualTo(expectedLeaves);
+            // assertion on database
+            Assertions.assertThat(leaves)
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
+                    .isEqualTo(expectedLeaves);
+        }
     }
 
     @Test
@@ -145,35 +148,39 @@ public class LeaveControllerTest {
                 .employeeId(LONG_STANDING_EMPLOYEE_ID)
                 .build();
 
-        MvcResult result = mockMvc.perform(post("/api/leave")
-                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andReturn();
+        final LocalDate TODAY = LocalDate.of(2020, 1, 1);
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(TODAY);
+            MvcResult result = mockMvc.perform(post("/api/leave")
+                            .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andReturn();
 
-        Employee employee1 = employeeRepository.findById(LONG_STANDING_EMPLOYEE_ID).get();
-        Leave thuLeave = buildLeave(from, employee1, false); // 2 jan 2020
+            Employee employee1 = employeeRepository.findById(LONG_STANDING_EMPLOYEE_ID).get();
+            Leave thuLeave = buildLeave(from, employee1, false); // 2 jan 2020
 
-        CreateLeaveResponse thuLeaveResponse =
-                buildLeaveResponse(from, employee1.getId(), false); // 2 jan 2020
+            CreateLeaveResponse thuLeaveResponse =
+                    buildLeaveResponse(from, employee1.getId(), false); // 2 jan 2020
 
-        List<Leave> expectedLeaves = List.of(thuLeave);
-        List<CreateLeaveResponse> expectedLeaveResponse = List.of(thuLeaveResponse);
+            List<Leave> expectedLeaves = List.of(thuLeave);
+            List<CreateLeaveResponse> expectedLeaveResponse = List.of(thuLeaveResponse);
 
-        List<Leave> leaves = leaveRepository.findAll();
+            List<Leave> leaves = leaveRepository.findAll();
 
-        List<CreateLeaveResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, CreateLeaveResponse.class));
+            List<CreateLeaveResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, CreateLeaveResponse.class));
 
-        // assertion on response
-        Assertions.assertThat(response)
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
-                .isEqualTo(expectedLeaveResponse);
+            // assertion on response
+            Assertions.assertThat(response)
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
+                    .isEqualTo(expectedLeaveResponse);
 
-        // assertion on database
-        Assertions.assertThat(leaves)
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
-                .isEqualTo(expectedLeaves);
+            // assertion on database
+            Assertions.assertThat(leaves)
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
+                    .isEqualTo(expectedLeaves);
+        }
     }
 
     @Test
@@ -195,33 +202,37 @@ public class LeaveControllerTest {
                 .employeeId(RECENTLY_JOINED_EMPLOYEE_ID)
                 .build();
 
-        MvcResult result = mockMvc.perform(post("/api/leave")
-                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andReturn();
+        final LocalDate TODAY = LocalDate.of(2020, 2, 1);
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(TODAY);
+            MvcResult result = mockMvc.perform(post("/api/leave")
+                            .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andReturn();
 
-        Leave leave = buildLeave(from, employee, true); // 16 Feb 2020
+            Leave leave = buildLeave(from, employee, true); // 16 Feb 2020
 
-        CreateLeaveResponse leaveResponse = buildLeaveResponse(from, employee.getId(), true);
+            CreateLeaveResponse leaveResponse = buildLeaveResponse(from, employee.getId(), true);
 
-        List<Leave> expectedLeaves = List.of(leave);
-        List<CreateLeaveResponse> expectedLeaveResponse = List.of(leaveResponse);
+            List<Leave> expectedLeaves = List.of(leave);
+            List<CreateLeaveResponse> expectedLeaveResponse = List.of(leaveResponse);
 
-        List<Leave> leaves = leaveRepository.findAll();
+            List<Leave> leaves = leaveRepository.findAll();
 
-        List<CreateLeaveResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, CreateLeaveResponse.class));
+            List<CreateLeaveResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, CreateLeaveResponse.class));
 
-        // assertion on response
-        Assertions.assertThat(response)
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
-                .isEqualTo(expectedLeaveResponse);
+            // assertion on response
+            Assertions.assertThat(response)
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
+                    .isEqualTo(expectedLeaveResponse);
 
-        // assertion on database
-        Assertions.assertThat(leaves)
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
-                .containsAll(expectedLeaves);
+            // assertion on database
+            Assertions.assertThat(leaves)
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
+                    .containsAll(expectedLeaves);
+        }
     }
 
     @Test
@@ -243,33 +254,37 @@ public class LeaveControllerTest {
                 .employeeId(LONG_STANDING_EMPLOYEE_ID)
                 .build();
 
-        MvcResult result = mockMvc.perform(post("/api/leave")
-                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andReturn();
+        final LocalDate TODAY = LocalDate.of(2020, 2, 1);
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(TODAY);
+            MvcResult result = mockMvc.perform(post("/api/leave")
+                            .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andReturn();
 
-        Leave leave = buildLeave(from, employee, true); // 16 Feb 2020
+            Leave leave = buildLeave(from, employee, true); // 16 Feb 2020
 
-        CreateLeaveResponse leaveResponse = buildLeaveResponse(from, employee.getId(), true);
+            CreateLeaveResponse leaveResponse = buildLeaveResponse(from, employee.getId(), true);
 
-        List<Leave> expectedLeaves = List.of(leave);
-        List<CreateLeaveResponse> expectedLeaveResponse = List.of(leaveResponse);
+            List<Leave> expectedLeaves = List.of(leave);
+            List<CreateLeaveResponse> expectedLeaveResponse = List.of(leaveResponse);
 
-        List<Leave> leaves = leaveRepository.findAll();
+            List<Leave> leaves = leaveRepository.findAll();
 
-        List<CreateLeaveResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, CreateLeaveResponse.class));
+            List<CreateLeaveResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, CreateLeaveResponse.class));
 
-        // assertion on response
-        Assertions.assertThat(response)
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
-                .isEqualTo(expectedLeaveResponse);
+            // assertion on response
+            Assertions.assertThat(response)
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
+                    .isEqualTo(expectedLeaveResponse);
 
-        // assertion on database
-        Assertions.assertThat(leaves)
-                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
-                .containsAll(expectedLeaves);
+            // assertion on database
+            Assertions.assertThat(leaves)
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
+                    .containsAll(expectedLeaves);
+        }
     }
 
     @Test
@@ -284,15 +299,19 @@ public class LeaveControllerTest {
                 .employeeId(NON_EXISTENT_ID)
                 .build();
 
-        mockMvc.perform(post("/api/leave")
-                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isNotFound())
-                .andExpect(result -> {
-                    String json = result.getResponse().getContentAsString();
-                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                    assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
-                });
+        final LocalDate TODAY = LocalDate.of(2020, 1, 1);
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(TODAY);
+            mockMvc.perform(post("/api/leave")
+                            .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(result -> {
+                        String json = result.getResponse().getContentAsString();
+                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                        assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
+                    });
+        }
     }
 
     @Test
@@ -312,15 +331,109 @@ public class LeaveControllerTest {
                 .employeeId(LONG_STANDING_EMPLOYEE_ID)
                 .build();
 
-        mockMvc.perform(post("/api/leave")
-                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isConflict())
-                .andExpect(result -> {
-                    String json = result.getResponse().getContentAsString();
-                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                    assertEquals("This employee already has a leave recorded for the specified date",
-                            error.getErrorMessage());
-                });
+        final LocalDate TODAY = LocalDate.of(2020, 1, 1);
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(TODAY);
+            mockMvc.perform(post("/api/leave")
+                            .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isConflict())
+                    .andExpect(result -> {
+                        String json = result.getResponse().getContentAsString();
+                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                        assertEquals("This employee already has a leave recorded for the specified date",
+                                error.getErrorMessage());
+                    });
+        }
+    }
+
+    @Test
+    @DataSet("dataset/create_leave.xml")
+    public void testAddLeaveWithStartDateAfterEndDate_shouldFailsAndReturnBadRequest() throws Exception {
+        LocalDate from = LocalDate.of(2020, 1, 2);
+        LocalDate to = LocalDate.of(2020, 1, 1);
+
+        Employee employee = employeeRepository.findById(LONG_STANDING_EMPLOYEE_ID).get();
+
+        CreateLeaveRequest request = CreateLeaveRequest.builder()
+                .startDate(from)
+                .endDate(to)
+                .employeeId(LONG_STANDING_EMPLOYEE_ID)
+                .build();
+
+        final LocalDate TODAY = LocalDate.of(2020, 1, 1);
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(TODAY);
+            mockMvc.perform(post("/api/leave")
+                            .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> {
+                        String json = result.getResponse().getContentAsString();
+                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                        assertEquals("start date must be before or equal to end date",
+                                error.getErrorMessage());
+                    });
+        }
+    }
+
+    @Test
+    @DataSet("dataset/create_leave.xml")
+    public void testAddLeaveWithStartDateInThePreviousMonth_shouldFailsAndReturnBadRequest() throws Exception {
+        LocalDate from = LocalDate.of(2020, 1, 1);
+        LocalDate to = LocalDate.of(2020, 1, 1);
+
+        Employee employee = employeeRepository.findById(LONG_STANDING_EMPLOYEE_ID).get();
+
+        CreateLeaveRequest request = CreateLeaveRequest.builder()
+                .startDate(from)
+                .endDate(to)
+                .employeeId(LONG_STANDING_EMPLOYEE_ID)
+                .build();
+
+        final LocalDate TODAY = LocalDate.of(2020, 2, 1);
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(TODAY);
+            mockMvc.perform(post("/api/leave")
+                            .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> {
+                        String json = result.getResponse().getContentAsString();
+                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                        assertEquals("start date must be in the same current month",
+                                error.getErrorMessage());
+                    });
+        }
+    }
+
+    @Test
+    @DataSet("dataset/create_leave.xml")
+    public void testAddLeaveWithEndDateNotInCurrentYear_shouldFailsAndReturnBadRequest() throws Exception {
+        LocalDate from = LocalDate.of(2021, 1, 1);
+        LocalDate to = LocalDate.of(2021, 1, 1);
+
+        Employee employee = employeeRepository.findById(LONG_STANDING_EMPLOYEE_ID).get();
+
+        CreateLeaveRequest request = CreateLeaveRequest.builder()
+                .startDate(from)
+                .endDate(to)
+                .employeeId(LONG_STANDING_EMPLOYEE_ID)
+                .build();
+
+        final LocalDate TODAY = LocalDate.of(2020, 1, 1);
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(TODAY);
+            mockMvc.perform(post("/api/leave")
+                            .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> {
+                        String json = result.getResponse().getContentAsString();
+                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                        assertEquals("end date must be in the same current year",
+                                error.getErrorMessage());
+                    });
+        }
     }
 }
