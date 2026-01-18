@@ -5,6 +5,7 @@ import com.internship.dto.CreateLeaveResponse;
 import com.internship.entity.Employee;
 import com.internship.entity.Leave;
 import com.internship.exception.BusinessException;
+import com.internship.mapper.LeaveMapper;
 import com.internship.repository.EmployeeRepository;
 import com.internship.repository.LeaveRepository;
 import jakarta.transaction.Transactional;
@@ -24,6 +25,7 @@ public class LeaveService {
     private final EmployeeRepository employeeRepository;
     private final LeaveRepository leaveRepository;
     private final EmployeeService employeeService;
+    private final LeaveMapper leaveMapper;
 
     public int getLeaveCountByYear(Long empId, int year) {
         LocalDate startOfYear = LocalDate.of(year, 1, 1);
@@ -44,31 +46,12 @@ public class LeaveService {
         while (!currentDate.isAfter(request.getEndDate())) {
             if (currentDate.getDayOfWeek() != DayOfWeek.FRIDAY && currentDate.getDayOfWeek() != DayOfWeek.SATURDAY) {
                 leaveDays++;
-                leaves.add(
-                        Leave.builder()
-                                .leaveDate(currentDate)
-                                .salaryDeducted(leaveDays > maxNumberOfLeave)
-                                .employee(employee)
-                                .build()
-                );
+                Leave newLeave = leaveMapper.toEntity(currentDate, leaveDays > maxNumberOfLeave, employee);
+                leaves.add(newLeave);
             }
             currentDate = currentDate.plusDays(1);
         }
         leaveRepository.saveAll(leaves);
-        List<CreateLeaveResponse> response = new ArrayList<>();
-        for (Leave leave : leaves) {
-            if (leave.getLeaveDate().getDayOfWeek() != DayOfWeek.FRIDAY
-                    && leave.getLeaveDate().getDayOfWeek() != DayOfWeek.SATURDAY) {
-                response.add(
-                        CreateLeaveResponse.builder()
-                                .id(leave.getId())
-                                .employeeId(id)
-                                .leaveDate(leave.getLeaveDate())
-                                .salaryDeducted(leave.isSalaryDeducted())
-                                .build()
-                );
-            }
-        }
-        return response;
+        return leaves.stream().map(leaveMapper::toResponse).toList();
     }
 }
