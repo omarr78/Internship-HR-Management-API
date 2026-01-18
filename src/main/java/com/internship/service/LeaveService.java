@@ -8,6 +8,7 @@ import com.internship.exception.BusinessException;
 import com.internship.mapper.LeaveMapper;
 import com.internship.repository.EmployeeRepository;
 import com.internship.repository.LeaveRepository;
+import com.internship.validation.aspect.ValidateLeaveDates;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ public class LeaveService {
     }
 
     @Transactional
+    @ValidateLeaveDates
     public List<CreateLeaveResponse> addLeave(CreateLeaveRequest request) {
         Long id = request.getEmployeeId();
         Employee employee = employeeRepository.findById(id)
