@@ -96,9 +96,9 @@ public class LeaveControllerTest {
                 .employeeId(LONG_STANDING_EMPLOYEE_ID)
                 .build();
 
-        final LocalDate TODAY = LocalDate.of(2020, 1, 1);
+        final LocalDate today = LocalDate.of(2020, 1, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(LocalDate::now).thenReturn(TODAY);
+            mocked.when(LocalDate::now).thenReturn(today);
             MvcResult result = mockMvc.perform(post("/api/leave")
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
@@ -148,9 +148,9 @@ public class LeaveControllerTest {
                 .employeeId(LONG_STANDING_EMPLOYEE_ID)
                 .build();
 
-        final LocalDate TODAY = LocalDate.of(2020, 1, 1);
+        final LocalDate today = LocalDate.of(2020, 1, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(LocalDate::now).thenReturn(TODAY);
+            mocked.when(LocalDate::now).thenReturn(today);
             MvcResult result = mockMvc.perform(post("/api/leave")
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
@@ -202,9 +202,9 @@ public class LeaveControllerTest {
                 .employeeId(RECENTLY_JOINED_EMPLOYEE_ID)
                 .build();
 
-        final LocalDate TODAY = LocalDate.of(2020, 2, 1);
+        final LocalDate today = LocalDate.of(2020, 2, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(LocalDate::now).thenReturn(TODAY);
+            mocked.when(LocalDate::now).thenReturn(today);
             MvcResult result = mockMvc.perform(post("/api/leave")
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
@@ -254,9 +254,9 @@ public class LeaveControllerTest {
                 .employeeId(LONG_STANDING_EMPLOYEE_ID)
                 .build();
 
-        final LocalDate TODAY = LocalDate.of(2020, 2, 1);
+        final LocalDate today = LocalDate.of(2020, 2, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(LocalDate::now).thenReturn(TODAY);
+            mocked.when(LocalDate::now).thenReturn(today);
             MvcResult result = mockMvc.perform(post("/api/leave")
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
@@ -299,9 +299,9 @@ public class LeaveControllerTest {
                 .employeeId(NON_EXISTENT_ID)
                 .build();
 
-        final LocalDate TODAY = LocalDate.of(2020, 1, 1);
+        final LocalDate today = LocalDate.of(2020, 1, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(LocalDate::now).thenReturn(TODAY);
+            mocked.when(LocalDate::now).thenReturn(today);
             mockMvc.perform(post("/api/leave")
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
@@ -331,9 +331,9 @@ public class LeaveControllerTest {
                 .employeeId(LONG_STANDING_EMPLOYEE_ID)
                 .build();
 
-        final LocalDate TODAY = LocalDate.of(2020, 1, 1);
+        final LocalDate today = LocalDate.of(2020, 1, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(LocalDate::now).thenReturn(TODAY);
+            mocked.when(LocalDate::now).thenReturn(today);
             mockMvc.perform(post("/api/leave")
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
@@ -361,9 +361,9 @@ public class LeaveControllerTest {
                 .employeeId(LONG_STANDING_EMPLOYEE_ID)
                 .build();
 
-        final LocalDate TODAY = LocalDate.of(2020, 1, 1);
+        final LocalDate today = LocalDate.of(2020, 1, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(LocalDate::now).thenReturn(TODAY);
+            mocked.when(LocalDate::now).thenReturn(today);
             mockMvc.perform(post("/api/leave")
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
@@ -391,9 +391,9 @@ public class LeaveControllerTest {
                 .employeeId(LONG_STANDING_EMPLOYEE_ID)
                 .build();
 
-        final LocalDate TODAY = LocalDate.of(2020, 2, 1);
+        final LocalDate today = LocalDate.of(2020, 2, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(LocalDate::now).thenReturn(TODAY);
+            mocked.when(LocalDate::now).thenReturn(today);
             mockMvc.perform(post("/api/leave")
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
@@ -421,9 +421,9 @@ public class LeaveControllerTest {
                 .employeeId(LONG_STANDING_EMPLOYEE_ID)
                 .build();
 
-        final LocalDate TODAY = LocalDate.of(2020, 1, 1);
+        final LocalDate today = LocalDate.of(2020, 1, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(LocalDate::now).thenReturn(TODAY);
+            mocked.when(LocalDate::now).thenReturn(today);
             mockMvc.perform(post("/api/leave")
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
