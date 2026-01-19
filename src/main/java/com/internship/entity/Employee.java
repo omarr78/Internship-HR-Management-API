@@ -80,5 +80,9 @@ public class Employee {
             inverseJoinColumns = @JoinColumn(name = "EXPERTISE_ID")
     )
     private List<Expertise> expertises;
+
+    @OneToMany(mappedBy = "employee")
+    @JsonManagedReference("employee-bonuses")
+    private List<Bonus> bonuses;
 }
 
