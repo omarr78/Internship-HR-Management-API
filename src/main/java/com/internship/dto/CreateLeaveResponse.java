@@ -12,12 +12,10 @@ import java.time.LocalDate;
 public class CreateLeaveResponse {
     private Long id;
     private LocalDate leaveDate;
-    private boolean salaryDeducted;
     private Long employeeId;
 
-    public CreateLeaveResponse(LocalDate leaveDate, boolean salaryDeducted, Long employeeId) {
+    public CreateLeaveResponse(LocalDate leaveDate, Long employeeId) {
         this.leaveDate = leaveDate;
-        this.salaryDeducted = salaryDeducted;
         this.employeeId = employeeId;
     }
 }
