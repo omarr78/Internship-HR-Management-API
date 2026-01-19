@@ -29,17 +29,13 @@ public class Leave {
     @Column(name = "leave_date", nullable = false)
     private LocalDate leaveDate;
 
-    @Column(name = "is_salary_deducted", nullable = false)
-    private boolean salaryDeducted;
-
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)
     @JsonBackReference("employee-leaves")
     private Employee employee;
 
-    public Leave(LocalDate leaveDate, boolean salaryDeducted, Employee employee) {
+    public Leave(LocalDate leaveDate, Employee employee) {
         this.leaveDate = leaveDate;
-        this.salaryDeducted = salaryDeducted;
         this.employee = employee;
     }
 }
