@@ -25,14 +25,7 @@ import static com.internship.exception.ApiError.EMPLOYEE_NOT_FOUND;
 public class LeaveService {
     private final EmployeeRepository employeeRepository;
     private final LeaveRepository leaveRepository;
-    private final EmployeeService employeeService;
     private final LeaveMapper leaveMapper;
-
-    public int getLeaveCountByYear(Long empId, int year) {
-        LocalDate startOfYear = LocalDate.of(year, 1, 1);
-        LocalDate endOfYear = LocalDate.of(year, 12, 31);
-        return leaveRepository.countByEmployeeIdAndLeaveDateBetween(empId, startOfYear, endOfYear);
-    }
 
     @Transactional
     @ValidateLeaveDates
@@ -41,14 +34,12 @@ public class LeaveService {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
-        int leaveDays = getLeaveCountByYear(employee.getId(), request.getStartDate().getYear());
-        int maxNumberOfLeave = employeeService.getTheNumberOfLeaveDays(employee.getJoinedDate());
+
         List<Leave> leaves = new ArrayList<>();
         LocalDate currentDate = request.getStartDate();
         while (!currentDate.isAfter(request.getEndDate())) {
             if (currentDate.getDayOfWeek() != DayOfWeek.FRIDAY && currentDate.getDayOfWeek() != DayOfWeek.SATURDAY) {
-                leaveDays++;
-                Leave newLeave = leaveMapper.toEntity(currentDate, leaveDays > maxNumberOfLeave, employee);
+                Leave newLeave = leaveMapper.toEntity(currentDate, employee);
                 leaves.add(newLeave);
             }
             currentDate = currentDate.plusDays(1);

@@ -9,7 +9,7 @@ import java.time.LocalDate;
 
 @Component
 public class LeaveMapper {
-    public Leave toEntity(LocalDate date, Boolean salaryDeducted, Employee employee) {
+    public Leave toEntity(LocalDate date, Employee employee) {
         return Leave.builder()
                 .leaveDate(date)
                 .employee(employee)
