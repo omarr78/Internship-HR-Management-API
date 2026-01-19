@@ -37,8 +37,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DBRider
 public class LeaveControllerTest {
     private static final Long NON_EXISTENT_ID = -1L;
-    private static final Long LONG_STANDING_EMPLOYEE_ID = 1L;
-    private static final Long RECENTLY_JOINED_EMPLOYEE_ID = 2L;
+    private static final Long EMPLOYEE_WITH_30_DAYS_OF_VACATION_ID = 1L;
+    private static final Long EMPLOYEE_WITH_21_DAYS_OF_VACATION_ID = 2L;
     private static final int STANDARD_LEAVE_DAYS = 21;
     private static final int EXTENDED_LEAVE_DAYS = 30;
 
@@ -51,23 +51,7 @@ public class LeaveControllerTest {
     @Autowired
     private LeaveRepository leaveRepository;
 
-    private Leave buildLeave(LocalDate leaveDate, Employee employee, Boolean salaryDeducted) {
-        return Leave.builder()
-                .leaveDate(leaveDate)
-                .salaryDeducted(salaryDeducted)
-                .employee(employee)
-                .build();
-    }
-
-    private CreateLeaveResponse buildLeaveResponse(LocalDate leaveDate, Long employeeId, Boolean salaryDeducted) {
-        return CreateLeaveResponse.builder()
-                .leaveDate(leaveDate)
-                .salaryDeducted(salaryDeducted)
-                .employeeId(employeeId)
-                .build();
-    }
-
-    private List<Leave> addLeave(int leaveDays, Employee employee) {
+    private List<Leave> generateLeavesFrom2020(int leaveDays, Employee employee) {
         List<Leave> leaves = new ArrayList<>();
         LocalDate currentDate = LocalDate.of(2020, 1, 1);
         for (int i = 0; i < leaveDays; i++) {
@@ -75,7 +59,7 @@ public class LeaveControllerTest {
                     || currentDate.getDayOfWeek() == DayOfWeek.SATURDAY) {
                 currentDate = currentDate.plusDays(1);
             }
-            leaves.add(buildLeave(currentDate, employee, false));
+            leaves.add(new Leave(currentDate, false, employee));
             currentDate = currentDate.plusDays(1);
         }
         return leaves;
@@ -83,39 +67,34 @@ public class LeaveControllerTest {
 
     @Test
     @DataSet("dataset/create_leave.xml")
-    public void testAddLeave_shouldSuccessAndReturnLeaveDetails() throws Exception {
+    public void testAddLeavesRangeWith2Days_shouldSuccessAndReturnLeavesDetailsAndNoDeduction() throws Exception {
         // employee with id 1 will record a leave for two days
         // from (Wed) 1 jan 2020 to (Thu) 2 jan 2020
         // this employee has just 2 leave days so no deduction
-        LocalDate from = LocalDate.of(2020, 1, 1);
-        LocalDate to = LocalDate.of(2020, 1, 2);
+        LocalDate requestedLeavesStartDate = LocalDate.of(2020, 1, 1);
+        LocalDate requestedLeavesEndDate = LocalDate.of(2020, 1, 2);
 
         CreateLeaveRequest request = CreateLeaveRequest.builder()
-                .startDate(from)
-                .endDate(to)
-                .employeeId(LONG_STANDING_EMPLOYEE_ID)
+                .startDate(requestedLeavesStartDate)
+                .endDate(requestedLeavesEndDate)
+                .employeeId(EMPLOYEE_WITH_30_DAYS_OF_VACATION_ID)
                 .build();
 
-        final LocalDate today = LocalDate.of(2020, 1, 1);
+        final LocalDate mockedToday = LocalDate.of(2020, 1, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(LocalDate::now).thenReturn(today);
+            mocked.when(LocalDate::now).thenReturn(mockedToday);
             MvcResult result = mockMvc.perform(post("/api/leave")
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
                     .andReturn();
 
-            Employee employee1 = employeeRepository.findById(LONG_STANDING_EMPLOYEE_ID).get();
-            Leave leave1 = buildLeave(from, employee1, false); // 1 jan 2020
-            Leave leave2 = buildLeave(to, employee1, false); // 2 jan 2020
+            CreateLeaveResponse leaveResponse1 = new CreateLeaveResponse(requestedLeavesStartDate,
+                    false, EMPLOYEE_WITH_30_DAYS_OF_VACATION_ID);
+            CreateLeaveResponse leaveResponse2 = new CreateLeaveResponse(requestedLeavesEndDate,
+                    false, EMPLOYEE_WITH_30_DAYS_OF_VACATION_ID);
 
-            CreateLeaveResponse leaveResponse1 = buildLeaveResponse(from, employee1.getId(), false);
-            CreateLeaveResponse leaveResponse2 = buildLeaveResponse(to, employee1.getId(), false);
-
-            List<Leave> expectedLeaves = List.of(leave1, leave2);
             List<CreateLeaveResponse> expectedLeaveResponse = List.of(leaveResponse1, leaveResponse2);
-
-            List<Leave> leaves = leaveRepository.findAll();
 
             List<CreateLeaveResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
                     objectMapper.getTypeFactory().constructCollectionType(List.class, CreateLeaveResponse.class));
@@ -124,6 +103,15 @@ public class LeaveControllerTest {
             Assertions.assertThat(response)
                     .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
                     .isEqualTo(expectedLeaveResponse);
+
+            Employee employee = employeeRepository.findById(EMPLOYEE_WITH_30_DAYS_OF_VACATION_ID).get();
+
+            Leave leave1 = new Leave(requestedLeavesStartDate, false, employee); // 1 jan 2020
+            Leave leave2 = new Leave(requestedLeavesEndDate, false, employee); // 2 jan 2020
+
+            List<Leave> expectedLeaves = List.of(leave1, leave2);
+
+            List<Leave> leaves = leaveRepository.findAll();
 
             // assertion on database
             Assertions.assertThat(leaves)
@@ -134,47 +122,49 @@ public class LeaveControllerTest {
 
     @Test
     @DataSet("dataset/create_leave.xml")
-    public void testAddLeaveWithWeekends_shouldAddLeaveExcludingWeekends() throws Exception {
+    public void testAdd3Leaves1InWorkDayAnd2InWeekend_shouldAddLeavesExcludingWeekendsWithNoDeduction() throws Exception {
         // employee with id 1 will record a leave for three days including Fri, Sat
         // from (Thu) 2 jan 2020 to (Sat) 4 jan 2020
         // this is result record just Thu leave
         // this employee has just 3 leave days so no deduction
-        LocalDate from = LocalDate.of(2020, 1, 2);
-        LocalDate to = LocalDate.of(2020, 1, 4);
+        LocalDate requestedLeavesStartDate = LocalDate.of(2020, 1, 2);
+        LocalDate requestedLeavesEndDate = LocalDate.of(2020, 1, 4);
 
         CreateLeaveRequest request = CreateLeaveRequest.builder()
-                .startDate(from)
-                .endDate(to)
-                .employeeId(LONG_STANDING_EMPLOYEE_ID)
+                .startDate(requestedLeavesStartDate)
+                .endDate(requestedLeavesEndDate)
+                .employeeId(EMPLOYEE_WITH_30_DAYS_OF_VACATION_ID)
                 .build();
 
-        final LocalDate today = LocalDate.of(2020, 1, 1);
+        final LocalDate mockedToday = LocalDate.of(2020, 1, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(LocalDate::now).thenReturn(today);
+            mocked.when(LocalDate::now).thenReturn(mockedToday);
             MvcResult result = mockMvc.perform(post("/api/leave")
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
                     .andReturn();
 
-            Employee employee1 = employeeRepository.findById(LONG_STANDING_EMPLOYEE_ID).get();
-            Leave thuLeave = buildLeave(from, employee1, false); // 2 jan 2020
-
-            CreateLeaveResponse thuLeaveResponse =
-                    buildLeaveResponse(from, employee1.getId(), false); // 2 jan 2020
-
-            List<Leave> expectedLeaves = List.of(thuLeave);
-            List<CreateLeaveResponse> expectedLeaveResponse = List.of(thuLeaveResponse);
-
-            List<Leave> leaves = leaveRepository.findAll();
-
             List<CreateLeaveResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
                     objectMapper.getTypeFactory().constructCollectionType(List.class, CreateLeaveResponse.class));
+
+            CreateLeaveResponse thuLeaveResponse =
+                    new CreateLeaveResponse(requestedLeavesStartDate, false,
+                            EMPLOYEE_WITH_30_DAYS_OF_VACATION_ID); // 2 jan 2020
+
+            List<CreateLeaveResponse> expectedLeaveResponse = List.of(thuLeaveResponse);
 
             // assertion on response
             Assertions.assertThat(response)
                     .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
                     .isEqualTo(expectedLeaveResponse);
+
+            Employee employee = employeeRepository.findById(EMPLOYEE_WITH_30_DAYS_OF_VACATION_ID).get();
+            Leave thuLeave = new Leave(requestedLeavesStartDate, false, employee); // 2 jan 2020
+
+            List<Leave> expectedLeaves = List.of(thuLeave);
+
+            List<Leave> leaves = leaveRepository.findAll();
 
             // assertion on database
             Assertions.assertThat(leaves)
@@ -185,40 +175,37 @@ public class LeaveControllerTest {
 
     @Test
     @DataSet("dataset/create_leave.xml")
-    public void testAddLeaveWhenLeaveLimitExceededForRecentlyJoinedEmployee_ShouldAddDeductedLeave() throws Exception {
+    public void testAdd1LeaveForRecentlyJoinedEmployeeThatConsumedAllStandardLeaveDays_ShouldAddAndDeductLeave() throws Exception {
         // employee(recently joined employee) with id 2  will record a leave
         // from (Sun) 16 Feb 2020 to (Sun) 16 Feb 2020
-        Employee employee = employeeRepository.findById(RECENTLY_JOINED_EMPLOYEE_ID).get();
-        LocalDate from = LocalDate.of(2020, 2, 16);
-        LocalDate to = LocalDate.of(2020, 2, 16);
-        List<Leave> prevLeaves = addLeave(STANDARD_LEAVE_DAYS, employee);
+        Employee employee = employeeRepository.findById(EMPLOYEE_WITH_21_DAYS_OF_VACATION_ID).get();
+        LocalDate requestedLeavesStartDate = LocalDate.of(2020, 2, 16);
+        LocalDate requestedLeavesEndDate = LocalDate.of(2020, 2, 16);
+        List<Leave> prevLeaves = generateLeavesFrom2020(STANDARD_LEAVE_DAYS, employee);
         leaveRepository.saveAll(prevLeaves);
         // now employee has just 21 leave days so no deduction
         // if employee adds another leave it will be deducted leave
 
         CreateLeaveRequest request = CreateLeaveRequest.builder()
-                .startDate(from)
-                .endDate(to)
-                .employeeId(RECENTLY_JOINED_EMPLOYEE_ID)
+                .startDate(requestedLeavesStartDate)
+                .endDate(requestedLeavesEndDate)
+                .employeeId(EMPLOYEE_WITH_21_DAYS_OF_VACATION_ID)
                 .build();
 
-        final LocalDate today = LocalDate.of(2020, 2, 1);
+        final LocalDate mockedToday = LocalDate.of(2020, 2, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(LocalDate::now).thenReturn(today);
+            mocked.when(LocalDate::now).thenReturn(mockedToday);
             MvcResult result = mockMvc.perform(post("/api/leave")
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
                     .andReturn();
 
-            Leave leave = buildLeave(from, employee, true); // 16 Feb 2020
+            CreateLeaveResponse leaveResponse =
+                    new CreateLeaveResponse(requestedLeavesStartDate, true,
+                            EMPLOYEE_WITH_21_DAYS_OF_VACATION_ID);
 
-            CreateLeaveResponse leaveResponse = buildLeaveResponse(from, employee.getId(), true);
-
-            List<Leave> expectedLeaves = List.of(leave);
             List<CreateLeaveResponse> expectedLeaveResponse = List.of(leaveResponse);
-
-            List<Leave> leaves = leaveRepository.findAll();
 
             List<CreateLeaveResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
                     objectMapper.getTypeFactory().constructCollectionType(List.class, CreateLeaveResponse.class));
@@ -227,6 +214,12 @@ public class LeaveControllerTest {
             Assertions.assertThat(response)
                     .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
                     .isEqualTo(expectedLeaveResponse);
+
+            Leave leave = new Leave(requestedLeavesStartDate, true, employee); // 16 Feb 2020
+
+            List<Leave> expectedLeaves = List.of(leave);
+
+            List<Leave> leaves = leaveRepository.findAll();
 
             // assertion on database
             Assertions.assertThat(leaves)
@@ -237,40 +230,37 @@ public class LeaveControllerTest {
 
     @Test
     @DataSet("dataset/create_leave.xml")
-    public void testAddLeaveWhenLeaveLimitExceededForLongStandingEmployee_ShouldAddDeductedLeave() throws Exception {
+    public void testAdd1LeaveWhenLeaveLimitExceededForLongStandingEmployee_ShouldAddDeductedLeave() throws Exception {
         // employee(Long Standing Employee) with id 2  will record a leave
         // from (Sun) 16 Feb 2020 to (Sun) 16 Feb 2020
-        Employee employee = employeeRepository.findById(LONG_STANDING_EMPLOYEE_ID).get();
-        LocalDate from = LocalDate.of(2020, 2, 16);
-        LocalDate to = LocalDate.of(2020, 2, 16);
-        List<Leave> prevLeaves = addLeave(EXTENDED_LEAVE_DAYS, employee);
+        Employee employee = employeeRepository.findById(EMPLOYEE_WITH_30_DAYS_OF_VACATION_ID).get();
+        LocalDate requestedLeavesStartDate = LocalDate.of(2020, 2, 16);
+        LocalDate requestedLeavesEndDate = LocalDate.of(2020, 2, 16);
+        List<Leave> prevLeaves = generateLeavesFrom2020(EXTENDED_LEAVE_DAYS, employee);
         leaveRepository.saveAll(prevLeaves);
         // now employee has just 30 leave days so no deduction
         // if employee adds another leave it will be deducted leave
 
         CreateLeaveRequest request = CreateLeaveRequest.builder()
-                .startDate(from)
-                .endDate(to)
-                .employeeId(LONG_STANDING_EMPLOYEE_ID)
+                .startDate(requestedLeavesStartDate)
+                .endDate(requestedLeavesEndDate)
+                .employeeId(EMPLOYEE_WITH_30_DAYS_OF_VACATION_ID)
                 .build();
 
-        final LocalDate today = LocalDate.of(2020, 2, 1);
+        final LocalDate mockedToday = LocalDate.of(2020, 2, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(LocalDate::now).thenReturn(today);
+            mocked.when(LocalDate::now).thenReturn(mockedToday);
             MvcResult result = mockMvc.perform(post("/api/leave")
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
                     .andReturn();
 
-            Leave leave = buildLeave(from, employee, true); // 16 Feb 2020
+            CreateLeaveResponse leaveResponse =
+                    new CreateLeaveResponse(requestedLeavesStartDate, true,
+                            EMPLOYEE_WITH_30_DAYS_OF_VACATION_ID);
 
-            CreateLeaveResponse leaveResponse = buildLeaveResponse(from, employee.getId(), true);
-
-            List<Leave> expectedLeaves = List.of(leave);
             List<CreateLeaveResponse> expectedLeaveResponse = List.of(leaveResponse);
-
-            List<Leave> leaves = leaveRepository.findAll();
 
             List<CreateLeaveResponse> response = objectMapper.readValue(result.getResponse().getContentAsString(),
                     objectMapper.getTypeFactory().constructCollectionType(List.class, CreateLeaveResponse.class));
@@ -279,6 +269,12 @@ public class LeaveControllerTest {
             Assertions.assertThat(response)
                     .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
                     .isEqualTo(expectedLeaveResponse);
+
+            Leave leave = new Leave(requestedLeavesStartDate, true, employee); // 16 Feb 2020
+
+            List<Leave> expectedLeaves = List.of(leave);
+
+            List<Leave> leaves = leaveRepository.findAll();
 
             // assertion on database
             Assertions.assertThat(leaves)
@@ -290,18 +286,18 @@ public class LeaveControllerTest {
     @Test
     @DataSet("dataset/create_leave.xml")
     public void testAddLeaveWithNotFoundEmployee_shouldFailAndReturnEmployeeNotFound() throws Exception {
-        LocalDate from = LocalDate.of(2020, 1, 1);
-        LocalDate to = LocalDate.of(2020, 1, 2);
+        LocalDate requestedLeavesStartDate = LocalDate.of(2020, 1, 1);
+        LocalDate requestedLeavesEndDate = LocalDate.of(2020, 1, 2);
 
         CreateLeaveRequest request = CreateLeaveRequest.builder()
-                .startDate(from)
-                .endDate(to)
+                .startDate(requestedLeavesStartDate)
+                .endDate(requestedLeavesEndDate)
                 .employeeId(NON_EXISTENT_ID)
                 .build();
 
-        final LocalDate today = LocalDate.of(2020, 1, 1);
+        final LocalDate mockedToday = LocalDate.of(2020, 1, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(LocalDate::now).thenReturn(today);
+            mocked.when(LocalDate::now).thenReturn(mockedToday);
             mockMvc.perform(post("/api/leave")
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
@@ -317,23 +313,23 @@ public class LeaveControllerTest {
     @Test
     @DataSet("dataset/create_leave.xml")
     public void testEmployeeAddsLeaveInTheSameDateTwice_shouldFailAndReturnIsConflict() throws Exception {
-        LocalDate from = LocalDate.of(2020, 1, 1);
-        LocalDate to = LocalDate.of(2020, 1, 1);
+        LocalDate requestedLeavesStartDate = LocalDate.of(2020, 1, 1);
+        LocalDate requestedLeavesEndDate = LocalDate.of(2020, 1, 1);
 
         // there is a leave saved in database for LONG_STANDING_EMPLOYEE_ID employee in 1 Jan 2020
-        Employee employee = employeeRepository.findById(LONG_STANDING_EMPLOYEE_ID).get();
-        leaveRepository.save(buildLeave(from, employee, false));
+        Employee employee = employeeRepository.findById(EMPLOYEE_WITH_30_DAYS_OF_VACATION_ID).get();
+        leaveRepository.save(new Leave(requestedLeavesStartDate, false, employee));
 
         // we're trying to post leave in the same date
         CreateLeaveRequest request = CreateLeaveRequest.builder()
-                .startDate(from)
-                .endDate(to)
-                .employeeId(LONG_STANDING_EMPLOYEE_ID)
+                .startDate(requestedLeavesStartDate)
+                .endDate(requestedLeavesEndDate)
+                .employeeId(EMPLOYEE_WITH_30_DAYS_OF_VACATION_ID)
                 .build();
 
-        final LocalDate today = LocalDate.of(2020, 1, 1);
+        final LocalDate mockedToday = LocalDate.of(2020, 1, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(LocalDate::now).thenReturn(today);
+            mocked.when(LocalDate::now).thenReturn(mockedToday);
             mockMvc.perform(post("/api/leave")
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
@@ -350,20 +346,18 @@ public class LeaveControllerTest {
     @Test
     @DataSet("dataset/create_leave.xml")
     public void testAddLeaveWithStartDateAfterEndDate_shouldFailsAndReturnBadRequest() throws Exception {
-        LocalDate from = LocalDate.of(2020, 1, 2);
-        LocalDate to = LocalDate.of(2020, 1, 1);
-
-        Employee employee = employeeRepository.findById(LONG_STANDING_EMPLOYEE_ID).get();
+        LocalDate requestedLeavesStartDate = LocalDate.of(2020, 1, 2);
+        LocalDate requestedLeavesEndDate = LocalDate.of(2020, 1, 1);
 
         CreateLeaveRequest request = CreateLeaveRequest.builder()
-                .startDate(from)
-                .endDate(to)
-                .employeeId(LONG_STANDING_EMPLOYEE_ID)
+                .startDate(requestedLeavesStartDate)
+                .endDate(requestedLeavesEndDate)
+                .employeeId(EMPLOYEE_WITH_30_DAYS_OF_VACATION_ID)
                 .build();
 
-        final LocalDate today = LocalDate.of(2020, 1, 1);
+        final LocalDate mockedToday = LocalDate.of(2020, 1, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(LocalDate::now).thenReturn(today);
+            mocked.when(LocalDate::now).thenReturn(mockedToday);
             mockMvc.perform(post("/api/leave")
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
@@ -379,21 +373,19 @@ public class LeaveControllerTest {
 
     @Test
     @DataSet("dataset/create_leave.xml")
-    public void testAddLeaveWithStartDateInThePreviousMonth_shouldFailsAndReturnBadRequest() throws Exception {
-        LocalDate from = LocalDate.of(2020, 1, 1);
-        LocalDate to = LocalDate.of(2020, 1, 1);
-
-        Employee employee = employeeRepository.findById(LONG_STANDING_EMPLOYEE_ID).get();
+    public void testAddLeaveWithStartDateInThePreviousMonth_shouldFailAndReturnBadRequest() throws Exception {
+        LocalDate requestedLeavesStartDate = LocalDate.of(2020, 1, 1);
+        LocalDate requestedLeavesEndDate = LocalDate.of(2020, 1, 1);
 
         CreateLeaveRequest request = CreateLeaveRequest.builder()
-                .startDate(from)
-                .endDate(to)
-                .employeeId(LONG_STANDING_EMPLOYEE_ID)
+                .startDate(requestedLeavesStartDate)
+                .endDate(requestedLeavesEndDate)
+                .employeeId(EMPLOYEE_WITH_30_DAYS_OF_VACATION_ID)
                 .build();
 
-        final LocalDate today = LocalDate.of(2020, 2, 1);
+        final LocalDate mockedToday = LocalDate.of(2020, 2, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(LocalDate::now).thenReturn(today);
+            mocked.when(LocalDate::now).thenReturn(mockedToday);
             mockMvc.perform(post("/api/leave")
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
@@ -410,20 +402,18 @@ public class LeaveControllerTest {
     @Test
     @DataSet("dataset/create_leave.xml")
     public void testAddLeaveWithEndDateNotInCurrentYear_shouldFailsAndReturnBadRequest() throws Exception {
-        LocalDate from = LocalDate.of(2021, 1, 1);
-        LocalDate to = LocalDate.of(2021, 1, 1);
-
-        Employee employee = employeeRepository.findById(LONG_STANDING_EMPLOYEE_ID).get();
+        LocalDate requestedLeavesStartDate = LocalDate.of(2021, 1, 1);
+        LocalDate requestedLeavesEndDate = LocalDate.of(2021, 1, 1);
 
         CreateLeaveRequest request = CreateLeaveRequest.builder()
-                .startDate(from)
-                .endDate(to)
-                .employeeId(LONG_STANDING_EMPLOYEE_ID)
+                .startDate(requestedLeavesStartDate)
+                .endDate(requestedLeavesEndDate)
+                .employeeId(EMPLOYEE_WITH_30_DAYS_OF_VACATION_ID)
                 .build();
 
-        final LocalDate today = LocalDate.of(2020, 1, 1);
+        final LocalDate mockedToday = LocalDate.of(2020, 1, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
-            mocked.when(LocalDate::now).thenReturn(today);
+            mocked.when(LocalDate::now).thenReturn(mockedToday);
             mockMvc.perform(post("/api/leave")
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))

@@ -36,4 +36,10 @@ public class Leave {
     @JoinColumn(name = "employee_id", nullable = false)
     @JsonBackReference("employee-leaves")
     private Employee employee;
+
+    public Leave(LocalDate leaveDate, boolean salaryDeducted, Employee employee) {
+        this.leaveDate = leaveDate;
+        this.salaryDeducted = salaryDeducted;
+        this.employee = employee;
+    }
 }

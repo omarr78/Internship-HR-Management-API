@@ -14,4 +14,10 @@ public class CreateLeaveResponse {
     private LocalDate leaveDate;
     private boolean salaryDeducted;
     private Long employeeId;
+
+    public CreateLeaveResponse(LocalDate leaveDate, boolean salaryDeducted, Long employeeId) {
+        this.leaveDate = leaveDate;
+        this.salaryDeducted = salaryDeducted;
+        this.employeeId = employeeId;
+    }
 }
