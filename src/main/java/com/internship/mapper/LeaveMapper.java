@@ -12,7 +12,6 @@ public class LeaveMapper {
     public Leave toEntity(LocalDate date, Boolean salaryDeducted, Employee employee) {
         return Leave.builder()
                 .leaveDate(date)
-                .salaryDeducted(salaryDeducted)
                 .employee(employee)
                 .build();
     }
@@ -21,7 +20,6 @@ public class LeaveMapper {
         return CreateLeaveResponse.builder()
                 .id(leave.getId())
                 .leaveDate(leave.getLeaveDate())
-                .salaryDeducted(leave.isSalaryDeducted())
                 .employeeId(leave.getEmployee().getId())
                 .build();
     }
