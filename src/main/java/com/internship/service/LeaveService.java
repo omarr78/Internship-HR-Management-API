@@ -11,6 +11,7 @@ import com.internship.repository.LeaveRepository;
 import com.internship.validation.aspect.ValidateLeaveDates;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -18,6 +19,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.internship.exception.ApiError.DUPLICATE_LEAVE_EXCEPTION;
 import static com.internship.exception.ApiError.EMPLOYEE_NOT_FOUND;
 
 @Service
@@ -44,7 +46,11 @@ public class LeaveService {
             }
             currentDate = currentDate.plusDays(1);
         }
-        leaveRepository.saveAll(leaves);
+        try {
+            leaveRepository.saveAll(leaves);
+        } catch (DataIntegrityViolationException ex) {
+            throw new BusinessException(DUPLICATE_LEAVE_EXCEPTION);
+        }
         return leaves.stream().map(leaveMapper::toResponse).toList();
     }
 }
