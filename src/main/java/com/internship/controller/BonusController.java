@@ -2,11 +2,7 @@ package com.internship.controller;
 
 import com.internship.dto.CreateBonusRequest;
 import com.internship.dto.CreateBonusResponse;
-import com.internship.entity.Bonus;
-import com.internship.entity.Employee;
-import com.internship.exception.BusinessException;
-import com.internship.repository.BonusRepository;
-import com.internship.repository.EmployeeRepository;
+import com.internship.service.BonusService;
 import com.internship.validation.aspect.ValidateBonusDate;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,36 +13,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
-
-import static com.internship.exception.ApiError.EMPLOYEE_NOT_FOUND;
-
 @RestController
 @RequestMapping("/api/bonus")
 @RequiredArgsConstructor
 public class BonusController {
-    private final BonusRepository bonusRepository;
-    private final EmployeeRepository employeeRepository;
+    private final BonusService bonusService;
 
     @PostMapping
     @ValidateBonusDate
     public ResponseEntity<CreateBonusResponse> createBonus(@RequestBody @Valid final CreateBonusRequest request) {
-        Long id = request.getEmployeeId();
-        Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
-                        "Employee not found with id: " + id));
-        Bonus bonus;
-        if (request.getBonusDate() == null) {
-            bonus = new Bonus(LocalDate.now(), request.getAmount(), employee);
-        } else {
-            bonus = new Bonus(request.getBonusDate(), request.getAmount(), employee);
-        }
-        bonusRepository.save(bonus);
-        CreateBonusResponse response = CreateBonusResponse.builder()
-                .id(bonus.getId())
-                .bonusDate(bonus.getBonusDate())
-                .employeeId(employee.getId())
-                .build();
+        CreateBonusResponse response = bonusService.addBonus(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
