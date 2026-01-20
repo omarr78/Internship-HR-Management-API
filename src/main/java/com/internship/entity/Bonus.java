@@ -28,4 +28,10 @@ public class Bonus {
     @JoinColumn(name = "EMPLOYEE_ID", nullable = false)
     @JsonBackReference("employee-bonuses")
     private Employee employee;
+
+    public Bonus(LocalDate bonusDate, Float amount, Employee employee) {
+        this.bonusDate = bonusDate;
+        this.amount = amount;
+        this.employee = employee;
+    }
 }
