@@ -6,6 +6,7 @@ import com.internship.entity.Bonus;
 import com.internship.entity.Employee;
 import com.internship.repository.BonusRepository;
 import com.internship.repository.EmployeeRepository;
+import com.internship.validation.aspect.ValidateBonusDate;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ public class BonusController {
     private final EmployeeRepository employeeRepository;
 
     @PostMapping
+    @ValidateBonusDate
     public ResponseEntity<CreateBonusResponse> createBonus(@RequestBody @Valid final CreateBonusRequest request) {
         Long id = request.getEmployeeId();
         Employee employee = employeeRepository.findById(id).get();
