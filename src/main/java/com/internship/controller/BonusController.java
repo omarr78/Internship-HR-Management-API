@@ -4,6 +4,7 @@ import com.internship.dto.CreateBonusRequest;
 import com.internship.dto.CreateBonusResponse;
 import com.internship.entity.Bonus;
 import com.internship.entity.Employee;
+import com.internship.exception.BusinessException;
 import com.internship.repository.BonusRepository;
 import com.internship.repository.EmployeeRepository;
 import com.internship.validation.aspect.ValidateBonusDate;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 
+import static com.internship.exception.ApiError.EMPLOYEE_NOT_FOUND;
+
 @RestController
 @RequestMapping("/api/bonus")
 @RequiredArgsConstructor
@@ -29,7 +32,9 @@ public class BonusController {
     @ValidateBonusDate
     public ResponseEntity<CreateBonusResponse> createBonus(@RequestBody @Valid final CreateBonusRequest request) {
         Long id = request.getEmployeeId();
-        Employee employee = employeeRepository.findById(id).get();
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+                        "Employee not found with id: " + id));
         Bonus bonus;
         if (request.getBonusDate() == null) {
             bonus = new Bonus(LocalDate.now(), request.getAmount(), employee);
