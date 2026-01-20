@@ -32,9 +32,9 @@ public class BonusService {
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
 
-        Bonus bonus = request.getBonusDate() == null ?
-                bonusMapper.toEntity(LocalDate.now(), request.getAmount(), employee) :
-                bonusMapper.toEntity(request.getBonusDate(), request.getAmount(), employee);
+        Bonus bonus = request.getBonusDate() == null
+                ? bonusMapper.toEntity(LocalDate.now(), request.getAmount(), employee)
+                : bonusMapper.toEntity(request.getBonusDate(), request.getAmount(), employee);
 
         bonusRepository.save(bonus);
         return bonusMapper.toResponse(bonus);
