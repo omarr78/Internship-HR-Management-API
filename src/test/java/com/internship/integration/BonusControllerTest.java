@@ -237,4 +237,27 @@ public class BonusControllerTest {
                     });
         }
     }
+
+    @Test
+    @DataSet("dataset/create_bonus.xml")
+    public void testAddLeaveWithNotFoundEmployee_shouldFailAndReturnEmployeeNotFound() throws Exception {
+        CreateBonusRequest request = CreateBonusRequest.builder()
+                .amount(POSITIVE_AMOUNT)
+                .employeeId(NON_EXISTENT_ID)
+                .build();
+
+        final LocalDate mockedToday = LocalDate.of(2020, 1, 1);
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(mockedToday);
+            mockMvc.perform(post("/api/bonus")
+                            .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isNotFound())
+                    .andExpect(result -> {
+                        String json = result.getResponse().getContentAsString();
+                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                        assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
+                    });
+        }
+    }
 }
