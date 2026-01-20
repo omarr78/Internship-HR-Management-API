@@ -3,6 +3,10 @@ package com.internship.exception;
 import org.springframework.http.HttpStatus;
 
 public enum ApiError {
+    DUPLICATE_LEAVE_EXCEPTION(HttpStatus.CONFLICT, "This employee already has a leave recorded for the specified date"),
+    INVALID_END_DATE_YEAR(HttpStatus.BAD_REQUEST, "end date must be in the same current year"),
+    INVALID_START_DATE_MONTH(HttpStatus.BAD_REQUEST, "start date must be at least in the same current month"),
+    INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "start date must be before or equal to end date"),
     INVALID_DATA(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid data entered"),
     HIERARCHY_CYCLE_DETECTED(HttpStatus.CONFLICT, "Cycle detected in employee hierarchy"),
     NEGATIVE_SALARY(HttpStatus.CONFLICT, "Salary cannot be Negative after deduction"),
