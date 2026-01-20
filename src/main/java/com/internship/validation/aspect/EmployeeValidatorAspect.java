@@ -87,7 +87,7 @@ public class EmployeeValidatorAspect {
             }
             LocalDate currentDate = LocalDate.now();
             // start date must be at least in the same month
-            if (request.getStartDate().getMonthValue() != currentDate.getMonthValue()) {
+            if (request.getStartDate().getMonthValue() < currentDate.getMonthValue()) {
                 throw new BusinessException(INVALID_START_DATE_MONTH);
             }
             // end date must be in the same year
