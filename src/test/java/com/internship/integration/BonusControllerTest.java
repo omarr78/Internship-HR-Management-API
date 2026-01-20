@@ -88,4 +88,48 @@ public class BonusControllerTest {
                     .contains(expectedBonus);
         }
     }
+
+    @Test
+    @DataSet("dataset/create_bonus.xml")
+    public void testAddBonusWithEnteringDate_shouldSuccessAndReturnBonusDetailsWithEnteredDate() throws Exception {
+        // we will create bonus for employee with id 1 and its amount is 1000 and date 5 Jan 2020
+        LocalDate requestedBonusDate = LocalDate.of(2020, 1, 5);
+        CreateBonusRequest request = CreateBonusRequest.builder()
+                .amount(POSITIVE_AMOUNT)
+                .employeeId(EXISTENT_EMPLOYEE_ID)
+                .bonusDate(requestedBonusDate)
+                .build();
+
+        final LocalDate mockedToday = LocalDate.of(2020, 1, 1);
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(mockedToday);
+            MvcResult result = mockMvc.perform(post("/api/bonus")
+                            .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isCreated())
+                    .andReturn();
+
+            CreateBonusResponse response = objectMapper.readValue(result.getResponse().getContentAsString(),
+                    CreateBonusResponse.class);
+
+            CreateBonusResponse expectedBonusResponse = new CreateBonusResponse(requestedBonusDate,
+                    EXISTENT_EMPLOYEE_ID);
+
+            // assertion on response
+            Assertions.assertThat(response)
+                    .usingRecursiveComparison()
+                    .ignoringFields("id")
+                    .isEqualTo(expectedBonusResponse);
+
+            Employee employee = employeeRepository.findById(EXISTENT_EMPLOYEE_ID).get();
+
+            Bonus expectedBonus = new Bonus(requestedBonusDate, POSITIVE_AMOUNT, employee);
+            List<Bonus> bonuses = bonusRepository.findAll();
+
+            // assertion on database
+            Assertions.assertThat(bonuses)
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
+                    .contains(expectedBonus);
+        }
+    }
 }
