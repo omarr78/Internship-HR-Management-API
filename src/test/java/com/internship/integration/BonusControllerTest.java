@@ -69,7 +69,8 @@ public class BonusControllerTest {
             CreateBonusResponse response = objectMapper.readValue(result.getResponse().getContentAsString(),
                     CreateBonusResponse.class);
 
-            CreateBonusResponse expectedBonusResponse = new CreateBonusResponse(mockedToday, EXISTENT_EMPLOYEE_ID);
+            CreateBonusResponse expectedBonusResponse = new CreateBonusResponse(mockedToday, POSITIVE_AMOUNT,
+                    EXISTENT_EMPLOYEE_ID);
 
             // assertion on response
             Assertions.assertThat(response)
@@ -112,7 +113,7 @@ public class BonusControllerTest {
             CreateBonusResponse response = objectMapper.readValue(result.getResponse().getContentAsString(),
                     CreateBonusResponse.class);
 
-            CreateBonusResponse expectedBonusResponse = new CreateBonusResponse(requestedBonusDate,
+            CreateBonusResponse expectedBonusResponse = new CreateBonusResponse(requestedBonusDate, POSITIVE_AMOUNT,
                     EXISTENT_EMPLOYEE_ID);
 
             // assertion on response
