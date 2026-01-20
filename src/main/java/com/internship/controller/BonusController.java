@@ -38,7 +38,7 @@ public class BonusController {
         CreateBonusResponse response = CreateBonusResponse.builder()
                 .id(bonus.getId())
                 .bonusDate(bonus.getBonusDate())
-                .employeeId(bonus.getId())
+                .employeeId(employee.getId())
                 .build();
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
