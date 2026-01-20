@@ -46,8 +46,6 @@ public class BonusControllerTest {
     @Autowired
     private EmployeeRepository employeeRepository;
     @Autowired
-    private BonusRepository leaveRepository;
-    @Autowired
     private BonusRepository bonusRepository;
 
     @Test
@@ -179,6 +177,63 @@ public class BonusControllerTest {
                         String json = result.getResponse().getContentAsString();
                         ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
                         assertEquals("must be greater than 0", error.getErrorMessage());
+                    });
+        }
+    }
+
+    @Test
+    @DataSet("dataset/create_bonus.xml")
+    public void testAddLeaveWithDateInThePreviousMonth_shouldFailAndReturnBadRequest() throws Exception {
+        // we will create bonus for employee with id 1 and its amount is 1000 and date 1 Jan 2020
+        // and the current date is 1 Feb 2020
+        LocalDate requestedBonusDate = LocalDate.of(2020, 1, 1);
+        CreateBonusRequest request = CreateBonusRequest.builder()
+                .amount(POSITIVE_AMOUNT)
+                .employeeId(EXISTENT_EMPLOYEE_ID)
+                .bonusDate(requestedBonusDate)
+                .build();
+
+        final LocalDate mockedToday = LocalDate.of(2020, 2, 1);
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(mockedToday);
+            mockMvc.perform(post("/api/bonus")
+                            .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> {
+                        String json = result.getResponse().getContentAsString();
+                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                        assertEquals("date must be in the same current month",
+                                error.getErrorMessage());
+                    });
+        }
+    }
+
+    @Test
+    @DataSet("dataset/create_bonus.xml")
+    public void testAddLeaveWithDateNotInCurrentYear_shouldFailsAndReturnBadRequest() throws Exception {
+        // we will create bonus for employee with id 1 and its amount is 1000 and date 1 Jan 2021
+        // and the current date is 1 Jan 2020
+        LocalDate requestedBonusDate = LocalDate.of(2021, 1, 1);
+
+        CreateBonusRequest request = CreateBonusRequest.builder()
+                .amount(POSITIVE_AMOUNT)
+                .employeeId(EXISTENT_EMPLOYEE_ID)
+                .bonusDate(requestedBonusDate)
+                .build();
+
+        final LocalDate mockedToday = LocalDate.of(2020, 1, 1);
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(mockedToday);
+            mockMvc.perform(post("/api/bonus")
+                            .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> {
+                        String json = result.getResponse().getContentAsString();
+                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                        assertEquals("date must be in the same current year",
+                                error.getErrorMessage());
                     });
         }
     }
