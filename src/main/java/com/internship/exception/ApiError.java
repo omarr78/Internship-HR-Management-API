@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 
 public enum ApiError {
     INVALID_DATE_YEAR(HttpStatus.BAD_REQUEST, "date must be in the same current year"),
-    INVALID_DATE_MONTH(HttpStatus.BAD_REQUEST, "date must be in the same current month"),
+    INVALID_DATE_MONTH(HttpStatus.BAD_REQUEST, "date must be at least in the same current month"),
     INVALID_DATA(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid data entered"),
     HIERARCHY_CYCLE_DETECTED(HttpStatus.CONFLICT, "Cycle detected in employee hierarchy"),
     NEGATIVE_SALARY(HttpStatus.CONFLICT, "Salary cannot be Negative after deduction"),

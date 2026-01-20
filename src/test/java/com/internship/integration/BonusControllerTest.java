@@ -204,7 +204,7 @@ public class BonusControllerTest {
                     .andExpect(result -> {
                         String json = result.getResponse().getContentAsString();
                         ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                        assertEquals("date must be in the same current month",
+                        assertEquals("date must be at least in the same current month",
                                 error.getErrorMessage());
                     });
         }
