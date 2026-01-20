@@ -29,7 +29,11 @@ public class BonusController {
         Long id = request.getEmployeeId();
         Employee employee = employeeRepository.findById(id).get();
         Bonus bonus;
-        bonus = new Bonus(LocalDate.now(), request.getAmount(), employee);
+        if (request.getBonusDate() == null) {
+            bonus = new Bonus(LocalDate.now(), request.getAmount(), employee);
+        } else {
+            bonus = new Bonus(request.getBonusDate(), request.getAmount(), employee);
+        }
         bonusRepository.save(bonus);
         CreateBonusResponse response = CreateBonusResponse.builder()
                 .id(bonus.getId())
