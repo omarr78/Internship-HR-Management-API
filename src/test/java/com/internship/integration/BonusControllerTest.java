@@ -7,6 +7,7 @@ import com.internship.dto.CreateBonusRequest;
 import com.internship.dto.CreateBonusResponse;
 import com.internship.entity.Bonus;
 import com.internship.entity.Employee;
+import com.internship.exception.ErrorCode;
 import com.internship.repository.BonusRepository;
 import com.internship.repository.EmployeeRepository;
 import jakarta.transaction.Transactional;
@@ -24,6 +25,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -130,6 +132,54 @@ public class BonusControllerTest {
             Assertions.assertThat(bonuses)
                     .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
                     .contains(expectedBonus);
+        }
+    }
+
+    @Test
+    @DataSet("dataset/create_bonus.xml")
+    public void testAddBonusWithNegativeAmount_shouldFailAndShouldReturnBadRequest() throws Exception {
+        // we will create bonus for employee with id 1 and its amount is NEGATIVE_AMOUNT
+        CreateBonusRequest request = CreateBonusRequest.builder()
+                .amount(NEGATIVE_AMOUNT)
+                .employeeId(EXISTENT_EMPLOYEE_ID)
+                .build();
+
+        final LocalDate mockedToday = LocalDate.of(2020, 1, 1);
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(mockedToday);
+            mockMvc.perform(post("/api/bonus")
+                            .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> {
+                        String json = result.getResponse().getContentAsString();
+                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                        assertEquals("must be greater than 0", error.getErrorMessage());
+                    });
+        }
+    }
+
+    @Test
+    @DataSet("dataset/create_bonus.xml")
+    public void testAddBonusWithZeroAmount_shouldFailAndShouldReturnBadRequest() throws Exception {
+        // we will create bonus for employee with id 1 and its amount is NEGATIVE_AMOUNT
+        CreateBonusRequest request = CreateBonusRequest.builder()
+                .amount(ZERO_AMOUNT)
+                .employeeId(EXISTENT_EMPLOYEE_ID)
+                .build();
+
+        final LocalDate mockedToday = LocalDate.of(2020, 1, 1);
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(mockedToday);
+            mockMvc.perform(post("/api/bonus")
+                            .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> {
+                        String json = result.getResponse().getContentAsString();
+                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
+                        assertEquals("must be greater than 0", error.getErrorMessage());
+                    });
         }
     }
 }
