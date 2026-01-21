@@ -1,5 +1,6 @@
 package com.internship.validation.aspect;
 
+import com.internship.dto.CreateBonusRequest;
 import com.internship.dto.CreateEmployeeRequest;
 import com.internship.dto.UpdateEmployeeRequest;
 import com.internship.entity.Employee;
@@ -15,7 +16,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.Optional;
 
-import static com.internship.exception.ApiError.INVALID_EMPLOYEE_DATES_EXCEPTION;
+import static com.internship.exception.ApiError.*;
 
 @Aspect
 @Component
@@ -67,6 +68,27 @@ public class EmployeeValidatorAspect {
                         : employee.get().getGraduationDate();
 
                 validateGraduationAndBirthDate(dob, grad);
+            }
+        }
+    }
+
+    @Before("@annotation(com.internship.validation.aspect.ValidateBonusDate)")
+    public void validateCreateBonusDate(JoinPoint joinPoint) {
+        CreateBonusRequest request = null;
+        for (Object arg : joinPoint.getArgs()) {
+            if (arg instanceof CreateBonusRequest createLeaveRequest) {
+                request = createLeaveRequest;
+            }
+        }
+        if (request != null && request.getBonusDate() != null) {
+            LocalDate currentDate = LocalDate.now();
+            // date must be at least in the same month
+            if (request.getBonusDate().getMonthValue() < currentDate.getMonthValue()) {
+                throw new BusinessException(INVALID_DATE_MONTH);
+            }
+            // date must be in the same year
+            if (request.getBonusDate().getYear() != currentDate.getYear()) {
+                throw new BusinessException(INVALID_DATE_YEAR);
             }
         }
     }
