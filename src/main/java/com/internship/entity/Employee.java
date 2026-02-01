@@ -84,5 +84,9 @@ public class Employee {
     @OneToMany(mappedBy = "employee")
     @JsonManagedReference("employee-leaves")
     private List<Leave> leaves;
+
+    @OneToMany(mappedBy = "employee")
+    @JsonManagedReference("employee-bonuses")
+    private List<Bonus> bonuses;
 }
 
