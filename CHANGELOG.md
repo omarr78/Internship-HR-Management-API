@@ -1,3 +1,20 @@
+# [1.2.0](https://github.com/omarr78/Internship-HR-Management-API/compare/v1.1.0...v1.2.0) (2026-02-01)
+
+
+### Bug Fixes
+
+* add missing amount field in response dto and refactor tests ([4f8958a](https://github.com/omarr78/Internship-HR-Management-API/commit/4f8958a2f1580671e161beeabf7ce079bc65119f))
+* add missing column in bonus table in migration file ([5523f40](https://github.com/omarr78/Internship-HR-Management-API/commit/5523f401b7067680a8b45aaa44a0620ff46bdf6f))
+* fix implementation of bonus employeeId ([da705f4](https://github.com/omarr78/Internship-HR-Management-API/commit/da705f400103bca15169ba0a1fbd91803885bf69))
+
+
+### Features
+
+* add implement for handling not found employee ([47a06d1](https://github.com/omarr78/Internship-HR-Management-API/commit/47a06d14cf71382bd00faaa7f8f48a5b57491ec1))
+* add implementation for handle date in add bonus request ([e522120](https://github.com/omarr78/Internship-HR-Management-API/commit/e522120bdbd3379ea1dee67721cdac061895976f))
+* implement add bonus with entered date in request ([9fc0e6b](https://github.com/omarr78/Internship-HR-Management-API/commit/9fc0e6bc69ff440f138dcb5eb7247cf26fe4e4b7))
+* implement add bonus with no entered date in the request ([14b1f8a](https://github.com/omarr78/Internship-HR-Management-API/commit/14b1f8ad5c87d50fce49915c12c89ea99688fa40))
+
 # [1.1.0](https://github.com/omarr78/Internship-HR-Management-API/compare/v1.0.0...v1.1.0) (2026-02-01)
 
 
