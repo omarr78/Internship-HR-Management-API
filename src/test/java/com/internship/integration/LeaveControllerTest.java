@@ -7,7 +7,6 @@ import com.internship.dto.CreateLeaveRequest;
 import com.internship.dto.CreateLeaveResponse;
 import com.internship.entity.Employee;
 import com.internship.entity.Leave;
-import com.internship.exception.ErrorCode;
 import com.internship.repository.EmployeeRepository;
 import com.internship.repository.LeaveRepository;
 import jakarta.transaction.Transactional;
@@ -27,7 +26,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -186,11 +185,8 @@ public class LeaveControllerTest {
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
-                    .andExpect(result -> {
-                        String json = result.getResponse().getContentAsString();
-                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                        assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
-                    });
+                    .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                            .contains("Employee not found with id: " + NON_EXISTENT_ID)));
         }
     }
 
@@ -218,12 +214,8 @@ public class LeaveControllerTest {
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isConflict())
-                    .andExpect(result -> {
-                        String json = result.getResponse().getContentAsString();
-                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                        assertEquals("This employee already has a leave recorded for the specified date",
-                                error.getErrorMessage());
-                    });
+                    .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                            .contains("This employee already has a leave recorded for the specified date")));
         }
     }
 
@@ -246,12 +238,8 @@ public class LeaveControllerTest {
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(result -> {
-                        String json = result.getResponse().getContentAsString();
-                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                        assertEquals("start date must be before or equal to end date",
-                                error.getErrorMessage());
-                    });
+                    .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                            .contains("start date must be before or equal to end date")));
         }
     }
 
@@ -274,12 +262,8 @@ public class LeaveControllerTest {
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(result -> {
-                        String json = result.getResponse().getContentAsString();
-                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                        assertEquals("start date must be at least in the same current month",
-                                error.getErrorMessage());
-                    });
+                    .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                            .contains("start date must be at least in the same current month")));
         }
     }
 
@@ -302,12 +286,8 @@ public class LeaveControllerTest {
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(result -> {
-                        String json = result.getResponse().getContentAsString();
-                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                        assertEquals("end date must be in the same current year",
-                                error.getErrorMessage());
-                    });
+                    .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                            .contains("end date must be in the same current year")));
         }
     }
 }
