@@ -56,6 +56,9 @@ public class BonusControllerTest {
                 .employeeId(EXISTENT_EMPLOYEE_ID)
                 .build();
 
+        // capture database state before the api call
+        List<Bonus> bonusesBefore = bonusRepository.findAll();
+
         final LocalDate mockedToday = LocalDate.of(2020, 1, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
             mocked.when(LocalDate::now).thenReturn(mockedToday);
@@ -80,12 +83,15 @@ public class BonusControllerTest {
             Employee employee = employeeRepository.findById(EXISTENT_EMPLOYEE_ID).get();
 
             Bonus expectedBonus = new Bonus(mockedToday, POSITIVE_AMOUNT, employee);
-            List<Bonus> bonuses = bonusRepository.findAll();
+            // capture database state after the api call
+            List<Bonus> bonusesAfter = bonusRepository.findAll();
 
             // assertion on database
-            Assertions.assertThat(bonuses)
+            Assertions.assertThat(bonusesAfter)
                     .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
-                    .contains(expectedBonus);
+                    .containsAll(bonusesBefore)
+                    .contains(expectedBonus)
+                    .hasSize(bonusesBefore.size() + 1);
         }
     }
 
@@ -99,6 +105,9 @@ public class BonusControllerTest {
                 .employeeId(EXISTENT_EMPLOYEE_ID)
                 .bonusDate(requestedBonusDate)
                 .build();
+
+        // capture database state before the api call
+        List<Bonus> bonusesBefore = bonusRepository.findAll();
 
         final LocalDate mockedToday = LocalDate.of(2020, 1, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
@@ -124,12 +133,15 @@ public class BonusControllerTest {
             Employee employee = employeeRepository.findById(EXISTENT_EMPLOYEE_ID).get();
 
             Bonus expectedBonus = new Bonus(requestedBonusDate, POSITIVE_AMOUNT, employee);
-            List<Bonus> bonuses = bonusRepository.findAll();
+            // capture database state after the api call
+            List<Bonus> bonusesAfter = bonusRepository.findAll();
 
             // assertion on database
-            Assertions.assertThat(bonuses)
+            Assertions.assertThat(bonusesAfter)
                     .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
-                    .contains(expectedBonus);
+                    .containsAll(bonusesBefore)
+                    .contains(expectedBonus)
+                    .hasSize(bonusesBefore.size() + 1);
         }
     }
 
