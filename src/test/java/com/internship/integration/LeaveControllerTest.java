@@ -21,9 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -46,20 +44,6 @@ public class LeaveControllerTest {
     private EmployeeRepository employeeRepository;
     @Autowired
     private LeaveRepository leaveRepository;
-
-    private List<Leave> generateLeavesFrom2020(int leaveDays, Employee employee) {
-        List<Leave> leaves = new ArrayList<>();
-        LocalDate currentDate = LocalDate.of(2020, 1, 1);
-        for (int i = 0; i < leaveDays; i++) {
-            if (currentDate.getDayOfWeek() == DayOfWeek.FRIDAY
-                    || currentDate.getDayOfWeek() == DayOfWeek.SATURDAY) {
-                currentDate = currentDate.plusDays(1);
-            }
-            leaves.add(new Leave(currentDate, employee));
-            currentDate = currentDate.plusDays(1);
-        }
-        return leaves;
-    }
 
     @Test
     @DataSet("dataset/create_leave.xml")
