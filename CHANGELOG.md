@@ -1,3 +1,21 @@
+# [1.1.0](https://github.com/omarr78/Internship-HR-Management-API/compare/v1.0.0...v1.1.0) (2026-02-01)
+
+
+### Bug Fixes
+
+* fix the validation logic for start date must be in the current month or after ([1fa652c](https://github.com/omarr78/Internship-HR-Management-API/commit/1fa652c54103d4c89421d0dd52165511bdfa0d30))
+
+
+### Features
+
+* add validation as an aspect before created ValidateLeavesDates Annotation ([10308de](https://github.com/omarr78/Internship-HR-Management-API/commit/10308deacbffeec5128d267f466024774caec590))
+* **db:** add leave table in migration and the entity ([58e044f](https://github.com/omarr78/Internship-HR-Management-API/commit/58e044f7109b1b75b00b19fbac3e5480863c0e70))
+* **db:** add leave table in migration and the entity1 ([fd66a60](https://github.com/omarr78/Internship-HR-Management-API/commit/fd66a6075fe2c3de8777c1269a686fff24b3f4ec))
+* handling duplicate exception ([c5810bb](https://github.com/omarr78/Internship-HR-Management-API/commit/c5810bbdc1843438f88d52a456223f4241d040fe))
+* implement exceeded leave days limit for long standing & recently joined employees ([ffefd98](https://github.com/omarr78/Internship-HR-Management-API/commit/ffefd98917a9eb861598f2a7bc7ecbc47ba38490))
+* **leave-controller:** add implementation in controller to pass test ([3efff80](https://github.com/omarr78/Internship-HR-Management-API/commit/3efff804d3797d3c9c1cf0be57e4871d47636306))
+* **leave-controller:** implement adding leaves in weekends scenario ([50b8227](https://github.com/omarr78/Internship-HR-Management-API/commit/50b82270e02f85e7cd33c3ab20d4f0277bd9bf15))
+
 # [1.0.0](https://github.com/omarr78/Internship-HR-Management-API/compare/v0.1.1...v1.0.0) (2026-01-14)
 
 
