@@ -58,6 +58,9 @@ public class LeaveControllerTest {
                 .endDate(requestedLeavesEndDate)
                 .employeeId(EXISTENT_EMPLOYEE_ID)
                 .build();
+        
+        // capture database state before the api call
+        List<Leave> leavesBefore = leaveRepository.findAll();
 
         final LocalDate mockedToday = LocalDate.of(2020, 1, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
@@ -89,13 +92,15 @@ public class LeaveControllerTest {
             Leave leave2 = new Leave(requestedLeavesEndDate, employee); // 2 jan 2020
 
             List<Leave> expectedLeaves = List.of(leave1, leave2);
-
-            List<Leave> leaves = leaveRepository.findAll();
+            // capture database state after the api call
+            List<Leave> leavesAfter = leaveRepository.findAll();
 
             // assertion on database
-            Assertions.assertThat(leaves)
+            Assertions.assertThat(leavesAfter)
                     .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
-                    .isEqualTo(expectedLeaves);
+                    .containsAll(leavesBefore)
+                    .containsAll(expectedLeaves)
+                    .hasSize(leavesBefore.size() + expectedLeaves.size());
         }
     }
 
@@ -113,6 +118,9 @@ public class LeaveControllerTest {
                 .endDate(requestedLeavesEndDate)
                 .employeeId(EXISTENT_EMPLOYEE_ID)
                 .build();
+
+        // capture database state before the api call
+        List<Leave> leavesBefore = leaveRepository.findAll();
 
         final LocalDate mockedToday = LocalDate.of(2020, 1, 1);
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
@@ -140,13 +148,15 @@ public class LeaveControllerTest {
             Leave thuLeave = new Leave(requestedLeavesStartDate, employee); // 2 jan 2020
 
             List<Leave> expectedLeaves = List.of(thuLeave);
-
-            List<Leave> leaves = leaveRepository.findAll();
+            // capture database state after the api call
+            List<Leave> leavesAfter = leaveRepository.findAll();
 
             // assertion on database
-            Assertions.assertThat(leaves)
+            Assertions.assertThat(leavesAfter)
                     .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
-                    .isEqualTo(expectedLeaves);
+                    .containsAll(leavesBefore)
+                    .containsAll(expectedLeaves)
+                    .hasSize(leavesBefore.size() + expectedLeaves.size());
         }
     }
 
