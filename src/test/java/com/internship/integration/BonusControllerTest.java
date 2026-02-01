@@ -184,7 +184,7 @@ public class BonusControllerTest {
 
     @Test
     @DataSet("dataset/create_bonus.xml")
-    public void testAddLeaveWithDateInThePreviousMonth_shouldFailAndReturnBadRequest() throws Exception {
+    public void testAddBonusWithDateInThePreviousMonth_shouldFailAndReturnBadRequest() throws Exception {
         // we will create bonus for employee with id 1 and its amount is 1000 and date 1 Jan 2020
         // and the current date is 1 Feb 2020
         LocalDate requestedBonusDate = LocalDate.of(2020, 1, 1);
@@ -212,7 +212,7 @@ public class BonusControllerTest {
 
     @Test
     @DataSet("dataset/create_bonus.xml")
-    public void testAddLeaveWithDateNotInCurrentYear_shouldFailsAndReturnBadRequest() throws Exception {
+    public void testAddBonusWithDateNotInCurrentYear_shouldFailsAndReturnBadRequest() throws Exception {
         // we will create bonus for employee with id 1 and its amount is 1000 and date 1 Jan 2021
         // and the current date is 1 Jan 2020
         LocalDate requestedBonusDate = LocalDate.of(2021, 1, 1);
@@ -241,7 +241,7 @@ public class BonusControllerTest {
 
     @Test
     @DataSet("dataset/create_bonus.xml")
-    public void testAddLeaveWithNotFoundEmployee_shouldFailAndReturnEmployeeNotFound() throws Exception {
+    public void testAddBonusWithNotFoundEmployee_shouldFailAndReturnEmployeeNotFound() throws Exception {
         CreateBonusRequest request = CreateBonusRequest.builder()
                 .amount(POSITIVE_AMOUNT)
                 .employeeId(NON_EXISTENT_ID)
