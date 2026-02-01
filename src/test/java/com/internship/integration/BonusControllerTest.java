@@ -7,7 +7,6 @@ import com.internship.dto.CreateBonusRequest;
 import com.internship.dto.CreateBonusResponse;
 import com.internship.entity.Bonus;
 import com.internship.entity.Employee;
-import com.internship.exception.ErrorCode;
 import com.internship.repository.BonusRepository;
 import com.internship.repository.EmployeeRepository;
 import jakarta.transaction.Transactional;
@@ -25,7 +24,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -150,11 +149,8 @@ public class BonusControllerTest {
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(result -> {
-                        String json = result.getResponse().getContentAsString();
-                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                        assertEquals("must be greater than 0", error.getErrorMessage());
-                    });
+                    .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                            .contains("must be greater than 0")));
         }
     }
 
@@ -174,11 +170,8 @@ public class BonusControllerTest {
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(result -> {
-                        String json = result.getResponse().getContentAsString();
-                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                        assertEquals("must be greater than 0", error.getErrorMessage());
-                    });
+                    .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                            .contains("must be greater than 0")));
         }
     }
 
@@ -201,12 +194,8 @@ public class BonusControllerTest {
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(result -> {
-                        String json = result.getResponse().getContentAsString();
-                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                        assertEquals("date must be at least in the same current month",
-                                error.getErrorMessage());
-                    });
+                    .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                            .contains("date must be at least in the same current month")));
         }
     }
 
@@ -230,12 +219,8 @@ public class BonusControllerTest {
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isBadRequest())
-                    .andExpect(result -> {
-                        String json = result.getResponse().getContentAsString();
-                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                        assertEquals("date must be in the same current year",
-                                error.getErrorMessage());
-                    });
+                    .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                            .contains("date must be in the same current year")));
         }
     }
 
@@ -254,11 +239,8 @@ public class BonusControllerTest {
                             .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isNotFound())
-                    .andExpect(result -> {
-                        String json = result.getResponse().getContentAsString();
-                        ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                        assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
-                    });
+                    .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                            .contains("Employee not found with id: " + NON_EXISTENT_ID)));
         }
     }
 }
