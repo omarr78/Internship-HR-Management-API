@@ -2,6 +2,7 @@ package com.internship.dto;
 
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
@@ -12,10 +13,10 @@ import java.time.LocalDate;
 public class CreateBonusResponse {
     private Long id;
     private LocalDate bonusDate;
-    private Float amount;
+    private BigDecimal amount;
     private Long employeeId;
 
-    public CreateBonusResponse(LocalDate bonusDate, Float amount, Long employeeId) {
+    public CreateBonusResponse(LocalDate bonusDate, BigDecimal amount, Long employeeId) {
         this.bonusDate = bonusDate;
         this.amount = amount;
         this.employeeId = employeeId;

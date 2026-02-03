@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
@@ -22,14 +23,14 @@ public class Bonus {
     private LocalDate bonusDate;
 
     @Column(name = "AMOUNT", nullable = false)
-    private Float amount;
+    private BigDecimal amount;
 
     @ManyToOne
     @JoinColumn(name = "EMPLOYEE_ID", nullable = false)
     @JsonBackReference("employee-bonuses")
     private Employee employee;
 
-    public Bonus(LocalDate bonusDate, Float amount, Employee employee) {
+    public Bonus(LocalDate bonusDate, BigDecimal amount, Employee employee) {
         this.bonusDate = bonusDate;
         this.amount = amount;
         this.employee = employee;

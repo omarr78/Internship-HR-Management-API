@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,8 +30,8 @@ public class EmployeeService {
     private static final int MIN_YEARS_FOR_EXTRA_LEAVE = 10;
     private static final int STANDARD_LEAVE_DAYS = 21;
     private static final int EXTENDED_LEAVE_DAYS = 30;
-    private static final float TAX_REMINDER = 0.85f;
-    private static final int INSURANCE_AMOUNT = 500;
+    private static final BigDecimal TAX_REMINDER = BigDecimal.valueOf(0.85);
+    private static final BigDecimal INSURANCE_AMOUNT = BigDecimal.valueOf(500);
     private final EmployeeRepository employeeRepository;
     private final DepartmentRepository departmentRepository;
     private final EmployeeMapper employeeMapper;
@@ -153,9 +154,9 @@ public class EmployeeService {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
-        float netSalary = employee.getGrossSalary() * TAX_REMINDER - INSURANCE_AMOUNT;
+        BigDecimal netSalary = employee.getGrossSalary().multiply(TAX_REMINDER).subtract(INSURANCE_AMOUNT);
         // prevent negative salaries
-        if (netSalary < 0) {
+        if (netSalary.compareTo(BigDecimal.ZERO) < 0) {
             throw new BusinessException(NEGATIVE_SALARY);
         }
         return SalaryDto.builder()

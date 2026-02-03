@@ -26,13 +26,16 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 import static com.internship.enums.Degree.FRESH;
 import static com.internship.enums.Degree.INTERMEDIATE;
 import static com.internship.enums.Gender.FEMALE;
 import static com.internship.enums.Gender.MALE;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -42,12 +45,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @DBRider
 public class EmployeeControllerTest {
-    private static final float DELTA = 0.0003f;
-    private static final float TAX_REMINDER = 0.85f;
-    private static final int INSURANCE_AMOUNT = 500;
+    private static final BigDecimal TAX_REMINDER = BigDecimal.valueOf(0.85);
+    private static final BigDecimal INSURANCE_AMOUNT = BigDecimal.valueOf(500);
     private static final Long NON_EXISTENT_ID = -1L;
     private static final String EMPTY_STRING = "";
-    private static final float NEGATIVE_SALARY = -1.0f;
+    private static final BigDecimal NEGATIVE_SALARY = BigDecimal.valueOf(-1.0);
     private static final Long EXISTENT_DEPARTMENT1_ID = 1L;
     private static final Long EXISTENT_DEPARTMENT2_ID = 2L;
     private static final Long EXISTENT_TEAM1_ID = 1L;
@@ -81,7 +83,7 @@ public class EmployeeControllerTest {
                 .dateOfBirth(LocalDate.of(1999, 10, 5))
                 .graduationDate(LocalDate.of(2025, 6, 5))
                 .gender(MALE)
-                .grossSalary(5000)
+                .grossSalary(BigDecimal.valueOf(5000))
                 .build();
     }
 
@@ -550,7 +552,7 @@ public class EmployeeControllerTest {
         LocalDate updatedGraduationDate = LocalDate.of(2025, 1, 1);
         Gender updatedGender = FEMALE;
         // valid salary >= 0
-        float updatedGrossSalary = 1500;
+        BigDecimal updatedGrossSalary = BigDecimal.valueOf(1500);
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 .firstName(updatedFirstName)
                 .lastName(updatedLastName)
@@ -637,8 +639,8 @@ public class EmployeeControllerTest {
             LocalDate expectedGraduationDate = LocalDate.of(2025, 6, 5);
             assertEquals(expectedGraduationDate, response.getGraduationDate());
 
-            float expectedSalary = 1000;
-            assertEquals(expectedSalary, response.getGrossSalary());
+            BigDecimal expectedSalary = BigDecimal.valueOf(1000);
+            assertThat(response.getGrossSalary()).isEqualByComparingTo(expectedSalary);
 
             // to calculate the number of leave days
             // current date - joined date
@@ -761,14 +763,14 @@ public class EmployeeControllerTest {
         from dataset/update_employees.xml
         <employees id='1' name='Ahmed' salary='1000' />
         */
-        float ahmedSalary = 1000;
-        float netSalary = ahmedSalary * TAX_REMINDER - INSURANCE_AMOUNT;
+        BigDecimal ahmedSalary = BigDecimal.valueOf(1000);
+        BigDecimal netSalary = ahmedSalary.multiply(TAX_REMINDER).subtract(INSURANCE_AMOUNT);
         MvcResult result = mockMvc.perform(get("/api/employees/" + EXISTENT_EMPLOYEE1_ID + "/salary"))
                 .andExpect(status().isOk())
                 .andReturn();
         SalaryDto response = objectMapper.readValue(result.getResponse().getContentAsString(), SalaryDto.class);
-        assertEquals(ahmedSalary, response.getGrossSalary());
-        assertEquals(netSalary, response.getNetSalary(), DELTA);
+        assertThat(response.getGrossSalary()).isEqualByComparingTo(ahmedSalary);
+        assertThat(response.getNetSalary()).isEqualByComparingTo(netSalary);
     }
 
     @Test
@@ -785,7 +787,7 @@ public class EmployeeControllerTest {
 
     @Test
     @DataSet("dataset/update_employees.xml")
-    public void testGetEmployeeSalaryWithNegativeNetSalary_ShouldReturnEmployeeNetSalaryWithZero() throws Exception {
+    public void testGetEmployeeSalaryWithNegativeNetSalary_ShouldFailAndReturnIsConflict() throws Exception {
         /*
         from dataset/update_employees.xml
         <employees id='2' name='mostafa' salary='100'/>

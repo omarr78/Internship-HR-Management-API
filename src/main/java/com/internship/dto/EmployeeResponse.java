@@ -4,6 +4,7 @@ import com.internship.enums.Degree;
 import com.internship.enums.Gender;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class EmployeeResponse {
     private LocalDate dateOfBirth;
     private LocalDate graduationDate;
     private Gender gender;
-    private float grossSalary;
+    private BigDecimal grossSalary;
     private Integer leaveDays;
     private Long departmentId;
     private Long teamId;
