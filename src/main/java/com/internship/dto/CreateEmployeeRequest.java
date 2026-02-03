@@ -5,6 +5,7 @@ import com.internship.enums.Gender;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -45,7 +46,8 @@ public class CreateEmployeeRequest {
     private Gender gender;
 
     @Min(0)
-    private float grossSalary;
+    @NotNull
+    private BigDecimal grossSalary;
 
     @NotNull(message = "departmentId required")
     private Long departmentId;

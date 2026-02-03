@@ -3,6 +3,7 @@ package com.internship.dto;
 import com.internship.enums.Degree;
 import com.internship.enums.Gender;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -27,7 +28,7 @@ public interface EmployeeDtoInterface {
 
     Gender getGender();
 
-    float getGrossSalary();
+    BigDecimal getGrossSalary();
 
     Long getDepartmentId();
 

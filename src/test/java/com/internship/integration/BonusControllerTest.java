@@ -21,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -33,9 +34,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @DBRider
 public class BonusControllerTest {
-    static final Float POSITIVE_AMOUNT = 1000F;
-    static final Float NEGATIVE_AMOUNT = -500F;
-    static final Float ZERO_AMOUNT = 0F;
+    static final BigDecimal POSITIVE_AMOUNT = BigDecimal.valueOf(1000);
+    static final BigDecimal NEGATIVE_AMOUNT = BigDecimal.valueOf(-500);
+    static final BigDecimal ZERO_AMOUNT = BigDecimal.valueOf(0);
     private static final Long NON_EXISTENT_ID = -1L;
     private static final Long EXISTENT_EMPLOYEE_ID = 1L;
     @Autowired

@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
@@ -16,7 +17,7 @@ public class CreateBonusRequest {
 
     @NotNull(message = "bonus amount is required")
     @Positive
-    private Float amount;
+    private BigDecimal amount;
 
     @NotNull(message = "employeeId is required")
     private Long employeeId;
