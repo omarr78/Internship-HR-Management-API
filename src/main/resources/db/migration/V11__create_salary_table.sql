@@ -8,3 +8,6 @@ CREATE TABLE employee_salaries
     CONSTRAINT pk_employee_salaries PRIMARY KEY (id),
     CONSTRAINT fk_employee_on_employee_salaries FOREIGN KEY (employee_id) REFERENCES employees (id)
 );
+
+ALTER TABLE employees
+    DROP COLUMN GROSS_SALARY;

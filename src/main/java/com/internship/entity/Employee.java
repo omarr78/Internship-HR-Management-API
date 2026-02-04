@@ -7,7 +7,6 @@ import com.internship.enums.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -51,9 +50,6 @@ public class Employee {
     @Enumerated(EnumType.STRING)
     @Column(name = "GENDER", nullable = false)
     private Gender gender;
-
-    @Column(name = "GROSS_SALARY", nullable = false)
-    private BigDecimal grossSalary;
 
     @ManyToOne
     @JoinColumn(name = "DEPARTMENT_ID", nullable = false)
