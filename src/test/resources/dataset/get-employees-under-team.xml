@@ -20,7 +20,6 @@
             date_of_birth="1999-10-05"
             graduation_date="2022-06-05"
             gender="MALE"
-            gross_salary="1000000"
             department_id="1"
             team_id="1"
     />
@@ -36,7 +35,6 @@
             date_of_birth="1999-10-05"
             graduation_date="2022-06-05"
             gender="MALE"
-            gross_salary="1000"
             department_id="1"
             team_id="1"
     />
@@ -52,7 +50,6 @@
             date_of_birth="1999-10-05"
             graduation_date="2022-06-05"
             gender="MALE"
-            gross_salary="1000"
             department_id="1"
             team_id="1"
     />
@@ -68,7 +65,6 @@
             date_of_birth="1999-10-05"
             graduation_date="2022-06-05"
             gender="MALE"
-            gross_salary="1000"
             department_id="1"
             team_id="2"
     />
@@ -84,9 +80,44 @@
             date_of_birth="1999-10-05"
             graduation_date="2022-06-05"
             gender="MALE"
-            gross_salary="1000"
             department_id="1"
             team_id="2"
+    />
+    <!--    insert salary    -->
+    <employee_salaries
+            id='1'
+            creation_date='2025-01-01'
+            gross_salary='1000000'
+            reason='Initial base salary'
+            employee_id='1'
+    />
+    <employee_salaries
+            id='2'
+            creation_date='2025-01-02'
+            gross_salary='1000'
+            reason='Initial base salary'
+            employee_id='2'
+    />
+    <employee_salaries
+            id='3'
+            creation_date='2025-01-03'
+            gross_salary='1000'
+            reason='Initial base salary'
+            employee_id='3'
+    />
+    <employee_salaries
+            id='4'
+            creation_date='2025-01-04'
+            gross_salary='1000'
+            reason='Initial base salary'
+            employee_id='4'
+    />
+    <employee_salaries
+            id='5'
+            creation_date='2025-01-05'
+            gross_salary='1000'
+            reason='Initial base salary'
+            employee_id='5'
     />
 
 </dataset>

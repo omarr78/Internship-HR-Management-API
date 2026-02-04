@@ -15,7 +15,13 @@
             date_of_birth='1948-10-05'
             graduation_date='1970-06-05'
             gender='MALE'
-            gross_salary='1000000'
             department_id='1'
             team_id='1'/>
+    <employee_salaries
+            id='1'
+            creation_date='2025-01-01'
+            gross_salary='1000000.00'
+            reason='Initial base salary'
+            employee_id='1'
+    />
 </dataset>

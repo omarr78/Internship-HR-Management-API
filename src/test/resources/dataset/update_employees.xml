@@ -22,7 +22,6 @@
             date_of_birth='1980-10-05'
             graduation_date='2002-06-05'
             gender='MALE'
-            gross_salary='100000'
             department_id='1'
             team_id='1'/>
 
@@ -37,7 +36,6 @@
             date_of_birth='1985-09-10'
             graduation_date='2007-06-20'
             gender='MALE'
-            gross_salary='90000'
             department_id='1'
             team_id='1'/>
 
@@ -53,7 +51,6 @@
             date_of_birth='2003-10-05'
             graduation_date='2025-06-05'
             gender='MALE'
-            gross_salary='1000'
             department_id='1'
             team_id='1'
             manager_id='10'/>
@@ -69,7 +66,6 @@
             date_of_birth='2003-08-12'
             graduation_date='2025-06-05'
             gender='MALE'
-            gross_salary='100'
             department_id='1'
             team_id='1'
             manager_id='10'/>
@@ -77,5 +73,34 @@
     <!-- Link employee with expertise  -->
     <employee_expertise employee_id='2' expertise_id='1'/>
     <employee_expertise employee_id='1' expertise_id='1'/>
+    <!--    insert salary    -->
+    <employee_salaries
+            id='1'
+            creation_date='2025-01-01'
+            gross_salary='100000.00'
+            reason='Initial base salary'
+            employee_id='10'
+    />
+    <employee_salaries
+            id='2'
+            creation_date='2025-01-02'
+            gross_salary='90000'
+            reason='Initial base salary'
+            employee_id='11'
+    />
+    <employee_salaries
+            id='3'
+            creation_date='2025-01-03'
+            gross_salary='1000'
+            reason='Initial base salary'
+            employee_id='1'
+    />
+    <employee_salaries
+            id='4'
+            creation_date='2025-01-04'
+            gross_salary='100'
+            reason='Initial base salary'
+            employee_id='2'
+    />
 
 </dataset>
