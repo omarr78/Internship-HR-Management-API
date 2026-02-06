@@ -7,7 +7,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -24,7 +24,7 @@ public class EmployeeSalary {
 
     @Column(name = "CREATION_DATE", nullable = false, updatable = false)
     @CreatedDate
-    private LocalDate creationDate;
+    private LocalDateTime creationDate;
 
     @Column(name = "GROSS_SALARY", nullable = false, updatable = false)
     private BigDecimal grossSalary;
