@@ -9,6 +9,7 @@ import com.internship.entity.Expertise;
 import com.internship.entity.Team;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Component
@@ -26,7 +27,6 @@ public class EmployeeMapper {
                 .dateOfBirth(request.getDateOfBirth())
                 .graduationDate(request.getGraduationDate())
                 .gender(request.getGender())
-                .grossSalary(request.getGrossSalary())
                 .department(department)
                 .team(team)
                 .manager(manager)
@@ -34,7 +34,8 @@ public class EmployeeMapper {
                 .build();
     }
 
-    public EmployeeResponse toResponse(Employee employee, int yearsOfExperience, int leaveDays) {
+    public EmployeeResponse toResponse(Employee employee, int yearsOfExperience, int leaveDays,
+                                       BigDecimal grossSalary) {
         List<String> expertises = employee.getExpertises()
                 .stream().map(Expertise::getName).toList();
 
@@ -49,7 +50,7 @@ public class EmployeeMapper {
                 .dateOfBirth(employee.getDateOfBirth())
                 .graduationDate(employee.getGraduationDate())
                 .gender(employee.getGender())
-                .grossSalary(employee.getGrossSalary())
+                .grossSalary(grossSalary)
                 .leaveDays(leaveDays)
                 .departmentId(employee.getDepartment().getId())
                 .teamId(employee.getTeam().getId())
