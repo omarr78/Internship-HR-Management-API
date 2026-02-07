@@ -29,7 +29,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                         date_of_birth,
                         graduation_date,
                         gender,
-                        gross_salary,
                         department_id,
                         team_id,
                         manager_id
@@ -45,7 +44,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                             date_of_birth,
                             graduation_date,
                             gender,
-                            gross_salary,
                             department_id,
                             team_id,
                             manager_id
@@ -65,7 +63,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                             b.date_of_birth,
                             b.graduation_date,
                             b.gender,
-                            b.gross_salary,
                             b.department_id,
                             b.team_id,
                             b.manager_id
@@ -83,12 +80,22 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                         eh.date_of_birth AS dateOfBirth,
                         eh.graduation_date AS graduationDate,
                         eh.gender AS gender,
-                        eh.gross_salary AS grossSalary,
+                        es.gross_salary AS grossSalary,
                         eh.department_id AS departmentId,
                         eh.team_id AS teamId,
                         eh.manager_id AS managerId,
                         GROUP_CONCAT(ex.name ORDER BY ex.name SEPARATOR ',') AS expertises
                     FROM employee_hierarchy eh
+                    -- Join to get latest salary
+                    LEFT JOIN (
+                        SELECT s1.employee_id, s1.gross_salary
+                        FROM employee_salaries s1
+                        INNER JOIN (
+                            SELECT employee_id, MAX(creation_date) AS max_date
+                            FROM employee_salaries
+                            GROUP BY employee_id
+                        ) s2 ON s1.employee_id = s2.employee_id AND s1.creation_date = s2.max_date
+                    ) es ON eh.id = es.employee_id
                     LEFT JOIN employee_expertise ee ON eh.id = ee.employee_id
                     LEFT JOIN expertises ex ON ee.expertise_id = ex.id
                     WHERE eh.id != :managerId
@@ -103,7 +110,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
                         eh.date_of_birth,
                         eh.graduation_date,
                         eh.gender,
-                        eh.gross_salary,
+                        es.gross_salary,
                         eh.department_id,
                         eh.team_id,
                         eh.manager_id;
