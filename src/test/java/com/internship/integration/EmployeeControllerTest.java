@@ -8,14 +8,15 @@ import com.internship.dto.EmployeeResponse;
 import com.internship.dto.SalaryDto;
 import com.internship.dto.UpdateEmployeeRequest;
 import com.internship.entity.Employee;
+import com.internship.entity.EmployeeSalary;
 import com.internship.entity.Expertise;
 import com.internship.enums.Degree;
 import com.internship.enums.Gender;
+import com.internship.enums.SalaryReason;
 import com.internship.exception.ErrorCode;
-import com.internship.repository.EmployeeRepository;
-import com.internship.repository.ExpertiseRepository;
+import com.internship.repository.*;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -71,6 +72,12 @@ public class EmployeeControllerTest {
     private EmployeeRepository employeeRepository;
     @Autowired
     private ExpertiseRepository expertiseRepository;
+    @Autowired
+    private DepartmentRepository departmentRepository;
+    @Autowired
+    private TeamRepository teamRepository;
+    @Autowired
+    private EmployeeSalaryRepository employeeSalaryRepository;
 
     private CreateEmployeeRequest buildCreateEmployeeRequest() {
         return CreateEmployeeRequest.builder()
@@ -162,6 +169,10 @@ public class EmployeeControllerTest {
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
 
+        // capture database state before the api call
+        List<Employee> employeesBefore = employeeRepository.findAll();
+        List<EmployeeSalary> employeeSalariesBefore = employeeSalaryRepository.findAll();
+
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
             mocked.when(LocalDate::now).thenReturn(FIXED_DATE);
 
@@ -173,30 +184,81 @@ public class EmployeeControllerTest {
             EmployeeResponse response = objectMapper
                     .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
 
-            assertNotNull(response);
-            assertNotNull(response.getId());
-
-            assertEquals(request.getFirstName(), response.getFirstName());
-            assertEquals(request.getLastName(), response.getLastName());
-            assertEquals(request.getNationalId(), response.getNationalId());
-            assertEquals(request.getDegree(), response.getDegree());
-            assertEquals(request.getJoinedDate(), response.getJoinedDate());
-            assertEquals(request.getDateOfBirth(), response.getDateOfBirth());
-            assertEquals(request.getGraduationDate(), response.getGraduationDate());
-            assertEquals(request.getGender(), response.getGender());
-            assertEquals(request.getGrossSalary(), response.getGrossSalary());
-            assertEquals(request.getDepartmentId(), response.getDepartmentId());
-            assertEquals(request.getTeamId(), response.getTeamId());
-
             // joined year = 2022, past experience = 3
             // then years of experience = 3 + (2025 - 2022) = 6
-            int expectedYearOfExperience = 6;
-            assertEquals(expectedYearOfExperience, response.getYearsOfExperience());
+            final int EXPECTED_YEARS_OF_EXPERIENCE = 6;
 
             // to calculate the number of leave days
             // 2025 - 2022 = 3 < 10 so it will be 21 day
-            int expectedLeaveDays = 21;
-            assertEquals(expectedLeaveDays, response.getLeaveDays());
+            int EXPECTED_LEAVE_DAYS = 21;
+
+            // assertion on response
+            EmployeeResponse expectedEmployeeResponse = EmployeeResponse.builder()
+                    .firstName(request.getFirstName())
+                    .lastName(request.getLastName())
+                    .nationalId(request.getNationalId())
+                    .degree(request.getDegree())
+                    .joinedDate(request.getJoinedDate())
+                    .dateOfBirth(request.getDateOfBirth())
+                    .graduationDate(request.getGraduationDate())
+                    .gender(request.getGender())
+                    .grossSalary(request.getGrossSalary())
+                    .departmentId(request.getDepartmentId())
+                    .teamId(request.getTeamId())
+                    .yearsOfExperience(EXPECTED_YEARS_OF_EXPERIENCE)
+                    .leaveDays(EXPECTED_LEAVE_DAYS)
+                    .expertises(List.of())
+                    .build();
+
+            Assertions.assertThat(response)
+                    .usingRecursiveComparison()
+                    .ignoringFields("id")
+                    .isEqualTo(expectedEmployeeResponse);
+
+            // assertion on database for inserted employee
+            Employee expectedEmployee = Employee.builder()
+                    .firstName(request.getFirstName())
+                    .lastName(request.getLastName())
+                    .nationalId(request.getNationalId())
+                    .degree(request.getDegree())
+                    .pastExperienceYear(request.getPastExperienceYear())
+                    .joinedDate(request.getJoinedDate())
+                    .dateOfBirth(request.getDateOfBirth())
+                    .graduationDate(request.getGraduationDate())
+                    .gender(request.getGender())
+                    .department(departmentRepository.findById(EXISTENT_DEPARTMENT1_ID).get())
+                    .team(teamRepository.findById(EXISTENT_TEAM1_ID).get())
+                    .expertises(List.of())
+                    .build();
+
+            List<Employee> employeesAfter = employeeRepository.findAll();
+
+            Assertions.assertThat(employeesAfter)
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
+                    .containsAll(employeesBefore)
+                    .contains(expectedEmployee)
+                    .hasSize(employeesBefore.size() + 1);
+
+            // assertion on database for inserted employeeSalary
+            List<EmployeeSalary> employeeSalariesAfter = employeeSalaryRepository.findAll();
+
+            BigDecimal expectedGrossSalary = request.getGrossSalary();
+            String expectedReason = SalaryReason.INITIAL_BASE_SALARY.getMessage();
+
+            // get inserted employee
+            Employee insertedEmployee = employeesAfter.stream()
+                    .filter(e -> !employeesBefore.contains(e))
+                    .findFirst().get();
+
+            // get inserted salary
+            EmployeeSalary insertedSalary = employeeSalariesAfter.stream()
+                    .filter(es -> !employeeSalariesBefore.contains(es))
+                    .findFirst().get();
+
+            assertThat(insertedSalary.getCreationDate()).isNotNull();
+            assertEquals(expectedGrossSalary, insertedSalary.getGrossSalary());
+            assertEquals(expectedReason, insertedSalary.getReason());
+            assertEquals(insertedEmployee, insertedSalary.getEmployee());
         }
     }
 
@@ -225,6 +287,10 @@ public class EmployeeControllerTest {
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
         request.setManagerId(EXISTENT_MANAGER1_ID); // existing manager id from dataset/create_employee.xml
+
+        // capture database state before the api call
+        List<Employee> employeesBefore = employeeRepository.findAll();
+
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -234,6 +300,16 @@ public class EmployeeControllerTest {
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
         assertNotNull(response);
         assertEquals(EXISTENT_MANAGER1_ID, response.getManagerId());
+
+        // assertion on database that employee has expected manager
+        List<Employee> employeesAfter = employeeRepository.findAll();
+
+        // get inserted employee
+        Employee insertedEmployee = employeesAfter.stream()
+                .filter(e -> !employeesBefore.contains(e))
+                .findFirst().get();
+
+        assertEquals(EXISTENT_MANAGER1_ID, insertedEmployee.getManager().getId());
     }
 
     @Test
@@ -246,6 +322,10 @@ public class EmployeeControllerTest {
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
         request.setExpertises(List.of(expertise1.getName(), expertise2.getName()));
+
+        // capture database state before the api call
+        List<Employee> employeesBefore = employeeRepository.findAll();
+
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -255,6 +335,17 @@ public class EmployeeControllerTest {
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
         assertNotNull(response);
         assertEquals(response.getExpertises(), request.getExpertises());
+
+        // assertion on database that employee has expected expertise
+        List<Employee> employeesAfter = employeeRepository.findAll();
+
+        // get inserted employee
+        Employee insertedEmployee = employeesAfter.stream()
+                .filter(e -> !employeesBefore.contains(e))
+                .findFirst().get();
+
+        List<Expertise> expectedExpertises = List.of(expertise1, expertise2);
+        assertEquals(expectedExpertises, insertedEmployee.getExpertises());
     }
 
     // when the name of expertise not found && expertise are not empty
@@ -266,6 +357,10 @@ public class EmployeeControllerTest {
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
         request.setExpertises(List.of("Python", "Database")); // Not exist expertise
+
+        // capture database state before the api call
+        List<Employee> employeesBefore = employeeRepository.findAll();
+
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -275,6 +370,22 @@ public class EmployeeControllerTest {
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
         assertNotNull(response);
         assertEquals(response.getExpertises(), request.getExpertises());
+
+        // assertion on database that employee has expected expertise
+        List<Employee> employeesAfter = employeeRepository.findAll();
+
+        // get inserted employee
+        Employee insertedEmployee = employeesAfter.stream()
+                .filter(e -> !employeesBefore.contains(e))
+                .findFirst().get();
+
+        List<String> expectedExpertises = request.getExpertises();
+        List<String> actualExpertises = insertedEmployee.getExpertises()
+                .stream()
+                .map(Expertise::getName)
+                .toList();
+
+        assertEquals(expectedExpertises, actualExpertises);
     }
 
     // if expertise name is empty, so it will skip it
@@ -285,6 +396,10 @@ public class EmployeeControllerTest {
         request.setDepartmentId(EXISTENT_DEPARTMENT1_ID); // existing department id from dataset/create_employee.xml
         request.setTeamId(EXISTENT_TEAM1_ID); // existing team id from dataset/create_employee.xml
         request.setExpertises(List.of(EMPTY_STRING, EMPTY_STRING)); // empty expertise names -> ""
+
+        // capture database state before the api call
+        List<Employee> employeesBefore = employeeRepository.findAll();
+
         MvcResult result = mockMvc.perform(post("/api/employees")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -294,6 +409,16 @@ public class EmployeeControllerTest {
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
         assertNotNull(response);
         assertEquals(response.getExpertises(), List.of());
+
+        // assertion on database that employee has expected expertise
+        List<Employee> employeesAfter = employeeRepository.findAll();
+
+        // get inserted employee
+        Employee insertedEmployee = employeesAfter.stream()
+                .filter(e -> !employeesBefore.contains(e))
+                .findFirst().get();
+
+        assertEquals(List.of(), insertedEmployee.getExpertises());
     }
 
     @Test
@@ -710,7 +835,7 @@ public class EmployeeControllerTest {
                 .andExpect(status().isNoContent());
         Optional<Employee> ahmed = employeeRepository.findById(EXISTENT_EMPLOYEE2_ID);
         // first make sure that the employee Ahmed with id = 2 is deleted
-        Assertions.assertTrue(ahmed.isEmpty());
+        assertThat(ahmed.isEmpty());
         // then make sure that Ahmed's Subordinates moved to his manager
         // now employee omar is the manager of Mohamed and Mahmoud
         Employee omar = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
