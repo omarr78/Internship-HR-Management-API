@@ -9,5 +9,12 @@ CREATE TABLE employee_salaries
     CONSTRAINT fk_employee_on_employee_salaries FOREIGN KEY (employee_id) REFERENCES employees (id)
 );
 
+INSERT INTO employee_salaries (creation_date, gross_salary, reason, employee_id)
+SELECT CURRENT_DATE,
+       gross_salary,
+       'Initial base salary',
+       id
+FROM employees;
+
 ALTER TABLE employees
-    DROP COLUMN GROSS_SALARY;
+    DROP COLUMN gross_salary;
