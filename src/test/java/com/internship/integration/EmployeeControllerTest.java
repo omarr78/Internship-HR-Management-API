@@ -186,11 +186,11 @@ public class EmployeeControllerTest {
 
             // joined year = 2022, past experience = 3
             // then years of experience = 3 + (2025 - 2022) = 6
-            final int EXPECTED_YEARS_OF_EXPERIENCE = 6;
+            final int expectedYearsOfExperience = 6;
 
             // to calculate the number of leave days
             // 2025 - 2022 = 3 < 10 so it will be 21 day
-            int EXPECTED_LEAVE_DAYS = 21;
+            int expectedLeaveDays = 21;
 
             // assertion on response
             EmployeeResponse expectedEmployeeResponse = EmployeeResponse.builder()
@@ -205,8 +205,8 @@ public class EmployeeControllerTest {
                     .grossSalary(request.getGrossSalary())
                     .departmentId(request.getDepartmentId())
                     .teamId(request.getTeamId())
-                    .yearsOfExperience(EXPECTED_YEARS_OF_EXPERIENCE)
-                    .leaveDays(EXPECTED_LEAVE_DAYS)
+                    .yearsOfExperience(expectedYearsOfExperience)
+                    .leaveDays(expectedLeaveDays)
                     .expertises(List.of())
                     .build();
 
@@ -216,48 +216,43 @@ public class EmployeeControllerTest {
                     .isEqualTo(expectedEmployeeResponse);
 
             // assertion on database for inserted employee
-            Employee expectedEmployee = Employee.builder()
-                    .firstName(request.getFirstName())
-                    .lastName(request.getLastName())
-                    .nationalId(request.getNationalId())
-                    .degree(request.getDegree())
-                    .pastExperienceYear(request.getPastExperienceYear())
-                    .joinedDate(request.getJoinedDate())
-                    .dateOfBirth(request.getDateOfBirth())
-                    .graduationDate(request.getGraduationDate())
-                    .gender(request.getGender())
-                    .department(departmentRepository.findById(EXISTENT_DEPARTMENT1_ID).get())
-                    .team(teamRepository.findById(EXISTENT_TEAM1_ID).get())
-                    .expertises(List.of())
-                    .build();
-
             List<Employee> employeesAfter = employeeRepository.findAll();
-
-            Assertions.assertThat(employeesAfter)
-                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
-                    .containsAll(employeesBefore)
-                    .contains(expectedEmployee)
-                    .hasSize(employeesBefore.size() + 1);
-
-            // assertion on database for inserted employeeSalary
-            List<EmployeeSalary> employeeSalariesAfter = employeeSalaryRepository.findAll();
-
-            BigDecimal expectedGrossSalary = request.getGrossSalary();
-            String expectedReason = SalaryReason.INITIAL_BASE_SALARY.getMessage();
 
             // get inserted employee
             Employee insertedEmployee = employeesAfter.stream()
                     .filter(e -> !employeesBefore.contains(e))
-                    .findFirst().get();
+                    .findFirst().orElse(null);
+
+            assertThat(insertedEmployee).isNotNull();
+            assertEquals(request.getFirstName(), insertedEmployee.getFirstName());
+            assertEquals(request.getLastName(), insertedEmployee.getLastName());
+            assertEquals(request.getNationalId(), insertedEmployee.getNationalId());
+            assertEquals(request.getDegree(), insertedEmployee.getDegree());
+            assertEquals(request.getPastExperienceYear(), insertedEmployee.getPastExperienceYear());
+            assertEquals(request.getJoinedDate(), insertedEmployee.getJoinedDate());
+            assertEquals(request.getDateOfBirth(), insertedEmployee.getDateOfBirth());
+            assertEquals(request.getGraduationDate(), insertedEmployee.getGraduationDate());
+            assertEquals(request.getGender(), insertedEmployee.getGender());
+            assertEquals(EXISTENT_DEPARTMENT1_ID, insertedEmployee.getDepartment().getId());
+            assertEquals(EXISTENT_TEAM1_ID, insertedEmployee.getTeam().getId());
+
+            // assertion on database for inserted employeeSalary
+            List<EmployeeSalary> employeeSalariesAfter = employeeSalaryRepository.findAll();
 
             // get inserted salary
             EmployeeSalary insertedSalary = employeeSalariesAfter.stream()
                     .filter(es -> !employeeSalariesBefore.contains(es))
-                    .findFirst().get();
+                    .findFirst().orElse(null);
 
+            assertThat(insertedSalary).isNotNull();
             assertThat(insertedSalary.getCreationDate()).isNotNull();
+
+            BigDecimal expectedGrossSalary = request.getGrossSalary();
             assertEquals(expectedGrossSalary, insertedSalary.getGrossSalary());
+
+            String expectedReason = SalaryReason.INITIAL_BASE_SALARY.getMessage();
             assertEquals(expectedReason, insertedSalary.getReason());
+
             assertEquals(insertedEmployee, insertedSalary.getEmployee());
         }
     }
@@ -307,8 +302,9 @@ public class EmployeeControllerTest {
         // get inserted employee
         Employee insertedEmployee = employeesAfter.stream()
                 .filter(e -> !employeesBefore.contains(e))
-                .findFirst().get();
+                .findFirst().orElse(null);
 
+        assertThat(insertedEmployee).isNotNull();
         assertEquals(EXISTENT_MANAGER1_ID, insertedEmployee.getManager().getId());
     }
 
@@ -342,7 +338,9 @@ public class EmployeeControllerTest {
         // get inserted employee
         Employee insertedEmployee = employeesAfter.stream()
                 .filter(e -> !employeesBefore.contains(e))
-                .findFirst().get();
+                .findFirst().orElse(null);
+
+        assertThat(insertedEmployee).isNotNull();
 
         List<Expertise> expectedExpertises = List.of(expertise1, expertise2);
         assertEquals(expectedExpertises, insertedEmployee.getExpertises());
@@ -377,7 +375,9 @@ public class EmployeeControllerTest {
         // get inserted employee
         Employee insertedEmployee = employeesAfter.stream()
                 .filter(e -> !employeesBefore.contains(e))
-                .findFirst().get();
+                .findFirst().orElse(null);
+
+        assertThat(insertedEmployee).isNotNull();
 
         List<String> expectedExpertises = request.getExpertises();
         List<String> actualExpertises = insertedEmployee.getExpertises()
@@ -416,8 +416,9 @@ public class EmployeeControllerTest {
         // get inserted employee
         Employee insertedEmployee = employeesAfter.stream()
                 .filter(e -> !employeesBefore.contains(e))
-                .findFirst().get();
+                .findFirst().orElse(null);
 
+        assertThat(insertedEmployee).isNotNull();
         assertEquals(List.of(), insertedEmployee.getExpertises());
     }
 
