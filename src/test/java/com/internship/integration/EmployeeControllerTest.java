@@ -219,11 +219,12 @@ public class EmployeeControllerTest {
             List<Employee> employeesAfter = employeeRepository.findAll();
 
             // get inserted employee
-            Employee insertedEmployee = employeesAfter.stream()
-                    .filter(e -> !employeesBefore.contains(e))
-                    .findFirst().orElse(null);
+            List<Employee> insertedEmployees = employeesAfter.stream()
+                    .filter(e -> !employeesBefore.contains(e)).toList();
 
-            assertThat(insertedEmployee).isNotNull();
+            assertEquals(1, insertedEmployees.size());
+            Employee insertedEmployee = insertedEmployees.getFirst();
+
             assertEquals(request.getFirstName(), insertedEmployee.getFirstName());
             assertEquals(request.getLastName(), insertedEmployee.getLastName());
             assertEquals(request.getNationalId(), insertedEmployee.getNationalId());
@@ -240,11 +241,12 @@ public class EmployeeControllerTest {
             List<EmployeeSalary> employeeSalariesAfter = employeeSalaryRepository.findAll();
 
             // get inserted salary
-            EmployeeSalary insertedSalary = employeeSalariesAfter.stream()
-                    .filter(es -> !employeeSalariesBefore.contains(es))
-                    .findFirst().orElse(null);
+            List<EmployeeSalary> insertedSalaries = employeeSalariesAfter.stream()
+                    .filter(es -> !employeeSalariesBefore.contains(es)).toList();
 
-            assertThat(insertedSalary).isNotNull();
+            assertEquals(1, insertedSalaries.size());
+            EmployeeSalary insertedSalary = insertedSalaries.getFirst();
+
             assertThat(insertedSalary.getCreationDate()).isNotNull();
 
             BigDecimal expectedGrossSalary = request.getGrossSalary();
@@ -300,11 +302,12 @@ public class EmployeeControllerTest {
         List<Employee> employeesAfter = employeeRepository.findAll();
 
         // get inserted employee
-        Employee insertedEmployee = employeesAfter.stream()
-                .filter(e -> !employeesBefore.contains(e))
-                .findFirst().orElse(null);
+        List<Employee> insertedEmployees = employeesAfter.stream()
+                .filter(e -> !employeesBefore.contains(e)).toList();
 
-        assertThat(insertedEmployee).isNotNull();
+        assertEquals(1, insertedEmployees.size());
+        Employee insertedEmployee = insertedEmployees.getFirst();
+
         assertEquals(EXISTENT_MANAGER1_ID, insertedEmployee.getManager().getId());
     }
 
@@ -336,11 +339,11 @@ public class EmployeeControllerTest {
         List<Employee> employeesAfter = employeeRepository.findAll();
 
         // get inserted employee
-        Employee insertedEmployee = employeesAfter.stream()
-                .filter(e -> !employeesBefore.contains(e))
-                .findFirst().orElse(null);
+        List<Employee> insertedEmployees = employeesAfter.stream()
+                .filter(e -> !employeesBefore.contains(e)).toList();
 
-        assertThat(insertedEmployee).isNotNull();
+        assertEquals(1, insertedEmployees.size());
+        Employee insertedEmployee = insertedEmployees.getFirst();
 
         List<Expertise> expectedExpertises = List.of(expertise1, expertise2);
         assertEquals(expectedExpertises, insertedEmployee.getExpertises());
@@ -373,11 +376,11 @@ public class EmployeeControllerTest {
         List<Employee> employeesAfter = employeeRepository.findAll();
 
         // get inserted employee
-        Employee insertedEmployee = employeesAfter.stream()
-                .filter(e -> !employeesBefore.contains(e))
-                .findFirst().orElse(null);
+        List<Employee> insertedEmployees = employeesAfter.stream()
+                .filter(e -> !employeesBefore.contains(e)).toList();
 
-        assertThat(insertedEmployee).isNotNull();
+        assertEquals(1, insertedEmployees.size());
+        Employee insertedEmployee = insertedEmployees.getFirst();
 
         List<String> expectedExpertises = request.getExpertises();
         List<String> actualExpertises = insertedEmployee.getExpertises()
@@ -414,11 +417,12 @@ public class EmployeeControllerTest {
         List<Employee> employeesAfter = employeeRepository.findAll();
 
         // get inserted employee
-        Employee insertedEmployee = employeesAfter.stream()
-                .filter(e -> !employeesBefore.contains(e))
-                .findFirst().orElse(null);
+        List<Employee> insertedEmployees = employeesAfter.stream()
+                .filter(e -> !employeesBefore.contains(e)).toList();
 
-        assertThat(insertedEmployee).isNotNull();
+        assertEquals(1, insertedEmployees.size());
+        Employee insertedEmployee = insertedEmployees.getFirst();
+
         assertEquals(List.of(), insertedEmployee.getExpertises());
     }
 
@@ -770,11 +774,12 @@ public class EmployeeControllerTest {
         List<EmployeeSalary> employeeSalariesAfter = employeeSalaryRepository.findAll();
 
         // get inserted salary
-        EmployeeSalary insertedSalary = employeeSalariesAfter.stream()
-                .filter(es -> !employeeSalariesBefore.contains(es))
-                .findFirst().orElse(null);
+        List<EmployeeSalary> insertedSalaries = employeeSalariesAfter.stream()
+                .filter(es -> !employeeSalariesBefore.contains(es)).toList();
 
-        assertThat(insertedSalary).isNotNull();
+        assertEquals(1, insertedSalaries.size());
+        EmployeeSalary insertedSalary = insertedSalaries.getFirst();
+
         assertThat(insertedSalary.getCreationDate()).isNotNull();
         assertEquals(updatedGrossSalary, insertedSalary.getGrossSalary());
 
