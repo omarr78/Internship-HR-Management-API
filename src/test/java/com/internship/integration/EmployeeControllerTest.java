@@ -550,6 +550,11 @@ public class EmployeeControllerTest {
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
         assertNull(response.getManagerId());
+
+        // assertion on database
+        Employee employee = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).orElse(null);
+        assertThat(employee).isNotNull();
+        assertNull(employee.getManager());
     }
 
     @Test
@@ -566,6 +571,12 @@ public class EmployeeControllerTest {
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
         assertEquals(List.of(), response.getExpertises());
+
+        // assertion on database
+        Employee employee = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).orElse(null);
+        assertThat(employee).isNotNull();
+
+        assertEquals(0, employee.getExpertises().size());
     }
 
     @Test
@@ -634,6 +645,14 @@ public class EmployeeControllerTest {
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
         assertNotNull(response);
         assertEquals(response.getExpertises(), request.getExpertises());
+
+        // assertion on database
+        Employee employee = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).orElse(null);
+        assertThat(employee).isNotNull();
+
+        assertEquals(2, employee.getExpertises().size());
+        List<String> employeeExpertises = employee.getExpertises().stream().map(Expertise::getName).toList();
+        assertEquals(request.getExpertises(), employeeExpertises);
     }
 
     @Test
@@ -645,9 +664,11 @@ public class EmployeeControllerTest {
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
-        Employee employee = employeeRepository.findById(EXISTENT_EMPLOYEE2_ID).get();
+        Employee employee = employeeRepository.findById(EXISTENT_EMPLOYEE2_ID).orElse(null);
+
+        assertThat(employee).isNotNull();
         assertEquals(1, employee.getExpertises().size());
-        assertEquals(expertiseName, employee.getExpertises().get(0).getName());
+        assertEquals(expertiseName, employee.getExpertises().getFirst().getName());
     }
 
     @Test
@@ -694,6 +715,9 @@ public class EmployeeControllerTest {
                 .teamId(EXISTENT_TEAM2_ID)
                 .managerId(Optional.of(EXISTENT_MANAGER2_ID))
                 .build();
+
+        List<EmployeeSalary> employeeSalariesBefore = employeeSalaryRepository.findAll();
+
         MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -701,21 +725,62 @@ public class EmployeeControllerTest {
                 .andReturn();
         EmployeeResponse response = objectMapper
                 .readValue(result.getResponse().getContentAsString(), EmployeeResponse.class);
-        assertNotNull(response);
-        assertNotNull(response.getId());
 
-        assertEquals(updatedFirstName, response.getFirstName());
-        assertEquals(updatedLastName, response.getLastName());
-        assertEquals(updatedNationalId, response.getNationalId());
-        assertEquals(updatedDegree, response.getDegree());
-        assertEquals(updatedJoinedDate, response.getJoinedDate());
-        assertEquals(updatedBirthDate, response.getDateOfBirth());
-        assertEquals(updatedGraduationDate, response.getGraduationDate());
-        assertEquals(updatedGender, response.getGender());
-        assertEquals(updatedGrossSalary, response.getGrossSalary());
-        assertEquals(EXISTENT_DEPARTMENT2_ID, response.getDepartmentId());
-        assertEquals(EXISTENT_TEAM2_ID, response.getTeamId());
-        assertEquals(EXISTENT_MANAGER2_ID, response.getManagerId());
+        EmployeeResponse expectedEmployeeResponse = EmployeeResponse.builder()
+                .id(EXISTENT_EMPLOYEE1_ID)
+                .firstName(updatedFirstName)
+                .lastName(updatedLastName)
+                .nationalId(updatedNationalId)
+                .degree(updatedDegree)
+                .joinedDate(updatedJoinedDate)
+                .dateOfBirth(updatedBirthDate)
+                .graduationDate(updatedGraduationDate)
+                .gender(updatedGender)
+                .grossSalary(updatedGrossSalary)
+                .departmentId(request.getDepartmentId())
+                .teamId(request.getTeamId())
+                .managerId(EXISTENT_MANAGER2_ID)
+                .build();
+
+        assertThat(response)
+                .usingRecursiveComparison()
+                .ignoringFields("yearsOfExperience", "leaveDays", "expertises")
+                .isEqualTo(expectedEmployeeResponse);
+
+        // assertion on database for updated employee
+        Employee updatedEmployee = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).orElse(null);
+
+        assertThat(updatedEmployee).isNotNull();
+        assertEquals(updatedFirstName, updatedEmployee.getFirstName());
+        assertEquals(updatedLastName, updatedEmployee.getLastName());
+        assertEquals(updatedNationalId, updatedEmployee.getNationalId());
+        assertEquals(updatedDegree, updatedEmployee.getDegree());
+        assertEquals(updatedPastExperience, updatedEmployee.getPastExperienceYear());
+        assertEquals(updatedJoinedDate, updatedEmployee.getJoinedDate());
+        assertEquals(updatedBirthDate, updatedEmployee.getDateOfBirth());
+        assertEquals(updatedGraduationDate, updatedEmployee.getGraduationDate());
+        assertEquals(updatedGender, updatedEmployee.getGender());
+        assertEquals(EXISTENT_DEPARTMENT2_ID, updatedEmployee.getDepartment().getId());
+        assertEquals(EXISTENT_TEAM2_ID, updatedEmployee.getTeam().getId());
+        assertEquals(EXISTENT_MANAGER2_ID, updatedEmployee.getManager().getId());
+
+        // for update employee gross salary will insert a new salary record in employeeSalary table
+        // assertion on database for inserted employeeSalary
+        List<EmployeeSalary> employeeSalariesAfter = employeeSalaryRepository.findAll();
+
+        // get inserted salary
+        EmployeeSalary insertedSalary = employeeSalariesAfter.stream()
+                .filter(es -> !employeeSalariesBefore.contains(es))
+                .findFirst().orElse(null);
+
+        assertThat(insertedSalary).isNotNull();
+        assertThat(insertedSalary.getCreationDate()).isNotNull();
+        assertEquals(updatedGrossSalary, insertedSalary.getGrossSalary());
+
+        String expectedReason = SalaryReason.SALARY_UPDATED.getMessage();
+        assertEquals(expectedReason, insertedSalary.getReason());
+
+        assertEquals(updatedEmployee, insertedSalary.getEmployee());
     }
 
     @Test
