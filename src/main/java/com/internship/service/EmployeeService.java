@@ -66,8 +66,12 @@ public class EmployeeService {
         Employee savedEmployee = employeeRepository.save(employee);
 
         // insert employee salary in employee-salaries table
-        EmployeeSalary employeeSalary = employeeSalaryMapper.toEntity(request.getGrossSalary(),
-                INITIAL_BASE_SALARY.getMessage(), savedEmployee);
+        EmployeeSalary employeeSalary = EmployeeSalary.builder()
+                .grossSalary(request.getGrossSalary())
+                .reason(INITIAL_BASE_SALARY.getMessage())
+                .employee(savedEmployee)
+                .build();
+
         EmployeeSalary savedEmployeeSalary = employeeSalaryRepository.save(employeeSalary);
 
         return employeeMapper.toResponse(savedEmployee,
@@ -86,8 +90,12 @@ public class EmployeeService {
         EmployeeSalary savedEmployeeSalary;
         if (request.getGrossSalary() != null) {
             // insert employee salary in employee-salaries table
-            EmployeeSalary employeeSalary = employeeSalaryMapper.toEntity(request.getGrossSalary(),
-                    SALARY_UPDATED.getMessage(), employee);
+            EmployeeSalary employeeSalary = EmployeeSalary.builder()
+                    .grossSalary(request.getGrossSalary())
+                    .reason(SALARY_UPDATED.getMessage())
+                    .employee(employee)
+                    .build();
+
             savedEmployeeSalary = employeeSalaryRepository.save(employeeSalary);
         } else {
             savedEmployeeSalary = employeeSalaryRepository.findTopByEmployeeIdOrderByCreationDateDesc(id);
