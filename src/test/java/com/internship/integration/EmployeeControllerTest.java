@@ -659,7 +659,6 @@ public class EmployeeControllerTest {
     @DataSet("dataset/update_employees.xml")
     public void testUpdateEmployeeKeepExpertise_shouldSuccessAndReturnEmployeeWithTheSameExpertise() throws Exception {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder().build();
-        String expertiseName = "spring boot"; // the employee with id 2 has this expertise from dataset/update_employees.xml
         mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE2_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
                         .content(objectMapper.writeValueAsString(request)))
@@ -668,6 +667,8 @@ public class EmployeeControllerTest {
 
         assertThat(employee).isNotNull();
         assertEquals(1, employee.getExpertises().size());
+
+        String expertiseName = "spring boot"; // the employee with id 2 has this expertise from dataset/update_employees.xml
         assertEquals(expertiseName, employee.getExpertises().getFirst().getName());
     }
 
@@ -716,7 +717,7 @@ public class EmployeeControllerTest {
                 .managerId(Optional.of(EXISTENT_MANAGER2_ID))
                 .build();
 
-        List<EmployeeSalary> employeeSalariesBefore = employeeSalaryRepository.findAll();
+        final List<EmployeeSalary> employeeSalariesBefore = employeeSalaryRepository.findAll();
 
         MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
