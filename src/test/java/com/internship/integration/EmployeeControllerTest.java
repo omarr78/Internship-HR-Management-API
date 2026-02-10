@@ -1119,12 +1119,12 @@ public class EmployeeControllerTest {
 
     @Test
     @DataSet("dataset/update_employee_salary.xml")
-    public void testUpdateEmployeeSalary_shouldSuccessAndInsertTheNewSalaryAndReturnNewSalaryDetails() throws Exception {
+    public void testUpdateEmployeeSalary_shouldSuccessAndReturnUpdatingSalaryDetails() throws Exception {
         UpdateSalaryRequest request = UpdateSalaryRequest.builder()
                 .grossSalary(POSITIVE_SALARY)
                 .build();
 
-        List<EmployeeSalary> employeeSalariesBefore = employeeSalaryRepository.findAll();
+        final List<EmployeeSalary> employeeSalariesBefore = employeeSalaryRepository.findAll();
 
         MvcResult result = mockMvc.perform(put("/api/employees/" + EXISTENT_EMPLOYEE1_ID + "/salary")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
@@ -1185,5 +1185,20 @@ public class EmployeeControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
                         .contains("must be greater than 0")));
+    }
+
+    @Test
+    @DataSet("dataset/update_employee_salary.xml")
+    public void testUpdateNotFoundEmployeeSalary_shouldFailAndShouldReturnNotFound() throws Exception {
+        UpdateSalaryRequest request = UpdateSalaryRequest.builder()
+                .grossSalary(POSITIVE_SALARY)
+                .build();
+
+        mockMvc.perform(put("/api/employees/" + NON_EXISTENT_ID + "/salary")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                        .contains("Employee not found with id: " + NON_EXISTENT_ID)));
     }
 }
