@@ -148,6 +148,33 @@ public class EmployeeService {
                 getTheNumberOfLeaveDays(employee.getJoinedDate()));
     }
 
+    @Transactional
+    public SalaryResponse modifySalary(UpdateSalaryRequest request, Long id) {
+
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+                        "Employee not found with id: " + id));
+
+        // insert employee salary in employee-salaries table
+        EmployeeSalary employeeSalary = EmployeeSalary.builder()
+                .grossSalary(request.getGrossSalary())
+                .reason(SALARY_UPDATED.getMessage())
+                .employee(employee)
+                .build();
+
+        EmployeeSalary savedEmployeeSalary = employeeSalaryRepository.save(employeeSalary);
+
+        SalaryResponse response = SalaryResponse.builder()
+                .id(savedEmployeeSalary.getId())
+                .creationDate(savedEmployeeSalary.getCreationDate())
+                .grossSalary(savedEmployeeSalary.getGrossSalary())
+                .reason(savedEmployeeSalary.getReason())
+                .employeeId(savedEmployeeSalary.getEmployee().getId())
+                .build();
+
+        return response;
+    }
+
     private List<String> removeEmptyNames(List<String> expertiseNames) {
         return expertiseNames.stream().filter(name -> !name.isEmpty()).toList();
     }

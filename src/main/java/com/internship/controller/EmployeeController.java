@@ -1,9 +1,6 @@
 package com.internship.controller;
 
 import com.internship.dto.*;
-import com.internship.entity.Employee;
-import com.internship.entity.EmployeeSalary;
-import com.internship.exception.BusinessException;
 import com.internship.repository.EmployeeRepository;
 import com.internship.repository.EmployeeSalaryRepository;
 import com.internship.service.EmployeeService;
@@ -14,9 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import static com.internship.enums.SalaryReason.SALARY_UPDATED;
-import static com.internship.exception.ApiError.EMPLOYEE_NOT_FOUND;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -42,26 +36,7 @@ public class EmployeeController {
     @PutMapping("/{id}/salary")
     public ResponseEntity<SalaryResponse> updateSalary(@RequestBody @Valid final UpdateSalaryRequest request,
                                                        @PathVariable final Long id) {
-        Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
-                        "Employee not found with id: " + id));
-
-        // insert employee salary in employee-salaries table
-        EmployeeSalary employeeSalary = EmployeeSalary.builder()
-                .grossSalary(request.getGrossSalary())
-                .reason(SALARY_UPDATED.getMessage())
-                .employee(employee)
-                .build();
-
-        EmployeeSalary savedEmployeeSalary = employeeSalaryRepository.save(employeeSalary);
-        SalaryResponse response = SalaryResponse.builder()
-                .id(savedEmployeeSalary.getId())
-                .creationDate(savedEmployeeSalary.getCreationDate())
-                .grossSalary(savedEmployeeSalary.getGrossSalary())
-                .reason(savedEmployeeSalary.getReason())
-                .employeeId(savedEmployeeSalary.getEmployee().getId())
-                .build();
-
+        SalaryResponse response = service.modifySalary(request, id);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
