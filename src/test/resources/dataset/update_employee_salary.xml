@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <!-- insert some department and team-->
+    <departments id='1' name='department1'/>
+    <departments id='2' name='department2'/>
+
+    <teams id='1' name='team1'/>
+    <teams id='2' name='team2'/>
+
+    <!-- insert some employee (manager) -->
+    <employees
+            id='1'
+            first_name='Omar'
+            last_name='Nabil'
+            national_id='NID-OMAR-001'
+            degree='ARCHITECT'
+            past_experience_year='20'
+            joined_date='2015-03-01'
+            date_of_birth='1980-10-05'
+            graduation_date='2002-06-05'
+            gender='MALE'
+            department_id='1'
+            team_id='1'/>
+
+    <!--    insert salary    -->
+    <employee_salaries
+            id='1'
+            creation_date='2025-01-01'
+            gross_salary='100000.00'
+            reason='Initial base salary'
+            employee_id='1'
+    />
+</dataset>
