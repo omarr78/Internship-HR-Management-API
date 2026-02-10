@@ -3,10 +3,7 @@ package com.internship.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.database.rider.core.api.dataset.DataSet;
 import com.github.database.rider.spring.api.DBRider;
-import com.internship.dto.CreateEmployeeRequest;
-import com.internship.dto.EmployeeResponse;
-import com.internship.dto.SalaryDto;
-import com.internship.dto.UpdateEmployeeRequest;
+import com.internship.dto.*;
 import com.internship.entity.Employee;
 import com.internship.entity.EmployeeSalary;
 import com.internship.entity.Expertise;
@@ -46,6 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @DBRider
 public class EmployeeControllerTest {
+    static final BigDecimal POSITIVE_SALARY = BigDecimal.valueOf(1000);
     private static final BigDecimal TAX_REMINDER = BigDecimal.valueOf(0.85);
     private static final BigDecimal INSURANCE_AMOUNT = BigDecimal.valueOf(500);
     private static final Long NON_EXISTENT_ID = -1L;
@@ -1117,5 +1115,45 @@ public class EmployeeControllerTest {
                     ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
                     assertEquals("Employee not found with id: " + NON_EXISTENT_ID, error.getErrorMessage());
                 });
+    }
+
+    @Test
+    @DataSet("dataset/update_employee_salary.xml")
+    public void testUpdateEmployeeSalary_shouldSuccessAndInsertTheNewSalaryAndReturnNewSalaryDetails() throws Exception {
+        UpdateSalaryRequest request = UpdateSalaryRequest.builder()
+                .grossSalary(POSITIVE_SALARY)
+                .build();
+
+        List<EmployeeSalary> employeeSalariesBefore = employeeSalaryRepository.findAll();
+
+        MvcResult result = mockMvc.perform(put("/api/employees/" + EXISTENT_EMPLOYEE1_ID + "/salary")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        SalaryResponse response = objectMapper
+                .readValue(result.getResponse().getContentAsString(), SalaryResponse.class);
+
+        // assert on response
+        assertThat(response.getCreationDate()).isNotNull();
+        assertEquals(POSITIVE_SALARY, response.getGrossSalary());
+        assertEquals(SalaryReason.SALARY_UPDATED.getMessage(), response.getReason());
+        assertEquals(EXISTENT_EMPLOYEE1_ID, response.getEmployeeId());
+
+        // assert on database
+        List<EmployeeSalary> employeeSalariesAfter = employeeSalaryRepository.findAll();
+
+        List<EmployeeSalary> insertedEmployeeSalaries = employeeSalariesAfter.stream()
+                .filter(es -> !employeeSalariesBefore.contains(es)).toList();
+
+        assertEquals(1, insertedEmployeeSalaries.size());
+
+        EmployeeSalary insertedEmployeeSalary = insertedEmployeeSalaries.getFirst();
+
+        assertThat(insertedEmployeeSalary.getCreationDate()).isNotNull();
+        assertEquals(POSITIVE_SALARY, insertedEmployeeSalary.getGrossSalary());
+        assertEquals(SalaryReason.SALARY_UPDATED.getMessage(), insertedEmployeeSalary.getReason());
+        assertEquals(EXISTENT_EMPLOYEE1_ID, insertedEmployeeSalary.getEmployee().getId());
     }
 }
