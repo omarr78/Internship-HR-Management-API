@@ -72,11 +72,15 @@ public class EmployeeService {
                 .employee(savedEmployee)
                 .build();
 
-        EmployeeSalary savedEmployeeSalary = employeeSalaryRepository.save(employeeSalary);
+        if (savedEmployee.getEmployeeSalaries() == null) {
+            savedEmployee.setEmployeeSalaries(new ArrayList<>());
+        }
+        savedEmployee.getEmployeeSalaries().add(employeeSalary);
+        employeeSalaryRepository.save(employeeSalary);
 
         return employeeMapper.toResponse(savedEmployee,
                 calculateYearsOfExperience(employee.getPastExperienceYear(), employee.getJoinedDate()),
-                getTheNumberOfLeaveDays(employee.getJoinedDate()), savedEmployeeSalary.getGrossSalary());
+                getTheNumberOfLeaveDays(employee.getJoinedDate()));
     }
 
     @Transactional
@@ -87,7 +91,6 @@ public class EmployeeService {
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
 
-        EmployeeSalary savedEmployeeSalary;
         if (request.getGrossSalary() != null) {
             // insert employee salary in employee-salaries table
             EmployeeSalary employeeSalary = EmployeeSalary.builder()
@@ -96,9 +99,7 @@ public class EmployeeService {
                     .employee(employee)
                     .build();
 
-            savedEmployeeSalary = employeeSalaryRepository.save(employeeSalary);
-        } else {
-            savedEmployeeSalary = employeeSalaryRepository.findTopByEmployeeIdOrderByCreationDateDesc(id);
+            employeeSalaryRepository.save(employeeSalary);
         }
 
         Department department = employee.getDepartment();
@@ -144,7 +145,7 @@ public class EmployeeService {
         Employee savedEmployee = employeeRepository.saveAndFlush(updatedEmployee);
         return employeeMapper.toResponse(savedEmployee,
                 calculateYearsOfExperience(employee.getPastExperienceYear(), employee.getJoinedDate()),
-                getTheNumberOfLeaveDays(employee.getJoinedDate()), savedEmployeeSalary.getGrossSalary());
+                getTheNumberOfLeaveDays(employee.getJoinedDate()));
     }
 
     private List<String> removeEmptyNames(List<String> expertiseNames) {
@@ -157,11 +158,9 @@ public class EmployeeService {
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
 
-        EmployeeSalary employeeSalary = employeeSalaryRepository.findTopByEmployeeIdOrderByCreationDateDesc(id);
-
         return employeeMapper.toResponse(employee,
                 calculateYearsOfExperience(employee.getPastExperienceYear(), employee.getJoinedDate()),
-                getTheNumberOfLeaveDays(employee.getJoinedDate()), employeeSalary.getGrossSalary());
+                getTheNumberOfLeaveDays(employee.getJoinedDate()));
     }
 
     @Transactional
@@ -185,16 +184,13 @@ public class EmployeeService {
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
 
-        EmployeeSalary employeeSalary =
-                employeeSalaryRepository.findTopByEmployeeIdOrderByCreationDateDesc(employee.getId());
-
-        BigDecimal netSalary = employeeSalary.getGrossSalary().multiply(TAX_REMINDER).subtract(INSURANCE_AMOUNT);
+        BigDecimal netSalary = employee.getGrossSalary().multiply(TAX_REMINDER).subtract(INSURANCE_AMOUNT);
         // prevent negative salaries
         if (netSalary.compareTo(BigDecimal.ZERO) < 0) {
             throw new BusinessException(NEGATIVE_SALARY);
         }
         return SalaryDto.builder()
-                .grossSalary(employeeSalary.getGrossSalary())
+                .grossSalary(employee.getGrossSalary())
                 .netSalary(netSalary).build();
     }
 
@@ -221,9 +217,8 @@ public class EmployeeService {
         return employeeRepository.findByManagerId(managerId).stream().map(employee ->
                 employeeMapper.toResponse(employee,
                         calculateYearsOfExperience(employee.getPastExperienceYear(), employee.getJoinedDate()),
-                        getTheNumberOfLeaveDays(employee.getJoinedDate()),
-                        employeeSalaryRepository.findTopByEmployeeIdOrderByCreationDateDesc(employee.getId())
-                                .getGrossSalary())).toList();
+                        getTheNumberOfLeaveDays(employee.getJoinedDate()))
+        ).toList();
     }
 
     public Employee buildUpdatedEmployeeFromOldEmployee(Employee employee, UpdateEmployeeRequest request,

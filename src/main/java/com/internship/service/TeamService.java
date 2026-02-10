@@ -38,9 +38,7 @@ public class TeamService {
                                 ),
                                 employeeService.getTheNumberOfLeaveDays(
                                         employee.getJoinedDate()
-                                ),
-                                employeeSalaryRepository.findTopByEmployeeIdOrderByCreationDateDesc(employee.getId())
-                                        .getGrossSalary()
+                                )
                         )
                 )
                 .toList();

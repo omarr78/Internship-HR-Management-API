@@ -4,10 +4,14 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.internship.enums.Degree;
 import com.internship.enums.Gender;
+import com.internship.exception.ApiError;
+import com.internship.exception.BusinessException;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 
 @Getter
@@ -89,5 +93,10 @@ public class Employee {
     @OneToMany(mappedBy = "employee")
     @JsonManagedReference("employee-salary")
     private List<EmployeeSalary> employeeSalaries;
+
+    public BigDecimal getGrossSalary() {
+        return employeeSalaries.stream().max(Comparator.comparing(EmployeeSalary::getGrossSalary))
+                .orElseThrow(() -> new BusinessException(ApiError.INVALID_DATA)).getGrossSalary();
+    }
 }
 
