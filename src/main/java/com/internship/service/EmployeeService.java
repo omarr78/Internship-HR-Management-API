@@ -163,16 +163,7 @@ public class EmployeeService {
                 .build();
 
         EmployeeSalary savedEmployeeSalary = employeeSalaryRepository.save(employeeSalary);
-
-        SalaryResponse response = SalaryResponse.builder()
-                .id(savedEmployeeSalary.getId())
-                .creationDate(savedEmployeeSalary.getCreationDate())
-                .grossSalary(savedEmployeeSalary.getGrossSalary())
-                .reason(savedEmployeeSalary.getReason())
-                .employeeId(savedEmployeeSalary.getEmployee().getId())
-                .build();
-
-        return response;
+        return employeeSalaryMapper.toResponse(savedEmployeeSalary);
     }
 
     private List<String> removeEmptyNames(List<String> expertiseNames) {
