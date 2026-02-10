@@ -91,17 +91,6 @@ public class EmployeeService {
                 .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
                         "Employee not found with id: " + id));
 
-        if (request.getGrossSalary() != null) {
-            // insert employee salary in employee-salaries table
-            EmployeeSalary employeeSalary = EmployeeSalary.builder()
-                    .grossSalary(request.getGrossSalary())
-                    .reason(SALARY_UPDATED.getMessage())
-                    .employee(employee)
-                    .build();
-
-            employeeSalaryRepository.save(employeeSalary);
-        }
-
         Department department = employee.getDepartment();
         if (request.getDepartmentId() != null) {
             department = departmentRepository.findById(request.getDepartmentId())

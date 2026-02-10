@@ -457,22 +457,6 @@ public class EmployeeControllerTest {
 
     @Test
     @DataSet("dataset/update_employees.xml")
-    public void testUpdateEmployeeSalaryWithNegativeSalary_shouldFail() throws Exception {
-        UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
-                .grossSalary(NEGATIVE_SALARY).build(); // set negative
-        mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
-                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(result -> {
-                    String json = result.getResponse().getContentAsString();
-                    ErrorCode error = objectMapper.readValue(json, ErrorCode.class);
-                    assertEquals("salary must be greater than or equal to 0", error.getErrorMessage());
-                });
-    }
-
-    @Test
-    @DataSet("dataset/update_employees.xml")
     public void testUpdateEmployeeDatesWithAgeGapUnder20_shouldFail() throws Exception {
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 // the different between years is 15 that is less than 20
@@ -701,8 +685,9 @@ public class EmployeeControllerTest {
         LocalDate updatedBirthDate = LocalDate.of(2003, 1, 1); // valid date, the date in the past
         LocalDate updatedGraduationDate = LocalDate.of(2025, 1, 1);
         Gender updatedGender = FEMALE;
-        // valid salary >= 0
-        BigDecimal updatedGrossSalary = BigDecimal.valueOf(1500);
+
+        BigDecimal expectedGrossSalary = BigDecimal.valueOf(1000.0);
+
         UpdateEmployeeRequest request = UpdateEmployeeRequest.builder()
                 .firstName(updatedFirstName)
                 .lastName(updatedLastName)
@@ -713,13 +698,10 @@ public class EmployeeControllerTest {
                 .dateOfBirth(updatedBirthDate)
                 .graduationDate(updatedGraduationDate)
                 .gender(updatedGender)
-                .grossSalary(updatedGrossSalary)
                 .departmentId(EXISTENT_DEPARTMENT2_ID)
                 .teamId(EXISTENT_TEAM2_ID)
                 .managerId(Optional.of(EXISTENT_MANAGER2_ID))
                 .build();
-
-        final List<EmployeeSalary> employeeSalariesBefore = employeeSalaryRepository.findAll();
 
         MvcResult result = mockMvc.perform(patch("/api/employees/" + EXISTENT_EMPLOYEE1_ID)
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
@@ -739,7 +721,7 @@ public class EmployeeControllerTest {
                 .dateOfBirth(updatedBirthDate)
                 .graduationDate(updatedGraduationDate)
                 .gender(updatedGender)
-                .grossSalary(updatedGrossSalary)
+                .grossSalary(expectedGrossSalary)
                 .departmentId(request.getDepartmentId())
                 .teamId(request.getTeamId())
                 .managerId(EXISTENT_MANAGER2_ID)
@@ -748,6 +730,10 @@ public class EmployeeControllerTest {
         assertThat(response)
                 .usingRecursiveComparison()
                 .ignoringFields("yearsOfExperience", "leaveDays", "expertises")
+                .withComparatorForType(
+                        BigDecimal::compareTo,
+                        BigDecimal.class
+                )
                 .isEqualTo(expectedEmployeeResponse);
 
         // assertion on database for updated employee
@@ -766,25 +752,6 @@ public class EmployeeControllerTest {
         assertEquals(EXISTENT_DEPARTMENT2_ID, updatedEmployee.getDepartment().getId());
         assertEquals(EXISTENT_TEAM2_ID, updatedEmployee.getTeam().getId());
         assertEquals(EXISTENT_MANAGER2_ID, updatedEmployee.getManager().getId());
-
-        // for update employee gross salary will insert a new salary record in employeeSalary table
-        // assertion on database for inserted employeeSalary
-        List<EmployeeSalary> employeeSalariesAfter = employeeSalaryRepository.findAll();
-
-        // get inserted salary
-        List<EmployeeSalary> insertedSalaries = employeeSalariesAfter.stream()
-                .filter(es -> !employeeSalariesBefore.contains(es)).toList();
-
-        assertEquals(1, insertedSalaries.size());
-        EmployeeSalary insertedSalary = insertedSalaries.getFirst();
-
-        assertThat(insertedSalary.getCreationDate()).isNotNull();
-        assertEquals(updatedGrossSalary, insertedSalary.getGrossSalary());
-
-        String expectedReason = SalaryReason.SALARY_UPDATED.getMessage();
-        assertEquals(expectedReason, insertedSalary.getReason());
-
-        assertEquals(updatedEmployee, insertedSalary.getEmployee());
     }
 
     @Test
@@ -1142,6 +1109,7 @@ public class EmployeeControllerTest {
         assertEquals(EXISTENT_EMPLOYEE1_ID, response.getEmployeeId());
 
         // assert on database
+        // for update employee gross salary will insert a new salary record in employeeSalary table
         List<EmployeeSalary> employeeSalariesAfter = employeeSalaryRepository.findAll();
 
         List<EmployeeSalary> insertedEmployeeSalaries = employeeSalariesAfter.stream()

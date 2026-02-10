@@ -7,7 +7,6 @@ import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -35,10 +34,6 @@ public class UpdateEmployeeRequest {
     private LocalDate dateOfBirth;
     private LocalDate graduationDate;
     private Gender gender;
-
-    @Min(value = 0, message = "salary must be greater than or equal to 0")
-    private BigDecimal grossSalary;
-
     private Long departmentId;
     private Long teamId;
     private Optional<Long> managerId;
