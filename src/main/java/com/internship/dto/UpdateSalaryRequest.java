@@ -1,7 +1,7 @@
 package com.internship.dto;
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -13,6 +13,6 @@ import java.math.BigDecimal;
 @Builder
 public class UpdateSalaryRequest {
     @NotNull
-    @Min(value = 0, message = "salary must be greater than or equal to 0")
+    @Positive
     private BigDecimal grossSalary;
 }

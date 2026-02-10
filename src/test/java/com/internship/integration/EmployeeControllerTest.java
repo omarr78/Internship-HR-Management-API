@@ -1156,4 +1156,34 @@ public class EmployeeControllerTest {
         assertEquals(SalaryReason.SALARY_UPDATED.getMessage(), insertedEmployeeSalary.getReason());
         assertEquals(EXISTENT_EMPLOYEE1_ID, insertedEmployeeSalary.getEmployee().getId());
     }
+
+    @Test
+    @DataSet("dataset/update_employee_salary.xml")
+    public void testUpdateEmployeeSalaryWithNegativeSalary_shouldFailAndShouldReturnBadRequest() throws Exception {
+        UpdateSalaryRequest request = UpdateSalaryRequest.builder()
+                .grossSalary(NEGATIVE_SALARY)
+                .build();
+
+        mockMvc.perform(put("/api/employees/" + EXISTENT_EMPLOYEE1_ID + "/salary")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                        .contains("must be greater than 0")));
+    }
+
+    @Test
+    @DataSet("dataset/update_employee_salary.xml")
+    public void testUpdateEmployeeSalaryWithZeroSalary_shouldFailAndShouldReturnBadRequest() throws Exception {
+        UpdateSalaryRequest request = UpdateSalaryRequest.builder()
+                .grossSalary(BigDecimal.ZERO)
+                .build();
+
+        mockMvc.perform(put("/api/employees/" + EXISTENT_EMPLOYEE1_ID + "/salary")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                        .contains("must be greater than 0")));
+    }
 }
