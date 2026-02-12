@@ -56,7 +56,7 @@ public class EmployeeController {
         // insert employee salary in employee-salaries table
         EmployeeSalary employeeSalary = EmployeeSalary.builder()
                 .grossSalary(currentGrossSalary.add(request.getAmount()))
-                .reason(SALARY_RAISED.getMessage())
+                .reason(request.getReason() != null ? request.getReason() : SALARY_RAISED.getMessage())
                 .employee(employee)
                 .build();
 
