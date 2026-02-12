@@ -1214,4 +1214,50 @@ public class EmployeeControllerTest {
         assertEquals(SalaryReason.SALARY_RAISED.getMessage(), insertedEmployeeSalary.getReason());
         assertEquals(EXISTENT_EMPLOYEE1_ID, insertedEmployeeSalary.getEmployee().getId());
     }
+
+    @Test
+    @DataSet("dataset/raise_employee_salary.xml")
+    public void testRaiseEmployeeSalaryWithCustomReason_shouldSuccessAndReturnRaisedSalaryDetails() throws Exception {
+        final String customReason = "Cost of living adjustment";
+        RaiseSalaryRequest request = RaiseSalaryRequest.builder()
+                .amount(POSITIVE_AMOUNT)
+                .reason(customReason)
+                .build();
+
+        final List<EmployeeSalary> employeeSalariesBefore = employeeSalaryRepository.findAll();
+        // for employee with id 1 his salary is (100_000) and the amount is 1000
+        // so the salary after raise will be (101000)
+        final BigDecimal expectedRaisedSalary = BigDecimal.valueOf(101000);
+
+        MvcResult result = mockMvc.perform(post("/api/employees/" + EXISTENT_EMPLOYEE1_ID + "/salary-raises")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        SalaryResponse response = objectMapper
+                .readValue(result.getResponse().getContentAsString(), SalaryResponse.class);
+
+        // assert on response
+        assertThat(response.getCreationDate()).isNotNull();
+        assertThat(expectedRaisedSalary).isEqualByComparingTo(response.getGrossSalary());
+        assertEquals(customReason, response.getReason());
+        assertEquals(EXISTENT_EMPLOYEE1_ID, response.getEmployeeId());
+
+        // assert on database
+        // for raise employee gross salary will insert a new salary record in employeeSalary table
+        List<EmployeeSalary> employeeSalariesAfter = employeeSalaryRepository.findAll();
+
+        List<EmployeeSalary> insertedEmployeeSalaries = employeeSalariesAfter.stream()
+                .filter(es -> !employeeSalariesBefore.contains(es)).toList();
+
+        assertEquals(1, insertedEmployeeSalaries.size());
+
+        EmployeeSalary insertedEmployeeSalary = insertedEmployeeSalaries.getFirst();
+
+        assertThat(insertedEmployeeSalary.getCreationDate()).isNotNull();
+        assertThat(expectedRaisedSalary).isEqualByComparingTo(insertedEmployeeSalary.getGrossSalary());
+        assertEquals(customReason, insertedEmployeeSalary.getReason());
+        assertEquals(EXISTENT_EMPLOYEE1_ID, insertedEmployeeSalary.getEmployee().getId());
+    }
 }
