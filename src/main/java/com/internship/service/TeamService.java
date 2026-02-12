@@ -4,7 +4,6 @@ import com.internship.dto.EmployeeResponse;
 import com.internship.exception.BusinessException;
 import com.internship.mapper.EmployeeMapper;
 import com.internship.repository.EmployeeRepository;
-import com.internship.repository.EmployeeSalaryRepository;
 import com.internship.repository.TeamRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,7 +19,6 @@ public class TeamService {
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
     private final EmployeeService employeeService;
-    private final EmployeeSalaryRepository employeeSalaryRepository;
 
     public List<EmployeeResponse> getMembers(Long id) {
         teamRepository.findById(id)
