@@ -1292,4 +1292,19 @@ public class EmployeeControllerTest {
                 .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
                         .contains("must be greater than 0")));
     }
+
+    @Test
+    @DataSet("dataset/raise_employee_salary.xml")
+    public void testRaiseNotFoundEmployeeSalary_shouldFailAndShouldReturnNotFound() throws Exception {
+        RaiseSalaryRequest request = RaiseSalaryRequest.builder()
+                .amount(POSITIVE_AMOUNT)
+                .build();
+
+        mockMvc.perform(post("/api/employees/" + NON_EXISTENT_ID + "/salary-raises")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                        .contains("Employee not found with id: " + NON_EXISTENT_ID)));
+    }
 }
