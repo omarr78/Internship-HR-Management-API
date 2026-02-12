@@ -1,3 +1,17 @@
+# [1.3.0](https://github.com/omarr78/Internship-HR-Management-API/compare/v1.2.0...v1.3.0) (2026-02-12)
+
+
+### Bug Fixes
+
+* copy data from salary column in employee to employee-salary table in before drop it to avoid loss of employee old salaries data ([960fee5](https://github.com/omarr78/Internship-HR-Management-API/commit/960fee5f2b1ab5e33f09bd4159d79bb499c63974))
+
+
+### Features
+
+* add employee-salaries table in migration file and entity ([81f54b5](https://github.com/omarr78/Internship-HR-Management-API/commit/81f54b546ad1657c9d3c5edb07446beff4da1dbb))
+* add SalaryReason enum to handle update salary reasons ([1ab17cd](https://github.com/omarr78/Internship-HR-Management-API/commit/1ab17cda89c5e0f144758083314098ddfdf7157b))
+* handle updating not found employee ([01db642](https://github.com/omarr78/Internship-HR-Management-API/commit/01db642bab51a98fc4116a7a83c63b46e8b80f6c))
+
 # [1.2.0](https://github.com/omarr78/Internship-HR-Management-API/compare/v1.1.0...v1.2.0) (2026-02-01)
 
 
