@@ -45,6 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class EmployeeControllerTest {
     static final BigDecimal POSITIVE_SALARY = BigDecimal.valueOf(1000);
     static final BigDecimal POSITIVE_AMOUNT = BigDecimal.valueOf(1000);
+    static final BigDecimal NEGATIVE_AMOUNT = BigDecimal.valueOf(-1.0);
     private static final BigDecimal TAX_REMINDER = BigDecimal.valueOf(0.85);
     private static final BigDecimal INSURANCE_AMOUNT = BigDecimal.valueOf(500);
     private static final Long NON_EXISTENT_ID = -1L;
@@ -1259,5 +1260,36 @@ public class EmployeeControllerTest {
         assertThat(expectedRaisedSalary).isEqualByComparingTo(insertedEmployeeSalary.getGrossSalary());
         assertEquals(customReason, insertedEmployeeSalary.getReason());
         assertEquals(EXISTENT_EMPLOYEE1_ID, insertedEmployeeSalary.getEmployee().getId());
+    }
+
+    @Test
+    @DataSet("dataset/raise_employee_salary.xml")
+    public void testRaiseEmployeeSalaryWithNegativeAmount_shouldFailAndReturnBadRequest() throws Exception {
+        final String customReason = "Cost of living adjustment";
+        RaiseSalaryRequest request = RaiseSalaryRequest.builder()
+                .amount(NEGATIVE_AMOUNT)
+                .build();
+
+        mockMvc.perform(post("/api/employees/" + EXISTENT_EMPLOYEE1_ID + "/salary-raises")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                        .contains("must be greater than 0")));
+    }
+
+    @Test
+    @DataSet("dataset/raise_employee_salary.xml")
+    public void testRaiseEmployeeSalaryWithZeroAmount_shouldFailAndReturnBadRequest() throws Exception {
+        RaiseSalaryRequest request = RaiseSalaryRequest.builder()
+                .amount(BigDecimal.ZERO)
+                .build();
+
+        mockMvc.perform(post("/api/employees/" + EXISTENT_EMPLOYEE1_ID + "/salary-raises")
+                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResponse().getContentAsString()
+                        .contains("must be greater than 0")));
     }
 }
