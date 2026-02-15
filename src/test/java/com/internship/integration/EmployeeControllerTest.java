@@ -26,6 +26,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -1183,6 +1184,7 @@ public class EmployeeControllerTest {
         // for employee with id 1 his salary is (100_000) and the amount is 1000
         // so the salary after raise will be (101000)
         final BigDecimal expectedRaisedSalary = BigDecimal.valueOf(101000);
+        final LocalDateTime dateBefore = LocalDateTime.now();
 
         MvcResult result = mockMvc.perform(post("/api/employees/" + EXISTENT_EMPLOYEE1_ID + "/salary-raises")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
@@ -1210,7 +1212,12 @@ public class EmployeeControllerTest {
 
         EmployeeSalary insertedEmployeeSalary = insertedEmployeeSalaries.getFirst();
 
+        LocalDateTime dateAfter = LocalDateTime.now();
+
         assertThat(insertedEmployeeSalary.getCreationDate()).isNotNull();
+        assertTrue(insertedEmployeeSalary.getCreationDate().isAfter(dateBefore));
+        assertTrue(insertedEmployeeSalary.getCreationDate().isBefore(dateAfter));
+
         assertThat(expectedRaisedSalary).isEqualByComparingTo(insertedEmployeeSalary.getGrossSalary());
         assertEquals(SalaryReason.SALARY_RAISED.getMessage(), insertedEmployeeSalary.getReason());
         assertEquals(EXISTENT_EMPLOYEE1_ID, insertedEmployeeSalary.getEmployee().getId());
@@ -1229,6 +1236,7 @@ public class EmployeeControllerTest {
         // for employee with id 1 his salary is (100_000) and the amount is 1000
         // so the salary after raise will be (101000)
         final BigDecimal expectedRaisedSalary = BigDecimal.valueOf(101000);
+        final LocalDateTime dateBefore = LocalDateTime.now();
 
         MvcResult result = mockMvc.perform(post("/api/employees/" + EXISTENT_EMPLOYEE1_ID + "/salary-raises")
                         .contentType(String.valueOf(MediaType.APPLICATION_JSON))
@@ -1256,7 +1264,12 @@ public class EmployeeControllerTest {
 
         EmployeeSalary insertedEmployeeSalary = insertedEmployeeSalaries.getFirst();
 
+        LocalDateTime dateAfter = LocalDateTime.now();
+
         assertThat(insertedEmployeeSalary.getCreationDate()).isNotNull();
+        assertTrue(insertedEmployeeSalary.getCreationDate().isAfter(dateBefore));
+        assertTrue(insertedEmployeeSalary.getCreationDate().isBefore(dateAfter));
+
         assertThat(expectedRaisedSalary).isEqualByComparingTo(insertedEmployeeSalary.getGrossSalary());
         assertEquals(customReason, insertedEmployeeSalary.getReason());
         assertEquals(EXISTENT_EMPLOYEE1_ID, insertedEmployeeSalary.getEmployee().getId());
@@ -1265,7 +1278,6 @@ public class EmployeeControllerTest {
     @Test
     @DataSet("dataset/raise_employee_salary.xml")
     public void testRaiseEmployeeSalaryWithNegativeAmount_shouldFailAndReturnBadRequest() throws Exception {
-        final String customReason = "Cost of living adjustment";
         RaiseSalaryRequest request = RaiseSalaryRequest.builder()
                 .amount(NEGATIVE_AMOUNT)
                 .build();
