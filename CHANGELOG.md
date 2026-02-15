@@ -1,3 +1,12 @@
+# [1.4.0](https://github.com/omarr78/Internship-HR-Management-API/compare/v1.3.0...v1.4.0) (2026-02-15)
+
+
+### Features
+
+* handle scenario of raising not found employee salary ([9d90f22](https://github.com/omarr78/Internship-HR-Management-API/commit/9d90f2279208fef75c427dca1746e429bf7e4882))
+* implement happy scenario of raising employee salary ([17d558d](https://github.com/omarr78/Internship-HR-Management-API/commit/17d558da107a4da9909d2afed4b251205ab0de72))
+* Implement scenario of raising employee salary with a custom reason ([c91e826](https://github.com/omarr78/Internship-HR-Management-API/commit/c91e826d3db52227201f7c6fad2506dd0cbfb10d))
+
 # [1.3.0](https://github.com/omarr78/Internship-HR-Management-API/compare/v1.2.0...v1.3.0) (2026-02-12)
 
 
