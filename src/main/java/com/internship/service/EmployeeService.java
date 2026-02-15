@@ -21,8 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.internship.enums.SalaryReason.INITIAL_BASE_SALARY;
-import static com.internship.enums.SalaryReason.SALARY_UPDATED;
+import static com.internship.enums.SalaryReason.*;
 import static com.internship.exception.ApiError.*;
 
 @Service
@@ -148,6 +147,24 @@ public class EmployeeService {
         EmployeeSalary employeeSalary = EmployeeSalary.builder()
                 .grossSalary(request.getGrossSalary())
                 .reason(SALARY_UPDATED.getMessage())
+                .employee(employee)
+                .build();
+
+        EmployeeSalary savedEmployeeSalary = employeeSalaryRepository.save(employeeSalary);
+        return employeeSalaryMapper.toResponse(savedEmployeeSalary);
+    }
+
+    public SalaryResponse raiseSalary(RaiseSalaryRequest request, Long id) {
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(EMPLOYEE_NOT_FOUND,
+                        "Employee not found with id: " + id));
+
+        BigDecimal currentGrossSalary = employee.getGrossSalary();
+
+        // insert employee salary in employee-salaries table
+        EmployeeSalary employeeSalary = EmployeeSalary.builder()
+                .grossSalary(currentGrossSalary.add(request.getAmount()))
+                .reason(request.getReason() != null ? request.getReason() : SALARY_RAISED.getMessage())
                 .employee(employee)
                 .build();
 
