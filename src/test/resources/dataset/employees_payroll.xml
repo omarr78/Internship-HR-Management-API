@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <!-- insert some department and team-->
+    <departments id='1' name='department1'/>
+    <departments id='2' name='department2'/>
+
+    <teams id='1' name='team1'/>
+    <teams id='2' name='team2'/>
+
+    <!-- insert some employees -->
+    <employees
+            id="1" first_name="A" last_name="Z" national_id="NID-1"
+            degree="SENIOR" past_experience_year="3" joined_date="2023-07-01"
+            date_of_birth="2001-10-05" graduation_date="2023-06-05" gender="MALE"
+            department_id="1" team_id="1"
+    />
+    <employees
+            id="2" first_name="B" last_name="Z" national_id="NID-2"
+            degree="INTERMEDIATE" past_experience_year="2" joined_date="2024-01-01"
+            date_of_birth="2003-10-05" graduation_date="2025-06-05" gender="MALE"
+            department_id="1" team_id="1" manager_id="1"
+    />
+    <employees
+            id="3" first_name="C" last_name="Z" national_id="NID-3"
+            degree="FRESH" past_experience_year="0" joined_date="2024-06-01"
+            date_of_birth="2003-10-05" graduation_date="2025-06-05" gender="MALE"
+            department_id="1" team_id="1" manager_id="2"
+    />
+    <employees
+            id="4" first_name="D" last_name="Z" national_id="NID-4"
+            degree="SENIOR" past_experience_year="12" joined_date="2009-03-01"
+            date_of_birth="1990-05-10" graduation_date="2011-06-15" gender="MALE"
+            department_id="1" team_id="1" manager_id="1"
+    />
+    <!--    insert salary    -->
+    <employee_salaries
+            id='1'
+            creation_date='2019-01-01'
+            gross_salary='10500.00'
+            reason='Initial base salary'
+            employee_id='1'
+    />
+    <employee_salaries
+            id='2'
+            creation_date='2019-01-02'
+            gross_salary='8000.00'
+            reason='Initial base salary'
+            employee_id='2'
+    />
+    <employee_salaries
+            id='3'
+            creation_date='2019-01-03'
+            gross_salary='7000.00'
+            reason='Initial base salary'
+            employee_id='3'
+    />
+    <employee_salaries
+            id='4'
+            creation_date='2019-01-04'
+            gross_salary='15000.00'
+            reason='Initial base salary'
+            employee_id='4'
+    />
+    <!-- insert bonuses -->
+    <!-- Employee 1: has no bonuses -->
+    <!-- Employee 2: Jan 2020 -->
+    <bonuses
+            id="1"
+            bonus_date="2020-01-15"
+            amount="1000.00"
+            employee_id="2"
+    />
+
+    <!-- Employee 2: Feb 2020 -->
+    <bonuses
+            id="2"
+            bonus_date="2020-02-15"
+            amount="1500.00"
+            employee_id="2"
+    />
+
+    <!-- Employee 3: 2 bonuses in Jan 2020 -->
+    <bonuses
+            id="3"
+            bonus_date="2020-01-05"
+            amount="800.00"
+            employee_id="3"
+    />
+    <bonuses
+            id="4"
+            bonus_date="2020-01-20"
+            amount="1200.00"
+            employee_id="3"
+    />
+
+    <!-- Employee 4: 2 bonuses in Feb 2020 -->
+    <bonuses
+            id="5"
+            bonus_date="2020-02-10"
+            amount="900.00"
+            employee_id="4"
+    />
+    <bonuses
+            id="6"
+            bonus_date="2020-02-25"
+            amount="1100.00"
+            employee_id="4"
+    />
+</dataset>
