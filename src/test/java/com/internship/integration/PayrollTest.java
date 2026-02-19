@@ -8,7 +8,6 @@ import com.internship.entity.Payroll;
 import com.internship.repository.EmployeeRepository;
 import com.internship.repository.LeaveRepository;
 import com.internship.repository.PayrollRepository;
-import com.internship.service.EmployeeService;
 import com.internship.service.PayrollService;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
@@ -57,8 +56,6 @@ public class PayrollTest {
     private PayrollService payrollService;
     @Autowired
     private PayrollRepository payrollRepository;
-    @Autowired
-    private EmployeeService employeeService;
 
     private List<Leave> generateLeaves(LocalDate startDate, int leaveDays, Employee employee) {
         List<Leave> leaves = new ArrayList<>();
@@ -97,7 +94,7 @@ public class PayrollTest {
     }
 
     @Test
-    @DataSet("dataset/employees_payroll.xml")
+    @DataSet(value = "dataset/employees_payroll.xml", cleanBefore = true, cleanAfter = true)
     public void testGenerateEmployeePayroll_shouldSuccessAndPersistPayrollDetails() {
         // Suppose we are at in 2020-03-01, and we generate EmployeePayroll for Feb month
         //==========================================================================
@@ -157,17 +154,20 @@ public class PayrollTest {
 
             assertEquals(4, insertedEmployeePayroll.size());
 
-            BigDecimal expectedEmployeePayrollGrossSalary, expectedEmployeePayrollBonus, expectedEmployeePayrollTax,
-                    expectedEmployeePayrollLeaveDeduction, expectedEmployeePayrollNetSalary;
+            BigDecimal expectedEmployeePayrollGrossSalary;
+            BigDecimal expectedEmployeePayrollBonus;
+            BigDecimal expectedEmployeePayrollTax;
+            BigDecimal expectedEmployeePayrollLeaveDeduction;
+            BigDecimal expectedEmployeePayrollNetSalary;
 
-            List<BigDecimal> employee_bonuses = List.of(
+            List<BigDecimal> employeeBonuses = List.of(
                     BigDecimal.valueOf(0), // employee1
                     BigDecimal.valueOf(1500), // employee2
                     BigDecimal.valueOf(0), // employee3
                     BigDecimal.valueOf(900 + 1100) // employee4 has 2 bonuses
             );
 
-            List<Integer> employee_deductedLeavesDay = List.of(0, 4, 0, 5);
+            List<Integer> employeeDeductedLeavesDay = List.of(0, 4, 0, 5);
 
             for (int i = 0; i < 4; i++) {
                 final Long employeeId = i + 1L;
@@ -181,7 +181,7 @@ public class PayrollTest {
                 expectedEmployeePayrollGrossSalary = employeePayroll.getGrossSalary();
                 assertEquals(0, expectedEmployeePayrollGrossSalary.compareTo(employeePayroll.getGrossSalary()));
 
-                expectedEmployeePayrollBonus = employee_bonuses.get(i);
+                expectedEmployeePayrollBonus = employeeBonuses.get(i);
                 assertEquals(0, expectedEmployeePayrollBonus.compareTo(employeePayroll.getBonus()));
 
                 expectedEmployeePayrollTax = calculateTax(expectedEmployeePayrollGrossSalary);
@@ -190,13 +190,14 @@ public class PayrollTest {
                 assertEquals(0, INSURANCE_AMOUNT.compareTo(employeePayroll.getInsuranceDeduction()));
 
                 expectedEmployeePayrollLeaveDeduction =
-                        calculateLeavesDeduction(expectedEmployeePayrollGrossSalary, employee_deductedLeavesDay.get(i));
+                        calculateLeavesDeduction(expectedEmployeePayrollGrossSalary, employeeDeductedLeavesDay.get(i));
 
                 assertEquals(0, expectedEmployeePayrollLeaveDeduction
                         .compareTo(employeePayroll.getLeavesDeduction()));
 
-                expectedEmployeePayrollNetSalary = calculateNetSalary(expectedEmployeePayrollGrossSalary,
-                        expectedEmployeePayrollTax, expectedEmployeePayrollLeaveDeduction, expectedEmployeePayrollBonus);
+                expectedEmployeePayrollNetSalary =
+                        calculateNetSalary(expectedEmployeePayrollGrossSalary, expectedEmployeePayrollTax,
+                                expectedEmployeePayrollLeaveDeduction, expectedEmployeePayrollBonus);
                 assertEquals(0, expectedEmployeePayrollNetSalary.compareTo(employeePayroll.getNetSalary()));
 
                 assertEquals(employeeId, employeePayroll.getEmployee().getId());
