@@ -5,6 +5,8 @@ import com.github.database.rider.spring.api.DBRider;
 import com.internship.entity.Employee;
 import com.internship.entity.Leave;
 import com.internship.entity.Payroll;
+import com.internship.exception.ApiError;
+import com.internship.exception.BusinessException;
 import com.internship.repository.EmployeeRepository;
 import com.internship.repository.LeaveRepository;
 import com.internship.repository.PayrollRepository;
@@ -26,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -203,5 +206,19 @@ public class PayrollTest {
                 assertEquals(employeeId, employeePayroll.getEmployee().getId());
             }
         }
+    }
+
+    @Test
+    @DataSet(value = "dataset/employees_payroll.xml", cleanBefore = true, cleanAfter = true)
+    public void testDuplicationGenerateSameEmployeePayrollForSameMonthAndYear_shouldFailAndReturnConflict() {
+        // First generation → should succeed
+        payrollService.generatePayroll();
+
+        // Second generation → should throw exception
+        BusinessException exception = assertThrows(BusinessException.class, () -> payrollService.generatePayroll());
+        assertEquals(
+                ApiError.DUPLICATE_PAYROLL_EXCEPTION.getDefaultMessage(),
+                exception.getMessage()
+        );
     }
 }

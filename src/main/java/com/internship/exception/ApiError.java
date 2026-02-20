@@ -3,6 +3,7 @@ package com.internship.exception;
 import org.springframework.http.HttpStatus;
 
 public enum ApiError {
+    DUPLICATE_PAYROLL_EXCEPTION(HttpStatus.CONFLICT, "This employee already has a payroll recorded for the same month and the same year"),
     DUPLICATE_LEAVE_EXCEPTION(HttpStatus.CONFLICT, "This employee already has a leave recorded for the specified date"),
     INVALID_END_DATE_YEAR(HttpStatus.BAD_REQUEST, "end date must be in the same current year"),
     INVALID_START_DATE_MONTH(HttpStatus.BAD_REQUEST, "start date must be at least in the same current month"),
