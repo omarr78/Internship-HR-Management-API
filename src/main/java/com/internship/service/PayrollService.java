@@ -4,12 +4,14 @@ import com.internship.entity.Bonus;
 import com.internship.entity.Employee;
 import com.internship.entity.Leave;
 import com.internship.entity.Payroll;
+import com.internship.exception.BusinessException;
 import com.internship.repository.BonusRepository;
 import com.internship.repository.EmployeeRepository;
 import com.internship.repository.LeaveRepository;
 import com.internship.repository.PayrollRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -18,6 +20,8 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.internship.exception.ApiError.DUPLICATE_PAYROLL_EXCEPTION;
 
 @Service
 @RequiredArgsConstructor
@@ -65,7 +69,11 @@ public class PayrollService {
 
             employeePayroll.add(payroll);
         }
-        payrollRepository.saveAll(employeePayroll);
+        try {
+            payrollRepository.saveAll(employeePayroll);
+        } catch (DataIntegrityViolationException ex) {
+            throw new BusinessException(DUPLICATE_PAYROLL_EXCEPTION);
+        }
     }
 
     private BigDecimal calculateBonusOfEmployeeInSpecificMonthAndYear(final Employee employee, int month, int year) {
