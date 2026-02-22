@@ -11,6 +11,7 @@ import com.internship.repository.LeaveRepository;
 import com.internship.repository.PayrollRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,7 @@ import static com.internship.exception.ApiError.DUPLICATE_PAYROLL_EXCEPTION;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PayrollService {
     static final Integer WORKING_DAY_IN_MONTH = 30;
     private static final BigDecimal INSURANCE_AMOUNT = BigDecimal.valueOf(500);
@@ -38,7 +40,8 @@ public class PayrollService {
     @Transactional
     public void generatePayroll() {
         // we're generating payroll for the prev month
-        LocalDate today = LocalDate.now().minusMonths(1);
+//        LocalDate today = LocalDate.now().minusMonths(1);
+        LocalDate today = LocalDate.of(2026, 1, 1).minusMonths(1);
 
         int month = today.getMonthValue();
         int year = today.getYear();
@@ -47,6 +50,8 @@ public class PayrollService {
         List<Payroll> employeePayroll = new ArrayList<>();
 
         for (Employee employee : employees) {
+            log.info("============================================================");
+            log.info("process employee with id = {}", employee.getId());
             BigDecimal grossSalary = employee.getGrossSalary();
             BigDecimal bonus = calculateBonusOfEmployeeInSpecificMonthAndYear(employee, month, year);
             BigDecimal taxAmount = grossSalary.multiply(TAX_RATIO);

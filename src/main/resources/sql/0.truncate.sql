@@ -1,0 +1,13 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
+TRUNCATE TABLE bonuses;
+TRUNCATE TABLE departments;
+TRUNCATE TABLE employee_expertise;
+TRUNCATE TABLE employee_payroll;
+TRUNCATE TABLE employee_salaries;
+TRUNCATE TABLE employees;
+TRUNCATE TABLE expertises;
+TRUNCATE TABLE leaves;
+TRUNCATE TABLE teams;
+
+SET FOREIGN_KEY_CHECKS = 1;
