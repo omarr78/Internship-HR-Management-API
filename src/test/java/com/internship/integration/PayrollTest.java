@@ -40,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class PayrollTest {
     static final LocalDate START_OF_JAN = LocalDate.of(2020, 1, 1);
     static final LocalDate START_OF_FEB = LocalDate.of(2020, 2, 1);
+    static final LocalDate START_OF_MAR = LocalDate.of(2020, 3, 1);
     static final LocalDate FIXED_DATE = LocalDate.of(2020, 3, 1);
     static final Integer PAYROLL_YEAR = 2020;
     static final Integer PAYROLL_MONTH = 2;
@@ -104,23 +105,27 @@ public class PayrollTest {
         /*
          employee 1 has 21 leave days
          Takes 20 leave in Jan, and takes 1 leave in Feb -- so no leave deduction in the current month
+         And also take 5 leaves in Mar -- and this is will be ignored for now
          And there is no bonuses in the current month
         */
         Employee employee1 = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
         final List<Leave> leavesEmployee1 = new ArrayList<>();
-        leavesEmployee1.addAll(generateLeaves(START_OF_JAN, 20, employee1));
+        leavesEmployee1.addAll(generateLeaves(START_OF_MAR, 5, employee1));
         leavesEmployee1.addAll(generateLeaves(START_OF_FEB, 1, employee1));
+        leavesEmployee1.addAll(generateLeaves(START_OF_JAN, 20, employee1));
         leaveRepository.saveAllAndFlush(leavesEmployee1);
         //==========================================================================
         /*
          employee 2 has 21 leave days
          Takes 20 leave in Jan, and takes 5 leave in Feb -- so there are 4 deducted leave days in the current month
+         And also take 5 leaves in Mar -- and this is will be ignored for now
          he has one bonus 1500.00 in the current month
         */
         Employee employee2 = employeeRepository.findById(EXISTENT_EMPLOYEE2_ID).get();
         final List<Leave> leavesEmployee2 = new ArrayList<>();
-        leavesEmployee2.addAll(generateLeaves(START_OF_JAN, 20, employee2));
+        leavesEmployee2.addAll(generateLeaves(START_OF_MAR, 5, employee2));
         leavesEmployee2.addAll(generateLeaves(START_OF_FEB, 5, employee2));
+        leavesEmployee2.addAll(generateLeaves(START_OF_JAN, 20, employee2));
         leaveRepository.saveAllAndFlush(leavesEmployee2);
         //==========================================================================
         /*
@@ -135,12 +140,14 @@ public class PayrollTest {
         /*
          employee 4 has 30 leave days
          Takes 20 leave in Jan, and takes 15 leave in Feb -- so there are 5 deducted leave days in the current month
+         And also take 5 leaves in Mar -- and this is will be ignored for now
          And there is 2 bonuses in the current month 1100.00, and 900.00
         */
         Employee employee4 = employeeRepository.findById(EXISTENT_EMPLOYEE4_ID).get();
         final List<Leave> leavesEmployee4 = new ArrayList<>();
-        leavesEmployee4.addAll(generateLeaves(START_OF_JAN, 20, employee4));
+        leavesEmployee4.addAll(generateLeaves(START_OF_MAR, 5, employee4));
         leavesEmployee4.addAll(generateLeaves(START_OF_FEB, 15, employee4));
+        leavesEmployee4.addAll(generateLeaves(START_OF_JAN, 20, employee4));
         leaveRepository.saveAllAndFlush(leavesEmployee4);
         //==========================================================================
         List<Payroll> employeePayrollBefore = payrollRepository.findAll();
