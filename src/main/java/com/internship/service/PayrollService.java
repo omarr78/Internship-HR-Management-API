@@ -88,9 +88,12 @@ public class PayrollService {
     private BigDecimal calculateLeavesDeductionOfEmployeeInSpecificMonthAndYear(final Employee employee,
                                                                                 int month, int year) {
         LocalDate start = LocalDate.of(year, 1, 1);
-        LocalDate end = LocalDate.of(year, 12, 31);
+        LocalDate end = LocalDate.of(year, month, 1)
+                .plusMonths(1)
+                .minusDays(1);
+
         int maxLeaveDays = employeeService.getTheNumberOfLeaveDays(employee.getJoinedDate());
-        List<Leave> leaves = leaveRepository.findByEmployeeIdAndLeaveDateBetween(employee.getId(), start, end);
+        List<Leave> leaves = leaveRepository.findByEmployeeIdAndLeaveDateBetweenOrderByLeaveDateAsc(employee.getId(), start, end);
         int numberOfLeavesDeduction = 0;
         int leaveCounter = 0;
         for (Leave leave : leaves) {

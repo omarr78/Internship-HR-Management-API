@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface LeaveRepository extends JpaRepository<Leave, Long> {
-    List<Leave> findByEmployeeIdAndLeaveDateBetween(
+    List<Leave> findByEmployeeIdAndLeaveDateBetweenOrderByLeaveDateAsc(
             Long employeeId,
             LocalDate start,
             LocalDate end
