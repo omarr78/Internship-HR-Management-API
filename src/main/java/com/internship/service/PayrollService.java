@@ -4,25 +4,22 @@ import com.internship.entity.Bonus;
 import com.internship.entity.Employee;
 import com.internship.entity.Leave;
 import com.internship.entity.Payroll;
-import com.internship.exception.BusinessException;
 import com.internship.repository.BonusRepository;
 import com.internship.repository.EmployeeRepository;
 import com.internship.repository.LeaveRepository;
 import com.internship.repository.PayrollRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.ArrayList;
 import java.util.List;
-
-import static com.internship.exception.ApiError.DUPLICATE_PAYROLL_EXCEPTION;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +33,8 @@ public class PayrollService {
     private final LeaveRepository leaveRepository;
     private final EmployeeService employeeService;
     private final PayrollRepository payrollRepository;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Transactional
     public void generatePayroll() {
@@ -46,10 +45,8 @@ public class PayrollService {
         int month = today.getMonthValue();
         int year = today.getYear();
 
-        List<Employee> employees = employeeRepository.findAll();
-        List<Payroll> employeePayroll = new ArrayList<>();
-
-        for (Employee employee : employees) {
+        for (long id = 1; id <= 10000; id++) {
+            Employee employee = employeeRepository.findById(id).get();
             log.info("============================================================");
             log.info("process employee with id = {}", employee.getId());
             BigDecimal grossSalary = employee.getGrossSalary();
@@ -72,12 +69,12 @@ public class PayrollService {
                     .employee(employee)
                     .build();
 
-            employeePayroll.add(payroll);
-        }
-        try {
-            payrollRepository.saveAll(employeePayroll);
-        } catch (DataIntegrityViolationException ex) {
-            throw new BusinessException(DUPLICATE_PAYROLL_EXCEPTION);
+            payrollRepository.saveAndFlush(payroll);
+
+            if (id % 50 == 0) {
+                entityManager.flush();
+                entityManager.clear();
+            }
         }
     }
 

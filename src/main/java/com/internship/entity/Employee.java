@@ -90,7 +90,7 @@ public class Employee {
     @JsonManagedReference("employee-bonuses")
     private List<Bonus> bonuses;
 
-    @OneToMany(mappedBy = "employee")
+    @OneToMany(mappedBy = "employee", fetch = FetchType.EAGER)
     @JsonManagedReference("employee-salary")
     private List<EmployeeSalary> employeeSalaries;
 
