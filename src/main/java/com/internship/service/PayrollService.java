@@ -93,7 +93,8 @@ public class PayrollService {
                 .minusDays(1);
 
         int maxLeaveDays = employeeService.getTheNumberOfLeaveDays(employee.getJoinedDate());
-        List<Leave> leaves = leaveRepository.findByEmployeeIdAndLeaveDateBetweenOrderByLeaveDateAsc(employee.getId(), start, end);
+        List<Leave> leaves = leaveRepository
+                .findByEmployeeIdAndLeaveDateBetweenOrderByLeaveDateAsc(employee.getId(), start, end);
         int numberOfLeavesDeduction = 0;
         int leaveCounter = 0;
         for (Leave leave : leaves) {
