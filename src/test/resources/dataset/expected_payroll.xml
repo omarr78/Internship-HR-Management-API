@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Suppose we are at in 2020-03-01, and we generate EmployeePayroll for Feb month
+     So all the years will be "2020"
+     And all the months will be "2"
+     TAX_RATIO will be "0.15 * gross salary"
+     INSURANCE_AMOUNT will be "500"
+     deducted leaves = "gross salary / WORKING_DAY_IN_MONTH" and WORKING_DAY_IN_MONTH = "30"
+-->
+<dataset>
+    <!--
+    employee 1 has 21 leave days
+    Takes 20 leave in Jan, and takes 1 leave in Feb - so no leave deduction in the current month
+    And also take 5 leaves in Mar - and this is will be ignored for now
+    And there is no bonuses in the current month
+    -->
+    <employee_payroll
+            employee_id="1"
+            payroll_year="2020"
+            payroll_month="2"
+            gross_salary="10500.00"
+            bonus="0.00"
+            tax_amount="1575.00"
+            insurance_deduction="500.00"
+            leaves_deduction="0.00"
+            net_salary="8425.00"
+    />
+    <!--
+    employee 2 has 21 leave days
+    Takes 20 leave in Jan, and takes 5 leave in Feb - so there are 4 deducted leave days in the current month
+    And also take 5 leaves in Mar - and this is will be ignored for now
+    So total deducted leaves will be 4 * ( 8000 / 30 ) = 1067
+    he has one bonus 1500.00 in the current month
+    -->
+    <employee_payroll
+            employee_id="2"
+            payroll_year="2020"
+            payroll_month="2"
+            gross_salary="8000"
+            bonus="1500"
+            tax_amount="1200"
+            insurance_deduction="500"
+            leaves_deduction="1067"
+            net_salary="6733"
+    />
+    <!--
+     employee 3 has 21 leave days
+     Takes 22 leave in Jan, and takes 0 leave in Feb - so no leave deduction in the current month
+     And there is no bonuses in the current month
+    -->
+    <employee_payroll
+            employee_id="3"
+            payroll_year="2020"
+            payroll_month="2"
+            gross_salary="7000"
+            bonus="0"
+            tax_amount="1050"
+            insurance_deduction="500"
+            leaves_deduction="0"
+            net_salary="5450"
+    />
+    <!--
+    employee 4 has 30 leave days
+    Takes 20 leave in Jan, and takes 15 leave in Feb - so there are 5 deducted leave days in the current month
+    And also take 5 leaves in Mar - and this is will be ignored for now
+    So total deducted leaves will be 5 * ( 15000 / 30 ) = 2500
+    And there is 2 bonuses in the current month 1100.00, and 900.00
+    -->
+    <employee_payroll
+            employee_id="4"
+            payroll_year="2020"
+            payroll_month="2"
+            gross_salary="15000"
+            bonus="2000"
+            tax_amount="2250"
+            insurance_deduction="500"
+            leaves_deduction="2500"
+            net_salary="11750"
+    />
+</dataset>
