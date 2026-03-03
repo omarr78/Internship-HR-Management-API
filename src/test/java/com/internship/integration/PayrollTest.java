@@ -113,7 +113,7 @@ public class PayrollTest {
         leavesEmployee1.addAll(generateLeaves(START_OF_MAR, 5, employee1));
         leavesEmployee1.addAll(generateLeaves(START_OF_FEB, 1, employee1));
         leavesEmployee1.addAll(generateLeaves(START_OF_JAN, 20, employee1));
-        leaveRepository.saveAllAndFlush(leavesEmployee1);
+        leaveRepository.saveAll(leavesEmployee1);
         //==========================================================================
         /*
          employee 2 has 21 leave days
@@ -126,7 +126,7 @@ public class PayrollTest {
         leavesEmployee2.addAll(generateLeaves(START_OF_MAR, 5, employee2));
         leavesEmployee2.addAll(generateLeaves(START_OF_FEB, 5, employee2));
         leavesEmployee2.addAll(generateLeaves(START_OF_JAN, 20, employee2));
-        leaveRepository.saveAllAndFlush(leavesEmployee2);
+        leaveRepository.saveAll(leavesEmployee2);
         //==========================================================================
         /*
          employee 3 has 21 leave days
@@ -135,7 +135,7 @@ public class PayrollTest {
         */
         Employee employee3 = employeeRepository.findById(EXISTENT_EMPLOYEE3_ID).get();
         final List<Leave> leavesEmployee3 = new ArrayList<>(generateLeaves(START_OF_JAN, 22, employee3));
-        leaveRepository.saveAllAndFlush(leavesEmployee3);
+        leaveRepository.saveAll(leavesEmployee3);
         //==========================================================================
         /*
          employee 4 has 30 leave days
@@ -148,7 +148,7 @@ public class PayrollTest {
         leavesEmployee4.addAll(generateLeaves(START_OF_MAR, 5, employee4));
         leavesEmployee4.addAll(generateLeaves(START_OF_FEB, 15, employee4));
         leavesEmployee4.addAll(generateLeaves(START_OF_JAN, 20, employee4));
-        leaveRepository.saveAllAndFlush(leavesEmployee4);
+        leaveRepository.saveAll(leavesEmployee4);
         //==========================================================================
         List<Payroll> employeePayrollBefore = payrollRepository.findAll();
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
