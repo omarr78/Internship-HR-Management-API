@@ -218,14 +218,17 @@ public class PayrollTest {
     @Test
     @DataSet(value = "dataset/employees_payroll.xml", cleanBefore = true, cleanAfter = true)
     public void testDuplicationGenerateSameEmployeePayrollForSameMonthAndYear_shouldFailAndReturnConflict() {
-        // First generation → should succeed
-        payrollService.generatePayroll();
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(FIXED_DATE);
+            // First generation → should succeed
+            payrollService.generatePayroll();
 
-        // Second generation → should throw exception
-        BusinessException exception = assertThrows(BusinessException.class, () -> payrollService.generatePayroll());
-        assertEquals(
-                ApiError.DUPLICATE_PAYROLL_EXCEPTION.getDefaultMessage(),
-                exception.getMessage()
-        );
+            // Second generation → should throw exception
+            BusinessException exception = assertThrows(BusinessException.class, () -> payrollService.generatePayroll());
+            assertEquals(
+                    ApiError.DUPLICATE_PAYROLL_EXCEPTION.getDefaultMessage(),
+                    exception.getMessage()
+            );
+        }
     }
 }
