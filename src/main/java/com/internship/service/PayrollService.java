@@ -18,7 +18,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.internship.exception.ApiError.DUPLICATE_PAYROLL_EXCEPTION;
@@ -44,9 +43,8 @@ public class PayrollService {
         int year = today.getYear();
 
         List<Employee> employees = employeeRepository.findAll();
-        List<Payroll> employeePayroll = new ArrayList<>();
 
-        for (Employee employee : employees) {
+        List<Payroll> employeePayroll = employees.stream().map(employee -> {
             BigDecimal grossSalary = employee.getGrossSalary();
             BigDecimal bonus = calculateBonusOfEmployeeInSpecificMonthAndYear(employee, month, year);
             BigDecimal taxAmount = grossSalary.multiply(TAX_RATIO);
@@ -55,7 +53,7 @@ public class PayrollService {
             BigDecimal netSalary =
                     grossSalary.subtract(taxAmount.add(INSURANCE_AMOUNT).add(leavesDeduction)).add(bonus);
 
-            Payroll payroll = Payroll.builder()
+            return Payroll.builder()
                     .payrollYear(year)
                     .payrollMonth(month)
                     .grossSalary(grossSalary)
@@ -66,9 +64,8 @@ public class PayrollService {
                     .netSalary(netSalary)
                     .employee(employee)
                     .build();
+        }).toList();
 
-            employeePayroll.add(payroll);
-        }
         try {
             payrollRepository.saveAll(employeePayroll);
         } catch (DataIntegrityViolationException ex) {
@@ -85,12 +82,12 @@ public class PayrollService {
         return bonuses.stream().map(Bonus::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private BigDecimal calculateLeavesDeductionOfEmployeeInSpecificMonthAndYear(final Employee employee,
-                                                                                int month, int year) {
-        LocalDate start = LocalDate.of(year, 1, 1);
-        LocalDate end = LocalDate.of(year, month, 1)
-                .plusMonths(1)
-                .minusDays(1);
+    private BigDecimal calculateLeavesDeductionOfEmployeeInSpecificMonthAndYear(
+            final Employee employee,
+            int month, int year
+    ) {
+        LocalDate start = YearMonth.of(year, 1).atDay(1);
+        LocalDate end = YearMonth.of(year, month).atEndOfMonth();
 
         int maxLeaveDays = employeeService.getTheNumberOfLeaveDays(employee.getJoinedDate());
         List<Leave> leaves = leaveRepository
