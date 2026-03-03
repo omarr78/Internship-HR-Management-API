@@ -72,6 +72,7 @@ public class PayrollTest {
             skipCleaningFor = {"flyway_schema_history"}
     )
     @ExpectedDataSet(value = "dataset/expected_payroll.xml", ignoreCols = {"id"})
+    @Transactional(Transactional.TxType.NOT_SUPPORTED)
     public void testGenerateEmployeePayroll_shouldSuccessAndPersistPayrollDetails() {
         // generate leaves for employees
         Employee employee1 = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
