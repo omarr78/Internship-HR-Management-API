@@ -66,13 +66,8 @@ public class PayrollTest {
     }
 
     @Test
-    @DataSet(value = "dataset/employees_payroll.xml",
-            cleanBefore = true,
-            cleanAfter = true,
-            skipCleaningFor = {"flyway_schema_history"}
-    )
+    @DataSet(value = "dataset/employees_payroll.xml")
     @ExpectedDataSet(value = "dataset/expected_payroll.xml", ignoreCols = {"id"})
-    @Transactional(Transactional.TxType.NOT_SUPPORTED)
     public void testGenerateEmployeePayroll_shouldSuccessAndPersistPayrollDetails() {
         // generate leaves for employees
         Employee employee1 = employeeRepository.findById(EXISTENT_EMPLOYEE1_ID).get();
@@ -109,11 +104,7 @@ public class PayrollTest {
     }
 
     @Test
-    @DataSet(value = "dataset/employees_payroll.xml",
-            cleanBefore = true,
-            cleanAfter = true,
-            skipCleaningFor = {"flyway_schema_history"}
-    )
+    @DataSet(value = "dataset/employees_payroll.xml")
     public void testDuplicationGenerateSameEmployeePayrollForSameMonthAndYear_shouldFailAndReturnConflict() {
         try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
             mocked.when(LocalDate::now).thenReturn(FIXED_DATE);
