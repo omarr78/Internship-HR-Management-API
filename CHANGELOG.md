@@ -1,3 +1,18 @@
+# [1.5.0](https://github.com/omarr78/Internship-HR-Management-API/compare/v1.4.0...v1.5.0) (2026-03-15)
+
+
+### Bug Fixes
+
+* fix style violation and fix some tests issue ([81f27ef](https://github.com/omarr78/Internship-HR-Management-API/commit/81f27ef62e5a5cb7a881ed0490f99243c4ccb872))
+
+
+### Features
+
+* handle case of feature leaves added while calculating the current month ([249399a](https://github.com/omarr78/Internship-HR-Management-API/commit/249399a149c52c065f00db7776190f4b1e0afe4e))
+* handle scenario of inserting duplicate payroll for the same employee, month and year ([50c5b5f](https://github.com/omarr78/Internship-HR-Management-API/commit/50c5b5fae1f0354967b965ebdb60ff842465a440))
+* Implement generate employees payroll feature ([4eecd8e](https://github.com/omarr78/Internship-HR-Management-API/commit/4eecd8e3be44b21c835d1282f922426599c06c90))
+* make generate payroll run at the first day of each month by adding Scheduler ([1ebc592](https://github.com/omarr78/Internship-HR-Management-API/commit/1ebc592849a4ec2e81a3250f11a312d1b07be539))
+
 # [1.4.0](https://github.com/omarr78/Internship-HR-Management-API/compare/v1.3.0...v1.4.0) (2026-02-15)
 
 
