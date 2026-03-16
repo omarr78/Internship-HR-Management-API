@@ -20,6 +20,14 @@ spring:
     password: ${DB_PASSWORD}
     locations: classpath:db/migration
 
+  batch:
+    jdbc:
+      # means that we want spring batch to always initialize the schema in case if it doesn't exist
+      initialize-schema: always
+    job:
+      # we want to trigger the execution of the job ourselves
+      enabled: false
+
 management:
   endpoints:
     web:
