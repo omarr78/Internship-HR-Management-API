@@ -22,8 +22,9 @@ spring:
 
   batch:
     jdbc:
-      # means that we want spring batch to always initialize the schema in case if it doesn't exist
-      initialize-schema: always
+      # always -> means that we want spring batch to always initialize the schema in case if it doesn't exist,
+      # never -> used when we're using migration tools to create the spring batch tables
+      initialize-schema: never
     job:
       # we want to trigger the execution of the job ourselves
       enabled: false
