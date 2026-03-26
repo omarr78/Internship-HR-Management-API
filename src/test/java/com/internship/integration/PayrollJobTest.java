@@ -144,4 +144,42 @@ public class PayrollJobTest {
             // DB Rider @ExpectedDataSet will now automatically verify
         }
     }
+
+    @Test
+    // since this test is not transactional because spring batch so we need to clean before and after test
+    @DataSet(
+            value = "dataset/employees_payroll_with_duplication.xml",
+            cleanBefore = true, cleanAfter = true,
+            skipCleaningFor = {"flyway_schema_history"}
+    )
+    @ExpectedDataSet(value = "dataset/expected_payroll_with_duplication.xml", ignoreCols = {"id"})
+    public void testGenerateEmployeePayrollWithDuplication_shouldSkipExistingPayrolls() throws Exception {
+        // Suppose we are at in 2020-03-01, and we generate EmployeePayroll for Feb month
+        try (MockedStatic<LocalDate> mocked = Mockito.mockStatic(LocalDate.class, Mockito.CALLS_REAL_METHODS)) {
+            mocked.when(LocalDate::now).thenReturn(FIXED_DATE);
+
+            // Prepare Job Parameters (February 2020)
+            JobParameters params = new JobParametersBuilder()
+                    .addLong("runTime", System.currentTimeMillis()) // Just unique run ID
+                    .toJobParameters();
+
+            // Run the Job
+            JobExecution jobExecution = jobLauncherTestUtils.launchJob(params);
+
+            // Assert Job Status
+            assertEquals(ExitStatus.COMPLETED, jobExecution.getExitStatus());
+
+            // Get StepExecution
+            StepExecution stepExecution = jobExecution
+                    .getStepExecutions()
+                    .iterator()
+                    .next();
+
+            // Assert filtered items count
+            int expectedItemFiltered = 2;
+            assertEquals(expectedItemFiltered, stepExecution.getFilterCount());
+
+            // DB Rider @ExpectedDataSet will now automatically verify
+        }
+    }
 }
