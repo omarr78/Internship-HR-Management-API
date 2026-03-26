@@ -12,4 +12,10 @@ public interface LeaveRepository extends JpaRepository<Leave, Long> {
             LocalDate start,
             LocalDate end
     );
+
+    List<Leave> findByEmployeeIdInAndLeaveDateBetween(
+            List<Long> employeeIds,
+            LocalDate start,
+            LocalDate end
+    );
 }
