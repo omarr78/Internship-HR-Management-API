@@ -16,3 +16,13 @@ spring:
     enabled: true
     baseline-on-migrate: true
     locations: classpath:db/migration
+
+  batch:
+    jdbc:
+      # always -> means that we want spring batch to always initialize the schema in case if it doesn't exist,
+      # never -> used when we're using migration tools to create the spring batch tables
+      initialize-schema: never
+    job:
+      # we want to trigger the execution of the job ourselves
+      ## Prevents jobs from running on startup
+      enabled: false
