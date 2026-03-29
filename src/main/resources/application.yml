@@ -22,7 +22,9 @@ spring:
     url: jdbc:mysql://${DB_URL}:${DB_PORT}/${DB_NAME}?createDatabaseIfNotExist=true&useMysqlMetadata=true
     user: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-    locations: classpath:db/migration
+    locations:
+      - classpath:db/migration/common
+      - classpath:db/migration/mysql
 
   batch:
     jdbc:
