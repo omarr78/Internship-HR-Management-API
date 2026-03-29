@@ -10,15 +10,31 @@ spring:
     hibernate:
       ddl-auto: validate
     database-platform: org.hibernate.dialect.MySQLDialect
-    show-sql: true
-
+    show-sql: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 500
+  
   flyway:
     enabled: true
     baseline-on-migrate: true
     url: jdbc:mysql://${DB_URL}:${DB_PORT}/${DB_NAME}?createDatabaseIfNotExist=true&useMysqlMetadata=true
     user: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-    locations: classpath:db/migration
+    locations:
+      - classpath:db/migration/common
+      - classpath:db/migration/mysql
+
+  batch:
+    jdbc:
+      # always -> means that we want spring batch to always initialize the schema in case if it doesn't exist,
+      # never -> used when we're using migration tools to create the spring batch tables
+      initialize-schema: never
+    job:
+      # we want to trigger the execution of the job ourselves
+      # Prevents jobs from running on startup
+      enabled: false
 
 management:
   endpoints:

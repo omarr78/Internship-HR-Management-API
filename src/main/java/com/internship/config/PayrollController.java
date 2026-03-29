@@ -1,6 +1,6 @@
-package com.internship.scheduler;
+package com.internship.config;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -9,18 +9,19 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Component
-@AllArgsConstructor
-public class Scheduler {
+@RestController
+@RequestMapping("/api/payroll")
+@RequiredArgsConstructor
+public class PayrollController {
     private final JobLauncher jobLauncher;
     private final Job job;
 
-    // At 12:00 AM, on day 1 of the month
-    @Scheduled(cron = "0 0 0 1 * ?")
-    public void startGenerationPayroll() {
+    @PostMapping
+    public void generatePayroll() {
         JobParameters jobParameter = new JobParametersBuilder()
                 .addLong("runTime", System.currentTimeMillis())
                 .toJobParameters();

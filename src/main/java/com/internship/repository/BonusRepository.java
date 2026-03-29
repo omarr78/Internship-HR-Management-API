@@ -12,4 +12,10 @@ public interface BonusRepository extends JpaRepository<Bonus, Long> {
             LocalDate start,
             LocalDate end
     );
+
+    List<Bonus> findByEmployeeIdInAndBonusDateBetween(
+            List<Long> employeeIds,
+            LocalDate start,
+            LocalDate end
+    );
 }
